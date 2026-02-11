@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Proyecto — Hero</title>
+  <link rel="stylesheet" href="mainPage.css" />
+</head>
+
+<body>
+  <div class="page">
+    <header class="topbar" aria-label="Barra superior">
+      <button class="icon-btn" type="button" aria-label="Abrir menú">
+        +
+      </button>
+
+      <a class="brand" href="#" aria-label="Inicio">
+        <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true">
+          <path fill="currentColor" d="M12 40l8-20h8l-8 20h-8zm16 0l8-20h8l-8 20h-8zm16 0l8-20h8l-8 20h-8z"/>
+        </svg>
+      </a>
+
+      <a class="cta" href="#contacto">Let's Talk</a>
+    </header>
+
+    <main class="hero">
+      <div class="hero__bgText hero__bgText--left" aria-hidden="true">MEDIA</div>
+      <div class="hero__bgText hero__bgText--right" aria-hidden="true">MEDIA · MS</div>
+
+      <section class="hero__content" aria-label="Hero principal">
+        <figure class="hero__media">
+          <video
+            src="media/hero.mp4"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            poster="media/hero.jpg"
+          ></video>
+        </figure>
+
+        <div class="hero__scroll">
+          <div>Scroll and<br />discover more</div>
+          <button class="scroll-btn" type="button" aria-label="Bajar a la siguiente sección">
+            ↓
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <section id="contacto" hidden></section>
+  </div>
+
+  <script>
+    document.querySelector(".scroll-btn")?.addEventListener("click", () => {
+      window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
+    });
+  </script>
+</body>
+</html>
