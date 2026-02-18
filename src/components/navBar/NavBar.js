@@ -16,11 +16,11 @@ class GlobalNavigation {
           </svg>
         </button>
 
-        <a class="brand" href="index.html" aria-label="Inicio">
+        <a class="brand" href="/src/pages/mainPage/mainPage.html" aria-label="Inicio">
           <img src="../../../public/images/MF6.png" alt="MFDEZ Studio" class="brand__mark" />
         </a>
 
-        <a class="cta" href="#contacto">Contacto</a>
+        <a class="cta" href="/src/pages/Contacto/contacto.html">Contacto</a>
       </header>
 
       <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
