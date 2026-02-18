@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Main</title>
+  <link rel="stylesheet" href="mainPage.css" />
+  <link rel="stylesheet" href="../../components/navBar/NavBar.css" />
+
+</head>
+
+<body>
+    <script src="../../components/navBar/NavBar.js"></script>
+  <div class="page">
+    
+
+    <main class="hero">
+  <!-- MARQUEE DETRÁS (PRIMERO EN EL HTML) -->
+<div class="hero__marquee" aria-hidden="true">
+  <div class="marquee__track">
+    <span class="marquee__text marquee__text--solid">·&ensp;MFDEZ Studio&ensp;·&ensp;</span>
+    <span class="marquee__text marquee__text--stroke">MFDEZ Studio&ensp;</span>
+    <span class="marquee__text marquee__text--solid">·&ensp;MFDEZ Studio&ensp;·&ensp;</span>
+    <span class="marquee__text marquee__text--stroke">MFDEZ Studio&ensp;</span>
+    <span class="marquee__text marquee__text--solid">·&ensp;MFDEZ Studio&ensp;·&ensp;</span>
+    <span class="marquee__text marquee__text--stroke">MFDEZ Studio&ensp;</span>
+  </div>
+</div>
+
+
+
+  <!-- CONTENIDO DELANTERO (DESPUÉS) -->
+  <section class="hero__content" aria-label="Hero principal">
+    <figure class="hero__media">
+      <video autoplay muted loop playsinline preload="metadata" poster=>
+        <!-- src="media/hero.mp4" si tienes video -->
+      </video>
+    </figure>
+
+    <div class="hero__scroll">
+      <div>Scroll and<br>discover more</div>
+      <button class="scroll-btn" type="button" aria-label="Bajar">↓</button>
+    </div>
+  </section>
+</main>
+
+
+    <!-- NUEVA SECCIÓN "WHAT WE OFFER" -->
+    
+  <div class="offer__title">
+  <h2>CÓMO</h2>
+  <h2>TRABAJAMOS</h2>
+  </div>
+  <div class="offer__grid">
+  <div class="offer__card">
+    <div class="card__num">01</div>
+    <h3>IDENTIDAD VISUAL</h3>
+    <p>Tu imagen será tu<br />identidad única que<br />distingue tu identidad<br />en los medios diseñada<br />para optimizar tu rendimiento</p>
+    <a href="#" class="card__link">Más info</a>
+  </div>
+
+  <div class="offer__card">
+    <div class="card__num">02</div>
+    <h3>GESTIÓN DE <br />REDES SOCIALES</h3>
+    <p>Construye tu<br />audiencia con<br />contenido que<br />cuidamos y<br />optimizamos</p>
+    <a href="#" class="card__link">Más info</a>
+  </div>
+
+  <div class="offer__card">
+    <div class="card__num">03</div>
+    <h3>COBERTURA<br />EN CIRCUITO</h3>
+    <p>Cobertura completa<br />de eventos con<br />contenido viral y<br />mientras sigues<br />las últimas tendencias</p>
+    <a href="#" class="card__link">Más info</a>
+  </div>
+</div>
+
+
+    <section id="contacto" hidden></section>
+  </div>
+
+
+
+  <script>
+    /* --- Lógica Menú Hamburguesa --- */
+    const menuBtn = document.getElementById('menuBtn');
+    
+    menuBtn?.addEventListener('click', () => {
+      // Toggle de la clase visual para la animación
+      menuBtn.classList.toggle('is-active');
+      
+      // Accesibilidad: Actualizar atributo aria
+      const isExpanded = menuBtn.classList.contains('is-active');
+      menuBtn.setAttribute('aria-expanded', isExpanded);
+      
+      // Aquí podrías añadir la lógica para abrir tu menú overlay si tienes uno
+      console.log('Menú abierto:', isExpanded);
+    });
+
+    window.addEventListener('scroll', () => {
+      // Umbral ajustado para mayor suavidad
+      if (window.scrollY > 30) {
+        document.body.classList.add('scrolled');
+      } else {
+        document.body.classList.remove('scrolled');
+      }
+    });
+
+  </script>
+</body>
+</html>

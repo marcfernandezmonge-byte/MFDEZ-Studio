@@ -1,0 +1,183 @@
+/* ========================================
+   VARIABLES PROPIAS DEL COMPONENTE
+   ======================================== */
+:root {
+  --nav-z-index: 999;
+  --nav-bg-overlay: #0B0E12;
+  --nav-accent: #008FF5; /* Tu verde lima */
+  --nav-text: #f2f2f2;
+}
+
+/* ========================================
+   1. TOPBAR (Header Fijo)
+   ======================================== */
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  z-index: var(--nav-z-index);
+  pointer-events: none; /* Deja pasar clicks excepto en sus hijos */
+  background: transparent;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.topbar > * { pointer-events: auto; }
+
+/* Estado Scrolled (Gestionado por JS) */
+.topbar.scrolled {
+  padding: 14px 28px;
+  background: rgba(8, 11, 16, 0.8); /* Fondo oscuro */
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Logo */
+.brand {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand__mark {
+  width: 45px;
+  height: auto;
+  transition: width 0.5s ease;
+}
+
+/* Logo en scroll */
+.topbar.scrolled .brand__mark { width: 40px; }
+
+/* Botón CTA (Contacto) */
+.cta {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 8px 20px;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+.cta:hover { background: #fff; color: #000; }
+
+/* Botón Hamburguesa */
+.icon-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Siempre encima */
+}
+
+/* Animación de las líneas de la hamburguesa */
+.icon-btn .line {
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1), 
+            opacity 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.icon-btn:not(.is-active) .line {
+  transform: translateY(0) rotate(0deg);
+  opacity: 1;
+}
+
+/* Estado Activo (X) */
+.icon-btn.is-active .line.top { transform: translateY(5px) rotate(45deg); }
+.icon-btn.is-active .line.middle { opacity: 0; }
+.icon-btn.is-active .line.bottom { transform: translateY(-5px) rotate(-45deg); }
+
+
+/* ========================================
+   2. OVERLAY (El Menú Desplegable)
+   ======================================== */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--nav-bg-overlay);
+  z-index: 998;
+  padding: 120px 40px 40px;
+  
+  /* Animación de barrido lateral (Clip Path) */
+  clip-path: inset(0 100% 0 0); 
+  transition: clip-path 0.6s cubic-bezier(0.77, 0, 0.175, 1),
+              visibility 0s 0.6s;  /* Animación de cierre */
+  visibility: hidden;
+}
+
+.menu-overlay.is-open {
+  clip-path: inset(0 0 0 0);
+  visibility: visible;
+  transition: clip-path 0.6s cubic-bezier(0.77, 0, 0.175, 1);  /* ← AÑADE ESTO */
+}
+
+
+/* Contenido del menú */
+.menu-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.menu-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  align-items: center;
+}
+
+.menu-item {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: all 0.5s ease;
+}
+
+.menu-overlay.is-open .menu-item {
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: var(--delay);
+}
+
+.menu-title {
+  font-family: sans-serif; /* O tu fuente principal */
+  font-size: clamp(30px, 4vw, 50px);
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.menu-item:hover .menu-title { color: var(--nav-accent); }
+
+.menu-label {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+/* Footer del menú */
+.menu-footer {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  color: #888;
+  font-size: 14px;
+}

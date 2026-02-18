@@ -1,0 +1,116 @@
+:root {
+    --bg: #0B0E12;
+    --fg: #f2f2f2;
+    --muted: #bdbdbd;
+    --accent: #008FF5;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+}
+
+.contact-page { padding-top: 140px; }
+
+.contact-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.contact-left {
+    background: rgba(255,255,255,0.02);
+    padding: 100px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    position: relative;
+}
+
+.hero-title {
+    font-size: clamp(4rem, 10vw, 7rem);
+    font-weight: 900;
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.contact-left p {
+    font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+    color: var(--muted);
+    max-width: 500px;
+    margin-bottom: 60px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 450px;
+}
+
+.contact-form input,
+.contact-form textarea {
+    padding: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--fg);
+    font-size: 16px;
+    font-family: inherit;
+}
+
+.contact-form input::placeholder,
+.contact-form textarea::placeholder {
+    color: var(--muted);
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.08);
+}
+
+.contact-form button {
+    padding: 20px 32px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: all 0.3s ease;
+}
+
+.contact-form button:hover {
+    background: var(--fg);
+    transform: translateY(-2px);
+}
+
+.contact-right {
+    position: relative;
+    overflow: hidden;
+    right: 0; 
+}
+
+.contact-right img {
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    object-position: right;
+}
+
+@media (max-width: 768px) {
+    .contact-container { grid-template-columns: 1fr; }
+    .mf-logo { position: static; margin-bottom: 20px; text-align: right; }
+    .contact-left { padding: 80px 40px; }
+}

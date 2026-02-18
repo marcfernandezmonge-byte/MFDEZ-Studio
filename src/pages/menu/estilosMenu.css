@@ -1,0 +1,224 @@
+/* Importamos configuración básica */
+:root {
+  --bg: #0B0E12;
+  --fg: #f2f2f2;
+  --muted: #bdbdbd;
+  /* Color de acento Verde Lima (como en la imagen de referencia) */
+  --accent-lime: #D1F072; 
+  /* Tu azul original por si prefieres usarlo: */
+  --accent-blue: #008FF5; 
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  height: 100vh; /* Ocupa toda la pantalla */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Evita scroll innecesario */
+}
+
+/* ================= TOPBAR ================= */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  width: 100%;
+}
+
+/* Botón de cerrar (Estilo X) */
+.close-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: grid;
+  place-items: center;
+  color: var(--fg);
+  background: rgba(255,255,255, 0.05);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: var(--fg);
+  color: var(--bg);
+  transform: rotate(90deg); /* Pequeña rotación al hover */
+}
+
+/* Logo */
+.brand {
+  position: absolute;
+  left: 50%;
+  top: 50%; /* Alineado con la topbar */
+  transform: translate(-50%, -50%);
+  display: flex;
+}
+
+.brand__mark {
+  width: 42px; /* Tamaño "scrolled" para mantener consistencia */
+  height: auto;
+}
+
+/* Botón CTA (Let's Talk) */
+.cta {
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-lime);
+  color: var(--accent-lime);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cta:hover {
+  background: var(--accent-lime);
+  color: #000;
+  box-shadow: 0 0 15px rgba(209, 240, 114, 0.3);
+}
+
+/* ================= GRID PRINCIPAL ================= */
+.menu-container {
+  flex: 1;
+  display: flex;
+  align-items: center; /* Centrado vertical */
+  padding: 0 40px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columnas iguales */
+  gap: 20px;
+  width: 100%;
+}
+
+/* Estilos de cada ítem */
+.menu-item {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-right: 1px solid rgba(255,255,255,0.05); /* Separador sutil opcional */
+  padding-right: 20px;
+  
+  /* Animación de entrada */
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--delay); /* Retraso escalonado */
+}
+
+.menu-item:last-child {
+  border: none;
+}
+
+/* Etiqueta pequeña (What we do...) */
+.menu-label {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* Título Grande (OUR SERVICES...) */
+.menu-title {
+  font-size: clamp(32px, 3.5vw, 56px); /* Responsive */
+  font-weight: 900;
+  margin: 0;
+  line-height: 0.9;
+  color: var(--fg);
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+/* Hover en los enlaces */
+.menu-item:hover .menu-title {
+  color: var(--accent-lime); /* Cambia al color verde */
+}
+
+.menu-item:hover .menu-label {
+  color: var(--fg);
+}
+
+/* ================= FOOTER ================= */
+.menu-footer {
+  padding: 30px 40px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.social-icons {
+  display: flex;
+  gap: 16px;
+}
+
+.social-icons a {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--accent-lime);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-lime);
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.social-icons a:hover {
+  background: var(--accent-lime);
+  color: #000;
+}
+
+/* ================= ANIMACIÓN Y RESPONSIVE ================= */
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .menu-grid {
+    grid-template-columns: 1fr 1fr; /* 2 columnas en tablets */
+    gap: 40px;
+  }
+  .menu-item { border: none; }
+}
+
+@media (max-width: 600px) {
+  .menu-grid {
+    grid-template-columns: 1fr; /* 1 columna en móvil */
+    text-align: center;
+    gap: 40px;
+  }
+  
+  .menu-item {
+    align-items: center;
+    padding: 0;
+  }
+  
+  .menu-footer {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .brand__mark { width: 36px; }
+}
