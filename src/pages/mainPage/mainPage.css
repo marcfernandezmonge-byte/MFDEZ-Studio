@@ -6,6 +6,7 @@
   --max: 1200px;
 }
 
+
 * {
   box-sizing: border-box;
 }
@@ -15,6 +16,11 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   background: var(--bg);
   color: var(--fg);
+}
+
+body::-webkit-scrollbar-thumb {
+    background: #f2f2f2; /* Color de la barra */
+    border-radius: 4px;
 }
 
 /* ========== LAYOUT PRINCIPAL ========== */

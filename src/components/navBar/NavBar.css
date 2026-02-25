@@ -8,6 +8,11 @@
   --nav-text: #f2f2f2;
 }
 
+body::-webkit-scrollbar-thumb {
+    background: #f2f2f2; /* Color de la barra */
+    border-radius: 4px;
+}
+
 /* ========================================
    1. TOPBAR (Header Fijo)
    ======================================== */
