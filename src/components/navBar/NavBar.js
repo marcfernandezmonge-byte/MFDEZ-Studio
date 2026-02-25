@@ -16,25 +16,25 @@ class GlobalNavigation {
           </svg>
         </button>
 
-        <a class="brand" href="/src/pages/mainPage/mainPage.html" aria-label="Inicio">
+        <a class="brand" href="../../pages/mainPage/mainPage.html" aria-label="Inicio">
           <img src="../../../public/images/MF6.png" alt="MFDEZ Studio" class="brand__mark" />
         </a>
 
-        <a class="cta" href="/src/pages/Contacto/contacto.html">Contacto</a>
+        <a class="cta" href="../../pages/Contacto/contacto.html">Contacto</a>
       </header>
 
       <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
         <div class="menu-content">
           <nav class="menu-grid">
-            <a href="/src/pages/servicios/servicios.html" class="menu-item" style="--delay: 0.1s">
+            <a href="../../pages/servicios/servicios.html" class="menu-item" style="--delay: 0.1s">
         <h2 class="menu-title">SERVICIOS</h2>
       </a>
 
-      <a href="/src/pages/portfolio/portfolio.html" class="menu-item" style="--delay: 0.2s">
+      <a href="../../pages/portfolio/portfolio.html" class="menu-item" style="--delay: 0.2s">
         <h2 class="menu-title">PORTFOLIO</h2>
       </a>
 
-      <a href="/src/pages/collectorsClub/collectorsClub.html" class="menu-item" style="--delay: 0.3s">
+      <a href="../../pages/collectorsClub/collectorsClub.html" class="menu-item" style="--delay: 0.3s">
         <h2 class="menu-title">COLLECTOR'S CLUB</h2>
       </a>
           </nav>
