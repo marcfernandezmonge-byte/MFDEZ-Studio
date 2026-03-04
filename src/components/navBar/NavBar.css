@@ -1,16 +1,28 @@
 /* ========================================
    VARIABLES PROPIAS DEL COMPONENTE
    ======================================== */
+@font-face {
+  font-family: 'Kelson';
+  src: url('/public/fonts/kelson/KelsonSans-Bold.eot') format('embedded-opentype'),
+       url('/public/fonts/kelson/KelsonSans-Bold.woff2') format('woff2'),
+       url('/public/fonts/kelson/KelsonSans-Bold.woff') format('woff'),
+       url('/public/fonts/kelson/KelsonSans-Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --nav-z-index: 999;
   --nav-bg-overlay: #0B0E12;
-  --nav-accent: #008FF5; /* Tu verde lima */
+  --nav-accent: #008FF5;
   --nav-text: #f2f2f2;
-}
 
-body::-webkit-scrollbar-thumb {
-    background: #f2f2f2; /* Color de la barra */
-    border-radius: 4px;
+  /* Fuente global del NavBar (Kelson) */
+  --nav-font: 'Kelson', system-ui, -apple-system, "Segoe UI", sans-serif;
+  
+  /* Fuente original reservada para el menu-grid */
+  --nav-font-grid: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 /* ========================================
@@ -24,83 +36,130 @@ body::-webkit-scrollbar-thumb {
   justify-content: space-between;
   padding: 24px 28px;
   z-index: var(--nav-z-index);
-  pointer-events: none; /* Deja pasar clicks excepto en sus hijos */
-  background: transparent;
+  min-height: 80px;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--nav-font); /* Aplica Kelson aquí */
+  pointer-events: none;
+}
+
+/* Fondo con Blur que se desliza */
+.topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 11, 16, 0.7);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  z-index: -1;
 }
 
 .topbar > * { pointer-events: auto; }
 
-/* Estado Scrolled (Gestionado por JS) */
+/* Estado Scrolled */
 .topbar.scrolled {
-  padding: 14px 28px;
-  background: rgba(8, 11, 16, 0.8); /* Fondo oscuro */
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 12px 28px; 
+  min-height: 60px;
 }
-
-/* Logo */
-.brand {
-  display: flex;
-  align-items: center;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.brand__mark {
-  width: 45px;
-  height: auto;
-  transition: width 0.5s ease;
-}
-
-/* Logo en scroll */
-.topbar.scrolled .brand__mark { width: 40px; }
-
-/* Botón CTA (Contacto) */
-.cta {
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.3);
-  padding: 8px 20px;
-  border-radius: 50px;
-  transition: all 0.3s ease;
-}
-.cta:hover { background: #fff; color: #000; }
-
-/* Botón Hamburguesa */
-.icon-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000; /* Siempre encima */
-}
-
-/* Animación de las líneas de la hamburguesa */
-.icon-btn .line {
-  transform-origin: center;
-  transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1), 
-            opacity 0.4s cubic-bezier(0.77, 0, 0.175, 1);
-}
-
-.icon-btn:not(.is-active) .line {
-  transform: translateY(0) rotate(0deg);
+.topbar.scrolled::before {
+  transform: translateY(0);
   opacity: 1;
 }
 
-/* Estado Activo (X) */
-.icon-btn.is-active .line.top { transform: translateY(5px) rotate(45deg); }
-.icon-btn.is-active .line.middle { opacity: 0; }
-.icon-btn.is-active .line.bottom { transform: translateY(-5px) rotate(-45deg); }
+/* Si el menú overlay está abierto, ocultamos el blur trasero */
+.topbar.menu-open::before {
+  opacity: 0 !important;
+}
 
+/* --- LOGO --- */
+.brand {
+  position: absolute;
+  left: 50%;
+  top: 50%; 
+  transform: translate(-50%, -50%); 
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 55;
+  text-decoration: none;
+}
+
+.brand__mark {
+  width: 48px; 
+  height: auto;
+  filter: drop-shadow(0 0 8px rgba(0, 143, 245, 0.12));
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, width;
+}
+
+.topbar.scrolled .brand { transform: translate(-50%, -50%); }
+.topbar.scrolled .brand__mark {
+  width: 42px; 
+  filter: drop-shadow(0 0 4px rgba(0, 143, 245, 0.12));
+}
+
+/* --- BOTÓN CONTACTO (CTA) --- */
+.cta {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid #ffffff;
+  color: var(--nav-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.25s ease;
+  z-index: 60;
+}
+.cta:hover {
+  background: var(--nav-text);
+  color: var(--nav-bg-overlay);
+  border-color: var(--nav-text);
+}
+.topbar.scrolled .cta { transform: translateY(-2px); }
+
+/* --- HAMBURGUESA ANIMADA --- */
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%; 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: var(--nav-text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  z-index: 1000;
+  position: relative;
+  overflow: hidden;
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+.topbar.scrolled .icon-btn { transform: translateY(-2px); }
+
+.icon-btn svg .line {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  transform-origin: center;
+}
+
+/* Estado: ABIERTO */
+.icon-btn.is-active {
+  background: var(--nav-text);
+  color: var(--nav-bg-overlay);
+  border-color: var(--nav-text);
+}
+.icon-btn.is-active svg .line.top { transform: translateY(5px) rotate(45deg); }
+.icon-btn.is-active svg .line.middle { opacity: 0; transform: translateX(-10px); }
+.icon-btn.is-active svg .line.bottom { transform: translateY(-5px) rotate(-45deg); }
 
 /* ========================================
    2. OVERLAY (El Menú Desplegable)
@@ -109,24 +168,22 @@ body::-webkit-scrollbar-thumb {
   position: fixed;
   inset: 0;
   background-color: var(--nav-bg-overlay);
+  font-family: var(--nav-font); /* Aplica Kelson por defecto al overlay */
   z-index: 998;
   padding: 120px 40px 40px;
-  
-  /* Animación de barrido lateral (Clip Path) */
   clip-path: inset(0 100% 0 0); 
   transition: clip-path 0.6s cubic-bezier(0.77, 0, 0.175, 1),
-              visibility 0s 0.6s;  /* Animación de cierre */
+              visibility 0s 0.6s; 
   visibility: hidden;
+  pointer-events: auto;
 }
 
 .menu-overlay.is-open {
   clip-path: inset(0 0 0 0);
   visibility: visible;
-  transition: clip-path 0.6s cubic-bezier(0.77, 0, 0.175, 1);  /* ← AÑADE ESTO */
+  transition: clip-path 0.6s cubic-bezier(0.77, 0, 0.175, 1); 
 }
 
-
-/* Contenido del menú */
 .menu-content {
   height: 100%;
   display: flex;
@@ -142,6 +199,9 @@ body::-webkit-scrollbar-thumb {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   align-items: center;
+  
+  /* AQUÍ APLICAMOS LA FUENTE ORIGINAL */
+  font-family: var(--nav-font-grid); 
 }
 
 .menu-item {
@@ -160,7 +220,8 @@ body::-webkit-scrollbar-thumb {
 }
 
 .menu-title {
-  font-family: sans-serif; /* O tu fuente principal */
+  /* Heredará la fuente de menu-grid (la original del sistema) en lugar de Kelson */
+  font-family: inherit; 
   font-size: clamp(30px, 4vw, 50px);
   font-weight: 900;
   color: #fff;
@@ -171,13 +232,6 @@ body::-webkit-scrollbar-thumb {
 
 .menu-item:hover .menu-title { color: var(--nav-accent); }
 
-.menu-label {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 10px;
-}
-
-/* Footer del menú */
 .menu-footer {
   border-top: 1px solid rgba(255,255,255,0.1);
   padding-top: 20px;
@@ -185,4 +239,21 @@ body::-webkit-scrollbar-thumb {
   justify-content: space-between;
   color: #888;
   font-size: 14px;
+}
+
+/* Excepción para ocultar la Navbar cuando el Portfolio expande una foto */
+body.ag-is-expanded .topbar {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.4s ease, opacity 0.3s ease;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .topbar { padding: 12px 16px; }
+  .topbar.scrolled { padding: 10px 16px; }
+  .menu-overlay { padding: 100px 20px 30px; }
 }

@@ -6,7 +6,6 @@
   --max: 1200px;
 }
 
-
 * {
   box-sizing: border-box;
 }
@@ -19,7 +18,7 @@ body {
 }
 
 body::-webkit-scrollbar-thumb {
-    background: #f2f2f2; /* Color de la barra */
+    background: #f2f2f2;
     border-radius: 4px;
 }
 
@@ -28,167 +27,6 @@ body::-webkit-scrollbar-thumb {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-}
-
-/* ========== TOPBAR ========== */
-/* ========================================
-   TOPBAR & NAVIGATION
-   ======================================== */
-.topbar {
-  position: fixed;
-  inset: 0 0 auto 0;
-  display: flex;
-  align-items: center; /* Alineación vertical de hamburguesa y contacto */
-  justify-content: space-between;
-  padding: 24px 28px;
-  z-index: 50;
-  min-height: 80px; /* Asegura un área de impacto visual constante */
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* El "Fondo" que se desliza */
-.topbar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(8, 11, 16, 0.7);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  
-  /* Estado inicial: Escondido arriba y transparente */
-  transform: translateY(-100%);
-  opacity: 0;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-  z-index: -1;
-}
-
-.topbar > * { pointer-events: auto; }
-
-/* --- ESTADO SCROLLED --- */
-
-/* El fondo aparece deslizándose hacia abajo */
-.scrolled .topbar::before {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* Reducimos el padding de la barra para compactarla */
-.scrolled .topbar {
-  padding: 12px 28px; /* Compacta la barra */
-  min-height: 60px;
-}
-
-/* --- HAMBURGUESA ANIMADA (Estilo Vercel) --- */
-.icon-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%; /* Botón circular */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: transparent;
-  color: var(--fg);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 60;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Hover Effect: Glow sutil en lugar de cambio brusco */
-.icon-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #fff;
-}
-
-/* Animación de las líneas SVG */
-.icon-btn svg .line {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
-  transform-origin: center;
-}
-
-/* Estado: ABIERTO (Clase .is-active añadida por JS) */
-.icon-btn.is-active {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
-}
-
-.icon-btn.is-active svg .top {
-  transform: translateY(5px) rotate(45deg);
-}
-
-.icon-btn.is-active svg .middle {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-
-.icon-btn.is-active svg .bottom {
-  transform: translateY(-5px) rotate(-45deg);
-}
-
-/* --- BRAND / LOGO --- */
-/* --- BRAND / LOGO (Ajuste de alineación) --- */
-.brand {
-  position: absolute;
-  left: 50%;
-  /* Bajamos el logo al centro exacto de la topbar inicial */
-  top: 50%; 
-  transform: translate(-50%, -50%); 
-  
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 55;
-}
-
-.brand__mark {
-  width: 48px; 
-  height: auto;
-  filter: drop-shadow(0 0 8px rgba(0, 143, 245, 0.12));
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, width;
-}
-
-/* --- ESTADO SCROLLED --- */
-
-/* Al hacer scroll, el logo se mantiene en la posición vertical 
-   que tenía originalmente la topbar, compensando el cambio de padding.
-*/
-.scrolled .brand {
-  /* Mantenemos la posición central relativa al nuevo tamaño de la barra */
-  transform: translate(-50%, -50%); 
-}
-
-.scrolled .brand__mark {
-  /* Reducimos el tamaño pero mantenemos la posición que pediste */
-  width: 42px; 
-  filter: drop-shadow(0 0 4px rgba(0, 143, 245, 0.12));
-}
-
-/* Los botones laterales también suben un poco para centrarse visualmente */
-.scrolled .icon-btn,
-.scrolled .cta {
-  transform: translateY(-2px);
-}
-
-
-.cta {
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: 1px solid #ffffff;
-  color: var(--fg);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.25s ease;
-}
-
-.cta:hover {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
 }
 
 /* ========== HERO ========== */
@@ -220,14 +58,12 @@ body::-webkit-scrollbar-thumb {
 
 .marquee__text {
   font-weight: 800;
-  font-size: clamp(52px, 9vw, 160px);  /* ← REDUCIDO: 64px→52px, 12vw→9vw, 200px→160px */
+  font-size: clamp(52px, 9vw, 160px); 
   letter-spacing: 0.02em;
   white-space: nowrap;
   line-height: 1;
   font-style: italic;
 }
-
-
 
 .marquee__text--solid {
   color: var(--fg);
@@ -243,8 +79,6 @@ body::-webkit-scrollbar-thumb {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-
-
 
 .hero__content {
   width: min(680px, 92vw);
@@ -336,7 +170,6 @@ body::-webkit-scrollbar-thumb {
   margin-top: -8px;
 }
 
-
 .offer__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -401,7 +234,6 @@ body::-webkit-scrollbar-thumb {
   font-style: italic;
 }
 
-
 .offer__card p {
   font-size: 15px;
   color: var(--muted);
@@ -424,27 +256,9 @@ body::-webkit-scrollbar-thumb {
   color: #fff;
 }
 
-
-
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
-  .topbar {
-    padding: 12px 16px;
-  }
-
   .hero {
     padding: 70px 16px 30px;
-  }
-
-  .hero__bgText {
-    font-size: clamp(48px, 10vw, 120px);
-  }
-
-  .hero__bgText--left {
-    left: 12px;
-  }
-
-  .hero__bgText--right {
-    right: -40px;
   }
 }
