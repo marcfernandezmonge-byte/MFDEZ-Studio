@@ -16,13 +16,21 @@
 </head>
 <body>
 <div class="ag-loader" id="ag-loader">
-  <div class="ag-loader__content">
-    <img src="../../../public/images/logosinfondo2.png" alt="MF6 Logo" class="ag-loader__logo" />
-    <p class="ag-loader__text" id="ag-loader-text">LOADING 00%</p>
-    <div class="ag-loader__bar-wrap">
-      <div class="ag-loader__bar" id="ag-loader-bar"></div>
-    </div>
-  </div>
+<div class="ag-loader__logo-wrap">
+  <svg class="ag-loader__logo ag-loader__logo--base" viewBox="0 0 647 301" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <g>
+          <path d="M420.749,0C376.097,0 340.032,36.494 340.032,81.147L340.032,300.543L393.271,300.543L393.271,162.722L586.907,162.722L586.907,109.054L393.701,109.054L393.701,81.147C393.701,66.119 406.152,53.668 421.179,53.668L640.575,53.668L640.575,0L420.749,0Z" />
+          <path d="M246.874,41.647L150.271,115.924L53.668,41.647L0,0.429L0,300.972L53.668,300.972L53.668,109.483L106.478,149.842L150.271,183.76L194.065,149.842L246.874,109.483L246.874,300.972L300.543,300.972L300.543,0.429L246.874,41.647Z" />
+      </g>
+  </svg>
+  
+  <svg id="ag-loader-logo-fill" class="ag-loader__logo ag-loader__logo--fill" viewBox="0 0 647 301" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <g>
+          <path d="M420.749,0C376.097,0 340.032,36.494 340.032,81.147L340.032,300.543L393.271,300.543L393.271,162.722L586.907,162.722L586.907,109.054L393.701,109.054L393.701,81.147C393.701,66.119 406.152,53.668 421.179,53.668L640.575,53.668L640.575,0L420.749,0Z" />
+          <path d="M246.874,41.647L150.271,115.924L53.668,41.647L0,0.429L0,300.972L53.668,300.972L53.668,109.483L106.478,149.842L150.271,183.76L194.065,149.842L246.874,109.483L246.874,300.972L300.543,300.972L300.543,0.429L246.874,41.647Z" />
+      </g>
+  </svg>
+</div>
 </div>
 
   <div class="ag-container" id="ag-container">
@@ -40,7 +48,7 @@
     </div>
 
     <div class="ag-hint" id="ag-hint">
-      <span>SCROLL TO SELECT</span>
+      <span>DESLIZA PARA ELEGIR</span>
       <svg width="14" height="20" viewBox="0 0 14 20" fill="none" aria-hidden="true">
         <path d="M7 0v16m0 0l-5-5m5 5l5-5"
               stroke="currentColor" stroke-width="1.2"

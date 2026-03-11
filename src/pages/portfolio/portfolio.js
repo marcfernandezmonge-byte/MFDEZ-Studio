@@ -42,21 +42,18 @@
 
 
   /* ==========================================
-   STATE (Actualizado)
+   STATE
    ========================================== */
-var activeRow = 0;
-var expandedItem = null;
-var isClosing = false;
-var isTransitioning = false;
-var scrollThreshold = 40; // Umbral más sensible
-var lastWheelTime = 0;
+  var activeRow = 0;
+  var expandedItem = null;
+  var isClosing = false;
+  var isTransitioning = false;
+  var scrollThreshold = 40; 
+  var lastWheelTime = 0;
 
   /* ==========================================
      DOM REFS
      ========================================== */
-  var loader = document.getElementById("ag-loader");
-  var loaderText = document.getElementById("ag-loader-text");
-  var loaderBar = document.getElementById("ag-loader-bar");
   var container = document.getElementById("ag-container");
   var scene = document.getElementById("ag-scene");
   var indicator = document.getElementById("ag-indicator");
@@ -235,7 +232,7 @@ var lastWheelTime = 0;
   }
 
 
-/* ==========================================
+  /* ==========================================
       ITEM CLICK
       ========================================== */
   function handleItemClick(rowIndex, colIndex) {
@@ -253,16 +250,13 @@ var lastWheelTime = 0;
     expandedImg.src = img.src;
     expandedImg.alt = img.alt;
     
-    // Seteamos el número
     expandedNumber.textContent = img.number;
     
-    // --- AQUÍ LA LÓGICA JAMES BOND ---
     if (img.number.trim() === '007') {
       expandedNumber.classList.add('is-bond');
     } else {
       expandedNumber.classList.remove('is-bond');
     }
-    // ----------------------------------
 
     expandedTitle.textContent = img.title;
     overlay.setAttribute("aria-modal", "true");
@@ -299,27 +293,26 @@ var lastWheelTime = 0;
   });
 
 
-/* ==========================================
-   SCROLL WHEEL (Optimizado)
+  /* ==========================================
+   SCROLL WHEEL
    ========================================== */
-container.addEventListener("wheel", function (e) {
-  e.preventDefault();
-  if (expandedItem || isClosing) return;
+  container.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    if (expandedItem || isClosing) return;
 
-  var now = Date.now();
-  // Evitamos disparos múltiples en trackpads (scroll inercial)
-  if (now - lastWheelTime < 600) return; 
+    var now = Date.now();
+    if (now - lastWheelTime < 600) return; 
 
-  if (Math.abs(e.deltaY) > scrollThreshold) {
-    var direction = e.deltaY > 0 ? 1 : -1;
-    var nextRow = activeRow + direction;
+    if (Math.abs(e.deltaY) > scrollThreshold) {
+      var direction = e.deltaY > 0 ? 1 : -1;
+      var nextRow = activeRow + direction;
 
-    if (nextRow >= 0 && nextRow < totalRows) {
-      lastWheelTime = now;
-      setActiveRow(nextRow);
+      if (nextRow >= 0 && nextRow < totalRows) {
+        lastWheelTime = now;
+        setActiveRow(nextRow);
+      }
     }
-  }
-}, { passive: false });
+  }, { passive: false });
 
   /* ==========================================
      KEYBOARD
@@ -341,110 +334,116 @@ container.addEventListener("wheel", function (e) {
   });
 
 
-/* ==========================================
-   INIT & PRELOADER (Carga Real y Forzada)
-   ========================================== */
-function initGallery() {
-  buildScene();
-  buildIndicator();
-  render();
-  
-  // Una vez construido el DOM, buscamos TODAS las imágenes reales de la galería
-  preloadGalleryImages();
-}
-
-function preloadGalleryImages() {
-  var allImgs = scene.querySelectorAll(".ag-card__img-wrap img");
-  var totalImages = allImgs.length;
-  var loadedCount = 0;
-  var visualPercent = 0;
-
-  if (totalImages === 0) {
-    finishLoading();
-    return;
+  /* ==========================================
+     INIT & PRELOADER (Dinámico y Fluido)
+     ========================================== */
+  function initGallery() {
+    buildScene();
+    buildIndicator();
+    render();
+    
+    preloadGalleryImages();
   }
 
-  // 1. Simulación visual (Barra Smooth)
-  var fakeProgressInterval = setInterval(function() {
-    var realPercent = Math.floor((loadedCount / totalImages) * 100);
-    
-// ... dentro de preloadGalleryImages, en el setInterval de visualPercent:
+  function preloadGalleryImages() {
+    var allImgs = scene.querySelectorAll(".ag-card__img-wrap img");
+    var totalImages = allImgs.length;
+    var loadedCount = 0;
+    var visualPercent = 0;
 
-if (visualPercent < 100) {
-    if (visualPercent < realPercent || realPercent === 100) {
-        visualPercent += 1;
+    // Buscamos los elementos del DOM (ahora seguros aunque falten)
+    var loaderMain = document.getElementById("ag-loader") || document.querySelector(".ag-loader__logo-wrap");
+    var logoFill = document.getElementById("ag-loader-logo-fill");
+    var loaderText = document.getElementById("ag-loader-text");
+    var loaderBar = document.getElementById("ag-loader-bar");
+
+    if (totalImages === 0) {
+      finishLoading(loaderMain, logoFill);
+      return;
     }
-    
-    // CÁLCULO DE COLOR: De Blanco (255,255,255) a Azul (0, 143, 245)
-    // Interpolamos los valores RGB según el visualPercent
-    var r = Math.floor(255 - (255 * (visualPercent / 100)));
-    var g = Math.floor(255 - (112 * (visualPercent / 100))); // 255 - 112 = 143
-    var b = 255; // Se mantiene alto para el tono azulado
 
-    var currentColor = "rgb(" + r + "," + g + "," + b + ")";
+    // Animación de relleno dinámica
+    var fakeProgressInterval = setInterval(function() {
+      // El porcentaje real de las imágenes que ya están listas
+      var realPercent = Math.floor((loadedCount / totalImages) * 100);
+      
+      if (visualPercent < 100) {
+          // Lógica de aceleración: Salta más rápido si va por detrás del realPercent
+          var diff = realPercent - visualPercent;
+          var step = Math.max(0.8, diff * 0.2); // Nunca se para del todo, persigue al real
+          
+          // Un poco de aleatoriedad para dar feeling arcade de carga de recursos
+          if (Math.random() > 0.6) step += Math.random() * 2;
+          
+          visualPercent += step;
+          
+          // Topes de seguridad
+          if (visualPercent > 100) visualPercent = 100;
+          if (visualPercent > realPercent && realPercent < 100) visualPercent = realPercent;
 
-    if (loaderText) {
-        loaderText.textContent = "LOADING " + String(visualPercent).padStart(2, '0') + "%";
-        loaderText.style.color = currentColor;
-    }
-    
-    if (loaderBar) {
-        loaderBar.style.width = visualPercent + "%";
-        loaderBar.style.backgroundColor = currentColor;
-        // Añadimos brillo azul a medida que avanza
-        loaderBar.style.boxShadow = "0 0 " + (visualPercent / 10) + "px " + currentColor;
-    }
-}
+          // Animación SVG: reducimos el clip-path
+          if (logoFill) {
+            var clipRight = 100 - visualPercent;
+            logoFill.style.clipPath = "inset(0 " + clipRight + "% 0 0)";
+            
+            // Incrementamos sutilmente el brillo a medida que avanza
+            var glow = (visualPercent / 100) * 0.8;
+          }
 
-    if (visualPercent >= 100 && loadedCount >= totalImages) {
-      clearInterval(fakeProgressInterval);
-      setTimeout(finishLoading, 600);
-    }
-  }, 30);
+          // Si tuvieras textos/barras, también se animarían (opcional)
+          if (loaderText) loaderText.textContent = "LOADING " + Math.floor(visualPercent).toString().padStart(2, '0') + "%";
+          if (loaderBar) loaderBar.style.width = visualPercent + "%";
+      }
 
-  // 2. Carga Real y Decodificación de hardware
-  allImgs.forEach(function(img) {
-    // Quitamos el lazy loading para que el navegador no espere al scroll
-    img.removeAttribute('loading');
+      // Finalizar cuando visual y real llegan al 100%
+      if (visualPercent >= 100 && loadedCount >= totalImages) {
+        clearInterval(fakeProgressInterval);
+        // Pequeña pausa antes de dar el flashazo final
+        setTimeout(function() {
+          finishLoading(loaderMain, logoFill);
+        }, 150); 
+      }
+    }, 35); 
 
-    const checkLoad = () => {
-      // img.decode() asegura que la imagen esté descomprimida en la memoria de video (GPU)
-      // para que no haya parpadeo blanco al aparecer
-      img.decode().then(() => {
-        loadedCount++;
-      }).catch(() => {
-        // Si la decodificación falla (formato no soportado), contamos como cargada para no bloquear
-        loadedCount++;
-      });
-    };
-
-    if (img.complete) {
-      checkLoad();
-    } else {
-      img.onload = checkLoad;
-      img.onerror = () => loadedCount++;
-    }
-  });
-}
-
-function finishLoading() {
-  if (loaderText) {
-    loaderText.textContent = "READY!";
-    loaderText.classList.add("ag-loader__text--ready");
+    // Proceso de carga real de las imágenes
+    allImgs.forEach(function(img) {
+      img.removeAttribute('loading');
+      const checkLoad = () => {
+        img.decode().then(() => { loadedCount++; }).catch(() => { loadedCount++; });
+      };
+      if (img.complete) {
+        checkLoad();
+      } else {
+        img.onload = checkLoad;
+        img.onerror = () => loadedCount++; // Suma incluso si hay error para no bloquear la carga
+      }
+    });
   }
-  
-  setTimeout(function () {
-    if (loader) {
-      loader.classList.add("ag-loader--hidden");
-    }
-    
-    // Animación de entrada de la galería
-    scene.style.animation = 'none';
-    scene.offsetHeight; 
-    scene.style.animzation = "agSceneIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards";
-  }, 1500); 
-}
 
-// IMPORTANTE: Solo llamar a initGallery al final
-initGallery();
+  function finishLoading(loaderMain, logoFill) {
+    // 1. EFECTO POP FINAL: El logo hace un "latido" y brilla de color blanco/azul
+    if (logoFill) {
+      logoFill.classList.add("is-loaded");
+      logoFill.style.transition = "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+      logoFill.style.transform = "scale(1.08)"; // Pequeño latido
+    }
+
+    // 2. DESAPARECER EL LOADER Y MOSTRAR ESCENA
+    setTimeout(function () {
+      if (loaderMain) {
+        // Usamos tanto la clase CSS como estilos en línea por seguridad
+        loaderMain.classList.add("ag-loader--hidden"); 
+        loaderMain.style.transform = "translateY(-100vh)";
+        loaderMain.style.opacity = "0";
+      }
+      
+      // Reiniciamos la animación de la galería para que entre suavemente
+      scene.style.animation = 'none';
+      scene.offsetHeight; 
+      scene.style.animation = "agSceneEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards";
+    }, 700); // 700ms para admirar el latido antes de que el telón suba
+  }
+
+  // IMPORTANTE: Arrancamos todo
+  initGallery();
 })();

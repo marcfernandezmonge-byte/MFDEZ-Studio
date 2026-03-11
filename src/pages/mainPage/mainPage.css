@@ -1,9 +1,22 @@
+@font-face {
+  font-family: 'Kelson';
+  src: url('/public/fonts/kelson/KelsonSans-Bold.eot') format('embedded-opentype'),
+       url('/public/fonts/kelson/KelsonSans-Bold.woff2') format('woff2'),
+       url('/public/fonts/kelson/KelsonSans-Bold.woff') format('woff'),
+       url('/public/fonts/kelson/KelsonSans-Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #0B0E12;
   --fg: #f2f2f2;
   --muted: #bdbdbd;
   --accent: #008FF5;
   --max: 1200px;
+    --nav-font-kelson: 'Kelson', system-ui, -apple-system, "Segoe UI", sans-serif;
+
 }
 
 * {
@@ -136,6 +149,135 @@ body::-webkit-scrollbar-thumb {
   color: #000000;
   transform: translateY(2px);
 }
+
+/* ========== SECCIÓN FLIP 3D ========== */
+.flip-section {
+  height: 200vh; /* Bajamos de 250vh a 200vh para que el scroll requerido sea menor y se sienta más ágil */
+  position: relative;
+  background: var(--bg); 
+  z-index: 5;
+}
+
+.flip-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.flip-container {
+  perspective: 2000px; /* Perspectiva ajustada para el acercamiento Z */
+  width: 100vw;
+  max-width: 1200px;
+  aspect-ratio: 16 / 9;
+}
+
+.flip-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.flip-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d; 
+  will-change: transform;
+}
+
+/* CARA FRONTAL (Espacio 1) - Posición inicial */
+.flip-face--front {
+  background-color: transparent; 
+  /* Lo dejamos anclado al centro 0 */
+  transform: rotateY(0deg); 
+  z-index: 2;
+}
+
+/* CARA TRASERA (Espacio 2) - Posición inicial */
+.flip-face--back {
+  background-color: transparent; 
+  /* Solo lo giramos, eliminamos el translateZ(-1000px) */
+  transform: rotateY(-180deg); 
+}
+
+/* Textos y Botón */
+.flip-text-center {
+  position: relative;
+  z-index: 10;
+  max-width: 450px;
+  text-align: center;
+  /* Mantenemos transform-origin al centro para el efecto de volteo */
+  transform-origin: center center; 
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  font-family: var(--nav-font-kelson); 
+
+}
+
+
+.flip-text-center h3 {
+  font-size: clamp(36px, 5vw, 56px);
+  margin: 0 0 16px 0;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  /* Sombra para que destaque siempre sobre las imágenes */
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0,0,0,0.6); 
+}
+
+.flip-text-center p {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+  /* Sombra más suave para el párrafo */
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.9); 
+}
+
+
+
+
+/* Imágenes flotantes */
+/* --- Imágenes flotantes (ajuste para no recortar) --- */
+.img-float {
+  position: absolute;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255,255,255,0.05);
+  /* Eliminamos aspect-ratio de aquí para usar las proporciones naturales */
+}
+
+.img-float img {
+  width: 100%;
+  height: auto; /* Permite que la imagen tome su altura natural sin cortarse */
+  display: block;
+}
+
+/* --- DISTRIBUCIÓN IMÁGENES (FRONT) --- 
+   Coordenadas ajustadas más al centro para evitar que salgan de pantalla */
+.flip-face--front .img-1 { top: 15%; left: 22%; width: 120px; transform: translateZ(-60px); }
+.flip-face--front .img-2 { top: 8%; left: 62%; width: 140px; transform: translateZ(-90px); }
+.flip-face--front .img-3 { top: 55%; left: 16%; width: 150px; transform: translateZ(-40px); }
+.flip-face--front .img-4 { top: 65%; left: 32%; width: 180px; transform: translateZ(-120px); }
+.flip-face--front .img-5 { top: 55%; left: 68%; width: 160px; transform: translateZ(-70px); }
+
+/* --- DISTRIBUCIÓN IMÁGENES (BACK) --- */
+.flip-face--back .img-1 { top: 18%; left: 25%; width: 130px; transform: translateZ(-50px); }
+.flip-face--back .img-2 { top: 12%; left: 60%; width: 120px; transform: translateZ(-80px); }
+.flip-face--back .img-3 { top: 60%; left: 15%; width: 140px; transform: translateZ(-60px); }
+.flip-face--back .img-4 { top: 65%; left: 40%; width: 160px; transform: translateZ(-100px); }
+.flip-face--back .img-5 { top: 50%; left: 68%; width: 150px; transform: translateZ(-90px); }
+
 
 /* ========== SECCIÓN WHAT WE OFFER ========== */
 .offer {

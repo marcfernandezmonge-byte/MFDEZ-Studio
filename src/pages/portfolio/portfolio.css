@@ -549,6 +549,7 @@ img { display: block; max-width: 100%; height: auto; }
 /* ============================================================
    LOADING SCREEN (MODERN & MORPH)
    ============================================================ */
+
 .ag-loader {
   position: fixed;
   inset: 0;
@@ -557,138 +558,59 @@ img { display: block; max-width: 100%; height: auto; }
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+  /* Transición fluida para que suba y desaparezca */
+  transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.8s ease;
 }
 
+/* Efecto Slide Up: sube el 100% de la pantalla hacia arriba */
 .ag-loader--hidden {
   opacity: 0;
-  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-100%); 
 }
 
-.ag-loader__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-}
-
-/* Estilo del Logo */
-.ag-loader__logo {
+/* ============================================================
+   LOADING SCREEN LOGO REVEAL
+   ============================================================ */
+.ag-loader__logo-wrap {
+  position: relative;
   width: 160px;
   height: auto;
   margin-bottom: 20px;
-  filter: drop-shadow(0 0 0 rgba(0, 143, 245, 0));
-  animation: agLogoFade 3s ease-in-out infinite;
 }
 
-.ag-loader__logo-container {
-  width: 180px; /* Tamaño del logo */
-  height: auto;
-  opacity: 0;
-  transform: scale(0.8);
-  animation: agLogoMorphIn 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.ag-loader__svg {
+.ag-loader__logo {
   width: 100%;
   height: auto;
-  fill: #fff;
+  display: block;
 }
 
-/* Animación de Morphing + Aparición */
-@keyframes agLogoMorphIn {
-  0% {
-    filter: blur(15px) brightness(0);
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  50% {
-    filter: blur(5px) brightness(1.5);
-    opacity: 0.5;
-  }
-  100% {
-    filter: blur(0) brightness(1);
-    opacity: 1;
-    transform: scale(1);
-  }
+/* El logo de fondo queda tenue */
+.ag-loader__logo--base path {
+  fill: rgba(255, 255, 255, 0.05); /* Muy sutil */
+  stroke: transparent;
 }
 
-/* Flash final cuando llega al 100% */
-.ag-loader__svg--flash {
-  animation: agLogoFlash 0.6s ease-out forwards;
-}
-
-@keyframes agLogoFlash {
-  0% { filter: brightness(1); transform: scale(1); }
-  50% { filter: brightness(3) drop-shadow(0 0 20px var(--accent)); transform: scale(1.05); }
-  100% { filter: brightness(1); transform: scale(1); }
-}
-
-/* El guiño arcade se queda solo en el texto del porcentaje */
-.ag-loader__text {
-  font-family: var(--font-climate);
-  color: var(--accent);
-  font-size: 0.5rem;
-  letter-spacing: 0.15em;
-  opacity: 0.8;
-}
-
-/* La barra de carga */
-.ag-loader__bar-wrap {
-  width: 280px;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 2px;
-  overflow: visible;
-}
-
-.ag-loader__bar {
-  height: 100%;
-  width: 0%;
-  background-color: #ffffff; /* Color inicial */
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
-  transition: width 0.1s linear, background-color 0.1s linear, box-shadow 0.1s linear;
-  position: relative;
-}
-
-/* El punto de luz en la punta de la barra */
-.ag-loader__bar::after {
-  content: '';
+/* El logo superpuesto que se va a revelar */
+.ag-loader__logo--fill {
   position: absolute;
-  right: -2px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 4px;
-  background: inherit; /* Sigue el color de la barra */
-  border-radius: 50%;
-  filter: blur(1px);
+  top: 0;
+  left: 0;
+  /* clip-path inset recorta la imagen: (top right bottom left) */
+  /* Al inicio, recortamos el 100% desde la derecha, ocultándolo totalmente */
+  clip-path: inset(0 100% 0 0); 
+  transition: clip-path 0.1s linear; /* Suaviza el salto entre porcentajes */
 }
 
-/* Animación de "READY" más sofisticada (resplandor en lugar de parpadeo brusco) */
-@keyframes agReadyModern {
-  0%, 100% { 
-    opacity: 1; 
-    color: #fff; 
-    text-shadow: 0 0 12px var(--accent); 
-  }
-  50% { 
-    opacity: 0.6; 
-    color: var(--accent); 
-    text-shadow: none; 
-  }
+.ag-loader__logo--fill path {
+  fill: var(--fg); /* Blanco brillante */
+  stroke: transparent;
 }
 
-@keyframes agLogoFade {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.02); }
+/* Estado final opcional si quieres darle un extra de brillo */
+.ag-loader__logo--fill.is-loaded {
+  transition: filter 0.5s ease-out;
 }
-
-.ag-loader__text--ready {
-  animation: agReadyModern 1.5s ease-in-out infinite;
-  font-size: 0.6rem;
-}
-
 
 /* ============================================================
    RESPONSIVE
