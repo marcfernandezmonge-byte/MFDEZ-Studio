@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0B0E12" />
+  <title>ARCADE GALLERY &mdash; Motorsport Photography</title>
+  <link rel="stylesheet" href="mainPage.css" />
+  <link rel="stylesheet" href="../../components/navBar/NavBar.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis:YEAR@1995&family=Michroma&family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Ultra&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="portfolio.css" />
+  <script src="../../components/navBar/NavBar.js" defer></script>
+
+</head>
+<body>
+<div class="ag-loader" id="ag-loader">
+  <div class="ag-loader__content">
+    <img src="../../../public/images/logosinfondo2.png" alt="MF6 Logo" class="ag-loader__logo" />
+    <p class="ag-loader__text" id="ag-loader-text">LOADING 00%</p>
+    <div class="ag-loader__bar-wrap">
+      <div class="ag-loader__bar" id="ag-loader-bar"></div>
+    </div>
+  </div>
+</div>
+
+  <div class="ag-container" id="ag-container">
+    <div class="ag-lateral-left" aria-hidden="true"></div>
+    <div class="ag-lateral-right" aria-hidden="true"></div>
+
+    <div class="ag-scene" id="ag-scene"></div>
+
+    <div class="ag-indicator" id="ag-indicator"></div>
+
+    <div class="ag-counter" aria-live="polite">
+      <span class="ag-counter__current" id="ag-counter-current">01</span>
+      <span class="ag-counter__sep">/</span>
+      <span class="ag-counter__total" id="ag-counter-total">05</span>
+    </div>
+
+    <div class="ag-hint" id="ag-hint">
+      <span>SCROLL TO SELECT</span>
+      <svg width="14" height="20" viewBox="0 0 14 20" fill="none" aria-hidden="true">
+        <path d="M7 0v16m0 0l-5-5m5 5l5-5"
+              stroke="currentColor" stroke-width="1.2"
+              stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+
+    <div class="ag-coin" aria-hidden="true">INSERTA MONEDA</div>
+
+    <div class="ag-overlay" id="ag-overlay" role="dialog">
+      <div class="ag-expanded" id="ag-expanded" onclick="event.stopPropagation()">
+        <div class="ag-expanded__img-wrap">
+          <img id="ag-expanded-img" src="" alt="" />
+        </div>
+        <div class="ag-expanded__info">
+          <span class="ag-expanded__number" id="ag-expanded-number"></span>
+          <h2 class="ag-expanded__title" id="ag-expanded-title"></h2>
+          <p class="ag-expanded__hint">CLICK FUERA PARA CERRAR</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="portfolio.js"></script>
+</body>
+</html>

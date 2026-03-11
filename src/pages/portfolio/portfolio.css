@@ -1,0 +1,730 @@
+@font-face {
+  font-family: 'Kelson';
+  src: url('/public/fonts/kelson/KelsonSans-Bold.eot') format('embedded-opentype'),
+       url('/public/fonts/kelson/KelsonSans-Bold.woff2') format('woff2'),
+       url('/public/fonts/kelson/KelsonSans-Bold.woff') format('woff'),
+       url('/public/fonts/kelson/KelsonSans-Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+/* ============================================================
+   RESET
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ============================================================
+   TOKENS  — new palette
+   Primary accent : #008FF5
+   Foreground     : #f2f2f2
+   Muted          : #bdbdbd
+   Background     : #0B0E12
+   ============================================================ */
+:root {
+  --bg: #0B0E12;
+  --fg: #f2f2f2;
+  --muted: #bdbdbd;
+  --border: rgba(242, 242, 242, 0.08);
+
+  --accent: #008FF5;
+  --accent-dim: rgba(0, 143, 245, 0.25);
+  --accent-glow: rgba(0, 143, 245, 0.12);
+  --accent-subtle: rgba(0, 143, 245, 0.06);
+  --accent-warm: #f2f2f2;
+
+  --card: #0f1218;
+
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-silk: 'Silkscreen', monospace;
+  --font-climate: 'Climate Crisis', monospace;
+  --font-ultra: 'Ultra', monospace;
+  --font-michroma: 'michroma', monospace;
+  --font-kelson: 'Kelson', 'monospace';
+}
+
+html, body { width: 100%; height: 100%; overflow: hidden; }
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-silk);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  image-rendering: auto;
+}
+
+::selection { background: var(--accent); color: var(--bg); }
+img { display: block; max-width: 100%; height: auto; }
+
+
+/* ============================================================
+   CONTAINER
+   ============================================================ */
+.ag-container {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Side gradient borders */
+.ag-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  background: linear-gradient(to right,
+    rgba(0, 143, 245, 0.06) 0%,
+    rgba(0, 143, 245, 0.02) 3%,
+    transparent 12%,
+    transparent 88%,
+    rgba(0, 143, 245, 0.02) 97%,
+    rgba(0, 143, 245, 0.06) 100%
+  );
+}
+
+/* Top / bottom vignette */
+.ag-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 29;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(11, 14, 18, 0.7) 0%,
+    transparent 15%,
+    transparent 85%,
+    rgba(11, 14, 18, 0.7) 100%
+  );
+}
+
+
+/* ============================================================
+   LATERAL GLOW STRIPS
+   ============================================================ */
+.ag-lateral-left,
+.ag-lateral-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  z-index: 31;
+  pointer-events: none;
+}
+
+.ag-lateral-left {
+  left: 0;
+  background: linear-gradient(to bottom,
+    transparent 10%, var(--accent-dim) 30%, var(--accent) 50%, var(--accent-dim) 70%, transparent 90%);
+  box-shadow: 0 0 12px var(--accent-dim), 0 0 30px rgba(0, 143, 245, 0.06);
+}
+
+.ag-lateral-right {
+  right: 0;
+  background: linear-gradient(to bottom,
+    transparent 10%, var(--accent-dim) 30%, var(--accent) 50%, var(--accent-dim) 70%, transparent 90%);
+  box-shadow: 0 0 12px var(--accent-dim), 0 0 30px rgba(0, 143, 245, 0.06);
+}
+
+
+/* ============================================================
+   SCENE
+   ============================================================ */
+.ag-scene {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 40px;
+  animation: agSceneEntrance 0.9s ease-out forwards;
+}
+
+
+/* ============================================================
+   ROW
+   ============================================================ */
+.ag-row {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  transition: 
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.ag-row--active { z-index: 10; }
+
+
+/* ============================================================
+   CARD
+   ============================================================ */
+.ag-card {
+  position: relative;
+  background: transparent; /* Quitamos el fondo oscuro */
+  border: 2px solid transparent; /* Borde invisible de base */
+  padding: 0;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  overflow: visible;
+  transition:
+    transform 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
+}
+
+.ag-card--selectable {
+  cursor: pointer;
+  border-color: rgba(255, 255, 255, 0.1); /* Borde muy sutil para delimitar la foto */
+}
+
+.ag-card--selectable:hover {
+  transform: translateY(-4px) scale(1.02); /* Levanta y amplía ligeramente la foto */
+}
+
+.ag-card--selectable:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 143, 245, 0.3);
+}
+
+
+/* ============================================================
+   CARD IMAGE
+   ============================================================ */
+.ag-card__img-wrap {
+  width: 100%;
+  line-height: 0;
+  position: relative;
+}
+
+.ag-card__img-wrap img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  transition: max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ag-card--selectable:hover .ag-card__img-wrap img {
+  transform: scale(1.015);
+}
+
+
+/* ============================================================
+   CARD INFO
+   ============================================================ */
+.ag-card__info {
+  display: none !important; /* Oculta radicalmente el texto en la previsualización */
+}
+
+.ag-card__number {
+  font-family: var(--font-climate);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.ag-card__title {
+  font-family: var(--font-climate);
+  font-size: 0.8rem;
+  font-weight: 50;
+  color: var(--fg);
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@keyframes agFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ============================================================
+   ROW INDICATOR
+   ============================================================ */
+.ag-indicator {
+  position: fixed;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 40;
+}
+
+.ag-indicator__dot {
+  width: 6px;
+  height: 6px;
+  border: 1px solid rgba(0, 143, 245, 0.25);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 1px;
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.ag-indicator__dot--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.5);
+  box-shadow: 0 0 10px rgba(0, 143, 245, 0.25);
+}
+
+.ag-indicator__dot:hover {
+  border-color: var(--accent);
+}
+
+
+/* ============================================================
+   ROW COUNTER
+   ============================================================ */
+.ag-counter {
+  position: fixed;
+  top: 110px;
+  left: 28px;
+  z-index: 40;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ag-counter__current {
+  font-family: var(--font-climate);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--accent);
+  transition: all 0.4s ease;
+}
+
+.ag-counter__sep {
+  font-family: var(--font-climate);
+  font-size: 0.55rem;
+  color: rgba(0, 143, 245, 0.2);
+}
+
+.ag-counter__total {
+  font-family: var(--font-climate);
+  font-size: 0.55rem;
+  color: rgba(0, 143, 245, 0.3);
+}
+
+
+/* ============================================================
+   TITLE BADGE
+   ============================================================ */
+.ag-title-badge {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  font-family: var(--font-climate);
+  font-size: 0.45rem;
+  letter-spacing: 0.28em;
+  color: var(--fg);
+  padding: 6px 16px;
+  border: 1px solid rgba(0, 143, 245, 0.15);
+  background: rgba(0, 143, 245, 0.03);
+  white-space: nowrap;
+  opacity: 0.7;
+  transition: opacity 0.4s ease;
+}
+
+.ag-title-badge:hover { opacity: 1; }
+
+
+/* ============================================================
+   SCROLL HINT
+   ============================================================ */
+.ag-hint {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 40;
+  transition: opacity 0.5s ease;
+  animation: agHintPulse 3s ease-in-out infinite;
+}
+
+.ag-hint--hidden { opacity: 0; pointer-events: none; }
+
+.ag-hint span {
+  font-family: var(--font-pixel);
+  font-size: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+}
+
+.ag-hint svg { color: var(--muted); opacity: 0.6; }
+
+@keyframes agHintPulse {
+  0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+  50%      { opacity: 0.8; transform: translateX(-50%) translateY(4px); }
+}
+
+
+/* ============================================================
+   COIN PROMPT
+   ============================================================ */
+.ag-coin {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 40;
+  font-family: var(--font-pixel);
+  font-size: 0.35rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  opacity: 0.5;
+  animation: agCoinBlink 2s step-end infinite;
+}
+
+@keyframes agCoinBlink {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 0.15; }
+}
+
+
+/* ============================================================
+   EXPANDED OVERLAY
+   ============================================================ */
+.ag-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: background 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ag-overlay--visible {
+  background: rgba(11, 14, 18, 0.94);
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.ag-overlay--closing {
+  background: rgba(11, 14, 18, 0);
+  pointer-events: none;
+}
+
+.ag-expanded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 82vw;
+  max-height: 88vh;
+  cursor: default;
+  opacity: 0;
+  transform: scale(0.92) translateY(12px);
+  transition:
+    opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ag-overlay--visible .ag-expanded {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.ag-overlay--closing .ag-expanded {
+  opacity: 0;
+  transform: scale(0.95) translateY(8px);
+}
+
+.ag-expanded__img-wrap {
+  max-width: 100%;
+  max-height: 72vh;
+  line-height: 0;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 0 20px rgba(238, 238, 238, 0.08),
+    0 20px 60px rgba(0, 0, 0, 0.5);
+  padding: 3px;
+  background: var(--card);
+}
+
+.ag-expanded__img-wrap img {
+  max-width: 100%;
+  max-height: 70vh;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.ag-expanded__info {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.ag-expanded__number {
+  font-family: var(--font-kelson); /* <-- Aquí el cambio */
+  font-size: 0.70rem;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+}
+
+.ag-expanded__title {
+  font-family: var(--font-kelson); /* <-- Aquí el cambio */
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+@keyframes bondReveal {
+  0% {
+    color: var(--accent);
+    font-style: normal;
+    letter-spacing: 0.25em;
+    transform: skewX(0deg);
+  }
+  /* Mantener el estado normal un par de segundos para que sea sorpresa */
+  30% {
+    color: var(--accent);
+    font-style: normal;
+    letter-spacing: 0.25em;
+    transform: skewX(0deg);
+  }
+  100% {
+    color: #ffffff;
+    font-style: italic;
+    letter-spacing: 0.07em;
+    transform: skewX(-12deg);
+  }
+}
+
+.ag-expanded__number.is-bond {
+  font-family: var(--font-kelson) !important;
+  animation: bondReveal 3.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  display: inline-block;
+}
+
+.ag-expanded__hint {
+  font-family: var(--font-pixel);
+  font-size: 0.3rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-top: 4px;
+  opacity: 0.6;
+  animation: agCoinBlink 2s step-end infinite;
+}
+
+/* ============================================================
+   LOADING SCREEN (MODERN & MORPH)
+   ============================================================ */
+.ag-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background-color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+}
+
+.ag-loader--hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.ag-loader__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+/* Estilo del Logo */
+.ag-loader__logo {
+  width: 160px;
+  height: auto;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 0 rgba(0, 143, 245, 0));
+  animation: agLogoFade 3s ease-in-out infinite;
+}
+
+.ag-loader__logo-container {
+  width: 180px; /* Tamaño del logo */
+  height: auto;
+  opacity: 0;
+  transform: scale(0.8);
+  animation: agLogoMorphIn 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ag-loader__svg {
+  width: 100%;
+  height: auto;
+  fill: #fff;
+}
+
+/* Animación de Morphing + Aparición */
+@keyframes agLogoMorphIn {
+  0% {
+    filter: blur(15px) brightness(0);
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    filter: blur(5px) brightness(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    filter: blur(0) brightness(1);
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Flash final cuando llega al 100% */
+.ag-loader__svg--flash {
+  animation: agLogoFlash 0.6s ease-out forwards;
+}
+
+@keyframes agLogoFlash {
+  0% { filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(3) drop-shadow(0 0 20px var(--accent)); transform: scale(1.05); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+/* El guiño arcade se queda solo en el texto del porcentaje */
+.ag-loader__text {
+  font-family: var(--font-climate);
+  color: var(--accent);
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  opacity: 0.8;
+}
+
+/* La barra de carga */
+.ag-loader__bar-wrap {
+  width: 280px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  overflow: visible;
+}
+
+.ag-loader__bar {
+  height: 100%;
+  width: 0%;
+  background-color: #ffffff; /* Color inicial */
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  transition: width 0.1s linear, background-color 0.1s linear, box-shadow 0.1s linear;
+  position: relative;
+}
+
+/* El punto de luz en la punta de la barra */
+.ag-loader__bar::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: inherit; /* Sigue el color de la barra */
+  border-radius: 50%;
+  filter: blur(1px);
+}
+
+/* Animación de "READY" más sofisticada (resplandor en lugar de parpadeo brusco) */
+@keyframes agReadyModern {
+  0%, 100% { 
+    opacity: 1; 
+    color: #fff; 
+    text-shadow: 0 0 12px var(--accent); 
+  }
+  50% { 
+    opacity: 0.6; 
+    color: var(--accent); 
+    text-shadow: none; 
+  }
+}
+
+@keyframes agLogoFade {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+.ag-loader__text--ready {
+  animation: agReadyModern 1.5s ease-in-out infinite;
+  font-size: 0.6rem;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .ag-scene { gap: 8px; padding: 20px 32px; }
+  .ag-row { gap: 14px; }
+  .ag-card__title { font-size: 0.7rem; }
+  .ag-counter__current { font-size: 1rem; }
+  .ag-title-badge { font-size: 0.38rem; }
+}
+
+@media (max-width: 768px) {
+  .ag-scene { gap: 6px; padding: 16px 20px; }
+  .ag-row { gap: 8px; }
+  .ag-card__title { font-size: 0.55rem; }
+  .ag-card__number { font-size: 0.35rem; }
+  .ag-card__info { padding: 6px 6px 4px; }
+  .ag-indicator { right: 12px; }
+  .ag-counter { top: 18px; left: 18px; }
+  .ag-counter__current { font-size: 0.85rem; }
+  .ag-expanded__title { font-size: 0.9rem; }
+  .ag-expanded { max-width: 94vw; }
+  .ag-row__bracket { inset: -6px -12px; }
+  .ag-title-badge { font-size: 0.3rem; padding: 4px 10px; }
+  .ag-coin { display: none; }
+}
+
+@media (max-width: 480px) {
+  .ag-scene { gap: 4px; padding: 12px 14px; }
+  .ag-row { gap: 6px; }
+  .ag-card__title { font-size: 0.45rem; }
+  .ag-title-badge { font-size: 0.25rem; }
+}
+
+@keyframes agSceneEntrance {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
