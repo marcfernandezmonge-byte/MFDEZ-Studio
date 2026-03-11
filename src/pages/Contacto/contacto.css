@@ -1,16 +1,31 @@
+@font-face {
+  font-family: 'Kelson';
+  src: url('/public/fonts/kelson/KelsonSans-Bold.eot') format('embedded-opentype'),
+       url('/public/fonts/kelson/KelsonSans-Bold.woff2') format('woff2'),
+       url('/public/fonts/kelson/KelsonSans-Bold.woff') format('woff'),
+       url('/public/fonts/kelson/KelsonSans-Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
     --bg: #0B0E12;
     --fg: #f2f2f2;
     --muted: #bdbdbd;
     --accent: #008FF5;
-}
 
+  --nav-kelson: 'Kelson', system-ui, -apple-system, "Segoe UI", sans-serif;
+  --nav-font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+
+}
 
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-family: var(--nav-font);
     background: var(--bg);
     color: var(--fg);
     line-height: 1.5;
@@ -114,6 +129,18 @@ body::-webkit-scrollbar-thumb {
     height: 100vh;
     object-fit: cover;
     object-position: right;
+}
+.menu-footer {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  color: #888;
+  padding: 120px 40px 40px;
+  font: 'sans-serif';
+  font-size: 14px;
+  font-family: var(--nav-kelson);
+
 }
 
 @media (max-width: 768px) {
