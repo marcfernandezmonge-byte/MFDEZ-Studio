@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collector's Club — MFDEZ Studio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;1,9..40,300&display=swap" rel="stylesheet">
+
+  <!-- Navbar externa — NO modificar -->
+  <link rel="stylesheet" href="../../components/navBar/NavBar.css">
+
+  <link rel="stylesheet" href="collectorsClub.css">
+</head>
+<body>
+
+  <!-- Navbar externa — NO modificar -->
+  <script src="../../components/navBar/NavBar.js"></script>
+
+  <!-- =====================================================
+       COLLECTOR'S CLUB — MFDEZ
+  ===================================================== -->
+  <main class="cc-page">
+
+    <!-- ═══════════════════════════════
+         HERO
+    ═══════════════════════════════ -->
+    <section class="cc-hero" id="hero">
+
+      <!-- Fondo animado: pista + luces -->
+      <div class="cc-hero__bg" aria-hidden="true">
+        <div class="cc-hero__track-line cc-hero__track-line--1"></div>
+        <div class="cc-hero__track-line cc-hero__track-line--2"></div>
+        <div class="cc-hero__track-line cc-hero__track-line--3"></div>
+        <div class="cc-start-lights">
+          <span class="cc-sl"></span><span class="cc-sl"></span><span class="cc-sl"></span>
+          <span class="cc-sl"></span><span class="cc-sl"></span>
+        </div>
+      </div>
+
+      <!-- Badge de slots — esquina superior derecha -->
+      <div class="cc-slot-badge" role="status" aria-live="polite">
+        <span class="cc-slot-badge__pulse"></span>
+        <span class="cc-slot-badge__num" id="slotCount">53</span>
+        <span class="cc-slot-badge__label">/100 slots</span>
+      </div>
+
+      <!-- Contenido central -->
+      <div class="cc-hero__inner">
+
+        <!-- Visual: imagen del print (placeholder) -->
+        <div class="cc-hero__visual">
+          <div class="cc-print-card">
+            <div class="cc-print-card__img">
+              <!-- Sustituir por <img src="..."> cuando haya asset -->
+              <div class="cc-print-card__placeholder">
+                <svg class="cc-print-card__lock" width="28" height="32" viewBox="0 0 28 32" fill="none" aria-hidden="true">
+                  <rect x="4" y="13" width="20" height="17" rx="3" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M9 13V10a5 5 0 0110 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <circle cx="14" cy="21" r="2" fill="currentColor"/>
+                  <line x1="14" y1="23" x2="14" y2="26" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="cc-print-card__grain"></div>
+            </div>
+            <div class="cc-print-card__tag">
+              <span class="cc-badge cc-badge--mono">Print #07/100</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Copy -->
+        <div class="cc-hero__copy">
+          <div class="cc-hero__eyebrow">
+            <span class="cc-eyebrow-dot"></span>Collector's Club
+          </div>
+          <h1 class="cc-hero__h1">MFDEZ<br>STUDIO</h1>
+          <p class="cc-hero__sub">Arte exclusivo mensual. <strong>15€.</strong></p>
+
+          <div class="cc-hero__actions">
+            <button class="cc-btn cc-btn--red cc-btn--lg" data-modal="open">
+              Reserva Tu Slot
+            </button>
+            <span class="cc-hero__urgency">
+              <span class="cc-urgency-dot"></span>
+              3 slots reservados en las últimas 2h
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         TEASER DROP
+    ═══════════════════════════════ -->
+    <section class="cc-teaser">
+      <div class="cc-teaser__inner">
+
+        <div class="cc-teaser__left">
+          <div class="cc-section-label">Próximo Drop</div>
+          <h2 class="cc-teaser__title">Edición<br><em>#07</em></h2>
+          <p class="cc-teaser__copy">
+            Una imagen que no verás en ningún feed.<br>
+            Solo para quienes estén dentro.
+          </p>
+
+          <div class="cc-countdown" id="countdown" aria-label="Cuenta atrás para el próximo drop">
+            <div class="cc-countdown__unit">
+              <span class="cc-countdown__num" id="cd-d">04</span>
+              <span class="cc-countdown__lbl">días</span>
+            </div>
+            <span class="cc-countdown__sep" aria-hidden="true">:</span>
+            <div class="cc-countdown__unit">
+              <span class="cc-countdown__num" id="cd-h">18</span>
+              <span class="cc-countdown__lbl">horas</span>
+            </div>
+            <span class="cc-countdown__sep" aria-hidden="true">:</span>
+            <div class="cc-countdown__unit">
+              <span class="cc-countdown__num" id="cd-m">33</span>
+              <span class="cc-countdown__lbl">min</span>
+            </div>
+            <span class="cc-countdown__sep" aria-hidden="true">:</span>
+            <div class="cc-countdown__unit">
+              <span class="cc-countdown__num" id="cd-s">07</span>
+              <span class="cc-countdown__lbl">seg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cc-teaser__right">
+          <div class="cc-teaser__visual">
+            <div class="cc-teaser__blur"></div>
+            <div class="cc-teaser__overlay">
+              <span class="cc-badge cc-badge--gold">Edición #07/100</span>
+              <span class="cc-teaser__hint">Disponible al suscribirte</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         BENEFICIOS + VAULT
+    ═══════════════════════════════ -->
+    <section class="cc-benefits">
+      <div class="cc-benefits__inner">
+
+        <!-- Beneficios -->
+        <div class="cc-benefits__col">
+          <div class="cc-section-label">Qué incluye</div>
+          <h2 class="cc-benefits__title">Para quienes<br>lo entienden.</h2>
+
+          <ul class="cc-benefit-list" aria-label="Beneficios incluidos">
+            <li class="cc-benefit" data-value="Valor 45€">
+              <span class="cc-benefit__icon" aria-hidden="true">⬡</span>
+              <div class="cc-benefit__body">
+                <strong>Print original</strong>
+                <p>Fotografía firmada, numerada y certificada. 30×40cm impresión de archivo.</p>
+              </div>
+              <span class="cc-benefit__reveal" aria-hidden="true"><s>45€</s></span>
+            </li>
+            <li class="cc-benefit" data-value="Valor 20€">
+              <span class="cc-benefit__icon" aria-hidden="true">◈</span>
+              <div class="cc-benefit__body">
+                <strong>Acceso al Vault</strong>
+                <p>Archivo completo de ediciones anteriores. Solo miembros activos.</p>
+              </div>
+              <span class="cc-benefit__reveal" aria-hidden="true"><s>20€</s></span>
+            </li>
+            <li class="cc-benefit" data-value="Valor 15€">
+              <span class="cc-benefit__icon" aria-hidden="true">◉</span>
+              <div class="cc-benefit__body">
+                <strong>Backstage exclusivo</strong>
+                <p>Making-of, pit lane stories y acceso anticipado a cada edición.</p>
+              </div>
+              <span class="cc-benefit__reveal" aria-hidden="true"><s>15€</s></span>
+            </li>
+            <li class="cc-benefit" data-value="Priceless">
+              <span class="cc-benefit__icon" aria-hidden="true">◬</span>
+              <div class="cc-benefit__body">
+                <strong>Número de coleccionista</strong>
+                <p>Tu print lleva tu número permanente. Irrepetible.</p>
+              </div>
+              <span class="cc-benefit__reveal" aria-hidden="true">Priceless</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Vault -->
+        <div class="cc-vault">
+          <div class="cc-vault__header">
+            <span class="cc-section-label">Vault</span>
+            <span class="cc-vault__count">23 prints exclusivos</span>
+          </div>
+          <div class="cc-vault__grid">
+            <div class="cc-vault__cell">
+              <div class="cc-vault__blur cc-vault__blur--1"></div>
+              <div class="cc-vault__overlay"><span class="cc-vault__lock" aria-hidden="true">🔒</span></div>
+            </div>
+            <div class="cc-vault__cell">
+              <div class="cc-vault__blur cc-vault__blur--2"></div>
+              <div class="cc-vault__overlay"><span class="cc-vault__lock" aria-hidden="true">🔒</span></div>
+            </div>
+            <div class="cc-vault__cell">
+              <div class="cc-vault__blur cc-vault__blur--3"></div>
+              <div class="cc-vault__overlay"><span class="cc-vault__lock" aria-hidden="true">🔒</span></div>
+            </div>
+            <div class="cc-vault__cell cc-vault__cell--teaser">
+              <div class="cc-vault__blur cc-vault__blur--4"></div>
+              <div class="cc-vault__overlay cc-vault__overlay--teaser">
+                <span class="cc-vault__lock" aria-hidden="true">🔒</span>
+                <span class="cc-vault__more">+19 más</span>
+              </div>
+            </div>
+          </div>
+          <button class="cc-btn cc-btn--outline cc-btn--full" data-modal="open">
+            Desbloquea el Vault
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         PRICING
+    ═══════════════════════════════ -->
+    <section class="cc-pricing">
+      <div class="cc-pricing__inner">
+
+        <div class="cc-section-label">Únete hoy</div>
+        <h2 class="cc-pricing__title">Un slot. Tuyo.</h2>
+
+        <!-- Toggle mensual / anual -->
+        <div class="cc-toggle" id="priceToggle" role="group" aria-label="Seleccionar plan">
+          <button class="cc-toggle__btn cc-toggle__btn--active" data-plan="monthly">Mensual</button>
+          <button class="cc-toggle__btn" data-plan="annual">
+            Anual <span class="cc-badge cc-badge--green">−10%</span>
+          </button>
+        </div>
+
+        <!-- Card con borde holográfico -->
+        <div class="cc-price-card">
+          <div class="cc-price-card__holo" aria-hidden="true"></div>
+          <div class="cc-price-card__body">
+
+            <div class="cc-price-card__amount">
+              <span class="cc-price-card__num" id="priceNum">15</span>
+              <span class="cc-price-card__denom">€<span id="pricePer">/mes</span></span>
+            </div>
+            <p class="cc-price-card__note" id="priceNote">Sin permanencia. Cancela cuando quieras.</p>
+
+            <ul class="cc-price-card__features">
+              <li><span class="cc-check">✓</span> 1 print numerado cada mes</li>
+              <li><span class="cc-check">✓</span> Acceso Vault completo (23 prints)</li>
+              <li><span class="cc-check">✓</span> Backstage y contenido exclusivo</li>
+              <li><span class="cc-check">✓</span> Número de coleccionista permanente</li>
+            </ul>
+
+            <button class="cc-btn cc-btn--green cc-btn--full cc-btn--lg" data-modal="open">
+              Empezar Suscripción
+            </button>
+
+            <div class="cc-price-card__slots">
+              <span class="cc-urgency-dot"></span>
+              Solo quedan <strong id="slotsLeft">47</strong> slots disponibles
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         SOCIAL PROOF
+    ═══════════════════════════════ -->
+    <section class="cc-social">
+      <div class="cc-social__inner">
+        <div class="cc-section-label">Miembros activos</div>
+
+        <div class="cc-social__quotes">
+
+          <blockquote class="cc-quote">
+            <p>"El print llegó en 3 días. La calidad es brutal. Ya tengo 4 ediciones en pared."</p>
+            <footer class="cc-quote__footer">
+              <span class="cc-avatar cc-avatar--1" aria-hidden="true"></span>
+              <div>
+                <strong>@pablomotor_</strong>
+                <span>Miembro desde #01</span>
+              </div>
+            </footer>
+          </blockquote>
+
+          <blockquote class="cc-quote">
+            <p>"Conseguí el slot 12. El número en el print es un detalle que marca la diferencia."</p>
+            <footer class="cc-quote__footer">
+              <span class="cc-avatar cc-avatar--2" aria-hidden="true"></span>
+              <div>
+                <strong>@laurapitstop</strong>
+                <span>Slot #12</span>
+              </div>
+            </footer>
+          </blockquote>
+
+          <blockquote class="cc-quote">
+            <p>"El Vault es lo que me convenció. Esos 23 prints no los encuentras en ningún lado."</p>
+            <footer class="cc-quote__footer">
+              <span class="cc-avatar cc-avatar--3" aria-hidden="true"></span>
+              <div>
+                <strong>@trackside.es</strong>
+                <span>Slot #31</span>
+              </div>
+            </footer>
+          </blockquote>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         FINAL CTA
+    ═══════════════════════════════ -->
+    <section class="cc-final-cta">
+      <div class="cc-final-cta__inner">
+        <p class="cc-final-cta__eyebrow">Quedan 47 slots</p>
+        <h2 class="cc-final-cta__title">El club<br>no espera.</h2>
+        <button class="cc-btn cc-btn--red cc-btn--lg" data-modal="open">
+          Reserva Tu Slot Ahora
+        </button>
+      </div>
+    </section>
+
+  </main><!-- /.cc-page -->
+
+  <!-- ═══════════════════════════════
+       MODAL DE CHECKOUT
+  ═══════════════════════════════ -->
+  <div class="cc-overlay" id="modalOverlay" aria-hidden="true" role="presentation">
+    <div class="cc-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+      <button class="cc-modal__close" id="modalClose" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <line x1="1" y1="1" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15" y1="1" x2="1" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <!-- Paso 1: Formulario -->
+      <div class="cc-modal__step" id="step1">
+        <div class="cc-modal__eyebrow">
+          <span class="cc-urgency-dot"></span> Slot #53 disponible
+        </div>
+        <h3 class="cc-modal__title" id="modalTitle">Reserva Tu Slot</h3>
+        <p class="cc-modal__sub">15€/mes · Sin permanencia · Cancela cuando quieras</p>
+
+        <form class="cc-modal__form" id="checkoutForm" novalidate>
+          <div class="cc-field">
+            <label class="cc-field__label" for="emailInput">Email</label>
+            <input class="cc-field__input" id="emailInput" type="email"
+                   placeholder="tu@email.com" autocomplete="email" required>
+          </div>
+          <div class="cc-field">
+            <label class="cc-field__label" for="cardInput">Número de tarjeta</label>
+            <input class="cc-field__input" id="cardInput" type="text"
+                   placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="cc-number">
+          </div>
+          <div class="cc-field-row">
+            <div class="cc-field">
+              <label class="cc-field__label" for="expInput">Caducidad</label>
+              <input class="cc-field__input" id="expInput" type="text"
+                     placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="cc-exp">
+            </div>
+            <div class="cc-field">
+              <label class="cc-field__label" for="cvvInput">CVV</label>
+              <input class="cc-field__input" id="cvvInput" type="text"
+                     placeholder="•••" maxlength="4" inputmode="numeric" autocomplete="cc-csc">
+            </div>
+          </div>
+          <button class="cc-btn cc-btn--red cc-btn--full cc-btn--lg" type="submit" id="submitBtn">
+            Confirmar — 15€/mes
+          </button>
+        </form>
+
+        <p class="cc-modal__legal">
+          <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true">
+            <rect x="1" y="5" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M3 5V4a3 3 0 016 0v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Pago 100% seguro · SSL · Cancela en cualquier momento
+        </p>
+      </div>
+
+      <!-- Paso 2: Confirmación -->
+      <div class="cc-modal__step cc-modal__step--hidden" id="step2">
+        <div class="cc-modal__confirm">
+          <div class="cc-modal__confirm-icon" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="15" stroke="#22c55e" stroke-width="1.5"/>
+              <path d="M9 16l5 5 9-9" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="cc-modal__title">¡Slot #53 reservado!</h3>
+          <p class="cc-modal__sub">Tu print llegará en 5 días.</p>
+          <p class="cc-modal__confirm-note">
+            Revisa tu email para el acceso al Vault y los detalles de tu número de coleccionista.
+          </p>
+          <button class="cc-btn cc-btn--outline cc-btn--full" id="confirmClose">
+            Perfecto
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /.cc-overlay -->
+
+  <script src="collectorsClub.js"></script>
+</body>
+</html>

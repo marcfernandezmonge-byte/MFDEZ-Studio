@@ -1,4 +1,5 @@
 <header class="topbar" id="mainHeader" aria-label="Barra superior">
+
   <button class="icon-btn" id="menuBtn" type="button" aria-label="Abrir menu" aria-expanded="false">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line class="line top" x1="4" y1="7" x2="20" y2="7"/>
@@ -11,35 +12,52 @@
     <img src="../../../public/images/MF6.png" alt="MFDEZ Studio" class="brand__mark" />
   </a>
 
-  <a class="cta" href="../../pages/Contacto/contacto.html">Contacto</a>
+  <a class="cta" href="../../pages/Contacto/contacto.html">
+    <span class="cta__dot"></span>
+    <span class="cta__label">Contacto</span>
+  </a>
+
 </header>
 
 <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+
+  <!-- Canvas para el fondo animado del overlay -->
+  <canvas class="menu-bg-canvas" id="menuCanvas" aria-hidden="true"></canvas>
+
+  <!-- Halo de luz superior centrado -->
+  <div class="menu-light" aria-hidden="true"></div>
+
   <div class="menu-content">
-    
+
     <nav class="menu-grid">
-      <a href="../../pages/servicios/servicios.html" class="menu-item" style="--delay: 0.1s">
+      <a href="../../pages/servicios/servicios.html" class="menu-item" style="--delay: 0.08s">
+        <span class="menu-index">01</span>
         <h2 class="menu-title">SERVICIOS</h2>
+        <div class="menu-item__bar"></div>
       </a>
-      <a href="../../pages/portfolio/portfolio.html" class="menu-item" style="--delay: 0.2s">
+      <a href="../../pages/portfolio/portfolio.html" class="menu-item" style="--delay: 0.16s">
+        <span class="menu-index">02</span>
         <h2 class="menu-title">PORTFOLIO</h2>
+        <div class="menu-item__bar"></div>
       </a>
-      <a href="../../pages/collectorsClub/collectorsClub.html" class="menu-item" style="--delay: 0.3s">
+      <a href="../../pages/collectorsClub/collectorsClub.html" class="menu-item" style="--delay: 0.24s">
+        <span class="menu-index">03</span>
         <h2 class="menu-title">COLLECTOR'S CLUB</h2>
+        <div class="menu-item__bar"></div>
       </a>
     </nav>
 
     <footer class="menu-footer">
-      <div>©MFDEZ Studio</div>
-      <a href="https://instagram.com/mfdezphoto" style="display: grid; place-items: center;" aria-label="Instagram">
-        <lottie-player id="lottie" src='../../../public/icons/Instagram.json' 
-           background="transparent" speed="1" 
-           style="width: 28px; height: 28px;" 
+      <div class="menu-footer__copy">©MFDEZ Studio</div>
+      <a href="https://instagram.com/mfdezphoto" class="menu-footer__social" aria-label="Instagram">
+        <lottie-player id="lottie" src='../../../public/icons/Instagram.json'
+           background="transparent" speed="1"
+           style="width: 28px; height: 28px;"
            loop autoplay>
         </lottie-player>
       </a>
-      <div>2026</div>
+      <div class="menu-footer__year">2026</div>
     </footer>
-    
+
   </div>
 </div>

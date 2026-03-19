@@ -3,145 +3,203 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Main</title>
-  
+  <title>MFDEZ Studio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="mainPage.css" />
-  
+
   <script src="../../components/navBar/NavBar.js" defer></script>
 </head>
 
 <body>
-  <script src="mainPage.js"></script>
   <div class="page">
-    
 
-    <main class="hero">
-  <!-- MARQUEE DETRÁS (PRIMERO EN EL HTML) -->
-<div class="hero__marquee" aria-hidden="true">
-  <div class="marquee__track">
-    <span class="marquee__text marquee__text--solid">·&ensp;MFDEZ Studio&ensp;·&ensp;</span>
-    <span class="marquee__text marquee__text--stroke">MFDEZ Studio&ensp;</span>
-    <span class="marquee__text marquee__text--solid">·&ensp;MFDEZ Studio&ensp;·&ensp;</span>
-    <span class="marquee__text marquee__text--stroke">MFDEZ Studio&ensp;</span>
-    <span class="marquee__text marquee__text--solid">·&ensp;MFDEZ Studio&ensp;·&ensp;</span>
-    <span class="marquee__text marquee__text--stroke">MFDEZ Studio&ensp;</span>
-  </div>
-</div>
+    <!-- =============================================
+         HERO — DEPTH FIELD
+         Canvas fullscreen + UI overlay
+    ============================================= -->
+    <section class="hero" aria-label="Hero principal">
 
+      <canvas id="tunnelCanvas"></canvas>
 
-
-  <!-- CONTENIDO DELANTERO (DESPUÉS) -->
-  <section class="hero__content" aria-label="Hero principal">
-    <figure class="hero__media">
-      <video autoplay muted loop playsinline preload="metadata" poster=>
-        <!-- src="media/hero.mp4" si tienes video -->
-      </video>
-    </figure>
-
-    <div class="hero__scroll">
-      <div>Scroll and<br>discover more</div>
-      <button class="scroll-btn" type="button" aria-label="Bajar">↓</button>
-    </div>
-  </section>
-</main>
-
-<!-- Sección giro -->
-
-<section class="flip-section" id="flip-section">
-  <div class="flip-sticky">
-    <div class="flip-container">
-      <div class="flip-card" id="flip-card">
-        
-        <div class="flip-face flip-face--front">
-          <div class="flip-text-center">
-            <h3>Revoluciona</h3>
-            <p> descripción 1 <span style="color: #008FF5;"> palabra clave </span></p>
-          </div>
-          <div class="img-float img-1"><img src="../../../public/images/@mfdezphoto- (1).jpg" alt="Casa en la colina"></div>
-          <div class="img-float img-2"><img src="../../../public/images/@mfdezphoto--3.jpg" alt="Figura de fuego"></div>
-          <div class="img-float img-3"><img src="../../../public/images/@mfdezphoto.jpg" alt="Habitación"></div>
-          <div class="img-float img-4"><img src="../../../public/images/7.jpg" alt="Cama con luz"></div>
-          <div class="img-float img-5"><img src="../../../public/images/@mfdezphoto--4.jpg" alt="Abstracto azul"></div>
-        </div>
-
-        <div class="flip-face flip-face--back">
-          <div class="flip-face flip-face--back"></div>
-          <div class="img-float img-1"><img src="../../../public/images/_DSC1966.jpg" alt="Casa en la colina"></div>
-          <div class="img-float img-2"><img src="../../../public/images/@mfdezphoto-3449-2.jpg" alt="Figura de fuego"></div>
-          <div class="img-float img-3"><img src="../../../public/images/@mfdezphoto-2.jpg" alt="Habitación"></div>
-          <div class="img-float img-4"><img src="../../../public/images/@mfdezphoto--5.jpg" alt="Cama con luz"></div>
-          <div class="img-float img-5"><img src="../../../public/images/10.jpg" alt="Abstracto azul"></div>          
-          <div class="flip-text-center">
-            <h3>Tu imagen</h3>
-            <p> descripción 2 </p>
+      <!-- UI fija sobre el canvas -->
+      <div class="hero-ui">
+        <div class="hero-ui__bottom">
+          <span class="hero-ui__label hero-ui__label--muted">Fotografía · Eventos · Circuito</span>
+          <div class="scroll-hint">
+            <span class="scroll-hint__text">SCROLL</span>
+            <div class="scroll-hint__line"></div>
           </div>
         </div>
 
+        <div class="hero-ui__side">
+          <span class="hero-ui__vertical">VISUAL STUDIO — 2024</span>
+        </div>
       </div>
+
+    </section>
+
+    <!-- =============================================
+         FLIP SECTION — conservada íntegramente
+    ============================================= -->
+    <section class="flip-section" id="flip-section">
+      <div class="flip-sticky">
+        <div class="flip-container">
+          <div class="flip-card" id="flip-card">
+
+            <div class="flip-face flip-face--front">
+              <div class="flip-text-center">
+                <h3>Revoluciona</h3>
+                <p>descripción 1 <span class="accent-word">palabra clave</span></p>
+              </div>
+              <div class="img-float img-1"><img src="../../../public/images/@mfdezphoto- (1).jpg" alt="Casa en la colina"></div>
+              <div class="img-float img-2"><img src="../../../public/images/@mfdezphoto--3.jpg"   alt="Figura de fuego"></div>
+              <div class="img-float img-3"><img src="../../../public/images/@mfdezphoto.jpg"       alt="Habitación"></div>
+              <div class="img-float img-4"><img src="../../../public/images/7.jpg"                 alt="Cama con luz"></div>
+              <div class="img-float img-5"><img src="../../../public/images/@mfdezphoto--4.jpg"    alt="Abstracto azul"></div>
+            </div>
+
+            <div class="flip-face flip-face--back">
+              <div class="img-float img-1"><img src="../../../public/images/_DSC1966.jpg"            alt="Casa en la colina"></div>
+              <div class="img-float img-2"><img src="../../../public/images/@mfdezphoto-3449-2.jpg"  alt="Figura de fuego"></div>
+              <div class="img-float img-3"><img src="../../../public/images/@mfdezphoto-2.jpg"       alt="Habitación"></div>
+              <div class="img-float img-4"><img src="../../../public/images/@mfdezphoto--5.jpg"      alt="Cama con luz"></div>
+              <div class="img-float img-5"><img src="../../../public/images/10.jpg"                  alt="Abstracto azul"></div>
+              <div class="flip-text-center">
+                <h3>Tu imagen</h3>
+                <p>descripción 2</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================
+         TRANSICIÓN entre flip y offer
+    ============================================= -->
+    <div class="section-divider" aria-hidden="true">
+      <div class="divider__line"></div>
     </div>
-  </div>
-</section>
 
-    <!-- NUEVA SECCIÓN "WHAT WE OFFER" -->
-    
-  <div class="offer__title">
-  <h2>CÓMO</h2>
-  <h2>TRABAJAMOS</h2>
-  </div>
-  <div class="offer__grid">
-  <div class="offer__card">
-    <div class="card__num">01</div>
-    <h3>IDENTIDAD VISUAL</h3>
-    <p>Tu imagen será tu<br />identidad única que<br />distingue tu identidad<br />en los medios diseñada<br />para optimizar tu rendimiento</p>
-    <a href="#" class="card__link">Más info</a>
-  </div>
+    <!-- =============================================
+         OFFER SECTION — rediseñada, layout asimétrico
+    ============================================= -->
+    <section class="offer">
+      <div class="container">
 
-  <div class="offer__card">
-    <div class="card__num">02</div>
-    <h3>GESTIÓN DE <br />REDES SOCIALES</h3>
-    <p>Construye tu<br />audiencia con<br />contenido que<br />cuidamos y<br />optimizamos</p>
-    <a href="#" class="card__link">Más info</a>
-  </div>
+        <!-- Título editorial -->
+        <div class="offer__header">
+          <div class="offer__header-label">
+            <span class="offer__eyebrow">— Servicios</span>
+          </div>
+          <div class="offer__header-title">
+            <h2 class="offer__h2">CÓMO</h2>
+            <h2 class="offer__h2 offer__h2--stroke">TRABAJAMOS</h2>
+          </div>
+        </div>
 
-  <div class="offer__card">
-    <div class="card__num">03</div>
-    <h3>COBERTURA<br />EN CIRCUITO</h3>
-    <p>Cobertura completa<br />de eventos con<br />contenido viral y<br />mientras sigues<br />las últimas tendencias</p>
-    <a href="#" class="card__link">Más info</a>
-  </div>
-</div>
+        <!-- Grid asimétrico: card grande izq + 2 cards apiladas der -->
+        <div class="offer__grid">
 
+          <!-- Card 01 — grande, izquierda -->
+          <div class="offer__card offer__card--featured" data-num="01">
+            <div class="card__inner">
+              <div class="card__num-bg">01</div>
+              <div class="card__num">01</div>
+              <h3 class="card__title">IDENTIDAD<br>VISUAL</h3>
+              <p class="card__desc">Tu imagen será tu identidad única que distingue tu presencia en los medios, diseñada para optimizar tu rendimiento y diferenciarte en el circuito.</p>
+              <a href="#" class="card__link">
+                <span>Más info</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M1 11L11 1M11 1H3M11 1V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+              </a>
+            </div>
+          </div>
 
+          <!-- Stack derecha -->
+          <div class="offer__stack">
+
+            <div class="offer__card offer__card--compact" data-num="02">
+              <div class="card__inner">
+                <div class="card__num-bg">02</div>
+                <div class="card__num">02</div>
+                <h3 class="card__title">GESTIÓN DE<br>REDES SOCIALES</h3>
+                <p class="card__desc">Construye tu audiencia con contenido que cuidamos y optimizamos en cada plataforma.</p>
+                <a href="#" class="card__link">
+                  <span>Más info</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M1 11L11 1M11 1H3M11 1V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="offer__card offer__card--compact" data-num="03">
+              <div class="card__inner">
+                <div class="card__num-bg">03</div>
+                <div class="card__num">03</div>
+                <h3 class="card__title">COBERTURA<br>EN CIRCUITO</h3>
+                <p class="card__desc">Cobertura completa de eventos con contenido viral mientras sigues las últimas tendencias.</p>
+                <a href="#" class="card__link">
+                  <span>Más info</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M1 11L11 1M11 1H3M11 1V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================
+         CTA FINAL
+    ============================================= -->
+    <section class="cta-section">
+      <div class="cta-inner">
+        <span class="cta__eyebrow">¿Listo para empezar?</span>
+        <a href="../../pages/Contacto/contacto.html" class="cta__word" aria-label="Contactar con MFDEZ Studio">
+          <span class="cta__letter" data-char="H">H</span>
+          <span class="cta__letter" data-char="A">A</span>
+          <span class="cta__letter" data-char="B">B</span>
+          <span class="cta__letter" data-char="L">L</span>
+          <span class="cta__letter" data-char="E">E</span>
+          <span class="cta__letter" data-char="M">M</span>
+          <span class="cta__letter" data-char="O">O</span>
+          <span class="cta__letter" data-char="S">S</span>
+        </a>
+        <div class="cta__line"></div>
+        <span class="cta__email">hola@mfdezstudio.com</span>
+      </div>
+    </section>
+
+    <!-- Sección contacto placeholder -->
     <section id="contacto" hidden></section>
-  </div>
 
+  </div><!-- /.page -->
 
+  <script src="mainPage.js"></script>
 
   <script>
-    /* --- Lógica Menú Hamburguesa --- */
+    /* ── Menú hamburguesa ── */
     const menuBtn = document.getElementById('menuBtn');
-    
     menuBtn?.addEventListener('click', () => {
-      // Toggle de la clase visual para la animación
       menuBtn.classList.toggle('is-active');
-      
-      // Accesibilidad: Actualizar atributo aria
-      const isExpanded = menuBtn.classList.contains('is-active');
-      menuBtn.setAttribute('aria-expanded', isExpanded);
-      
-      // Aquí podrías añadir la lógica para abrir tu menú overlay si tienes uno
-      console.log('Menú abierto:', isExpanded);
+      menuBtn.setAttribute('aria-expanded', menuBtn.classList.contains('is-active'));
     });
 
+    /* ── Clase scrolled en body ── */
     window.addEventListener('scroll', () => {
-      // Umbral ajustado para mayor suavidad
-      if (window.scrollY > 30) {
-        document.body.classList.add('scrolled');
-      } else {
-        document.body.classList.remove('scrolled');
-      }
+      document.body.classList.toggle('scrolled', window.scrollY > 30);
     });
-
   </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /* ========================================
-   VARIABLES PROPIAS DEL COMPONENTE
+   VARIABLES DEL COMPONENTE
    ======================================== */
 @font-face {
   font-family: 'Kelson';
@@ -17,16 +17,12 @@
   --nav-bg-overlay: #0B0E12;
   --nav-accent: #008FF5;
   --nav-text: #f2f2f2;
-
-  /* Fuente global del NavBar (Kelson) */
   --nav-font: 'Kelson', system-ui, -apple-system, "Segoe UI", sans-serif;
-  
-  /* Fuente original reservada para el menu-grid */
   --nav-font-grid: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 /* ========================================
-   1. TOPBAR (Header Fijo)
+   1. TOPBAR
    ======================================== */
 .topbar {
   position: fixed;
@@ -37,50 +33,56 @@
   padding: 24px 28px;
   z-index: var(--nav-z-index);
   min-height: 80px;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: var(--nav-font); /* Aplica Kelson aquí */
+  transition: padding 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              min-height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--nav-font);
   pointer-events: none;
 }
 
-/* Fondo con Blur que se desliza */
+/* Fondo blur: comienza invisible, aparece SÓLO en estado scrolled (no menu-open) */
 .topbar::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(8, 11, 16, 0.7);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  
+  background: rgba(8, 11, 16, 0.75);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   transform: translateY(-100%);
   opacity: 0;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.4s ease;
   z-index: -1;
 }
 
 .topbar > * { pointer-events: auto; }
 
-/* Estado Scrolled */
-.topbar.scrolled {
-  padding: 12px 28px; 
-  min-height: 60px;
-}
+/* Estado scrolled: fondo visible */
 .topbar.scrolled::before {
   transform: translateY(0);
   opacity: 1;
 }
 
-/* Si el menú overlay está abierto, ocultamos el blur trasero */
-.topbar.menu-open::before {
-  opacity: 0 !important;
+.topbar.scrolled {
+  padding: 12px 28px;
+  min-height: 60px;
 }
 
-/* --- LOGO --- */
+/* Cuando el menú está abierto: ocultar el fondo blur INMEDIATAMENTE */
+.topbar.menu-open::before {
+  opacity: 0 !important;
+  transform: translateY(-100%) !important;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+/* ========================================
+   LOGO — sin tocar
+   ======================================== */
 .brand {
   position: absolute;
   left: 50%;
-  top: 50%; 
-  transform: translate(-50%, -50%); 
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -89,7 +91,7 @@
 }
 
 .brand__mark {
-  width: 48px; 
+  width: 48px;
   height: auto;
   filter: drop-shadow(0 0 8px rgba(0, 143, 245, 0.12));
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -98,34 +100,93 @@
 
 .topbar.scrolled .brand { transform: translate(-50%, -50%); }
 .topbar.scrolled .brand__mark {
-  width: 42px; 
+  width: 42px;
   filter: drop-shadow(0 0 4px rgba(0, 143, 245, 0.12));
 }
 
-/* --- BOTÓN CONTACTO (CTA) --- */
+/* ========================================
+   CTA — rediseñado
+   ======================================== */
 .cta {
-  padding: 10px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px 9px 14px;
   border-radius: 999px;
-  border: 1px solid #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: var(--nav-text);
   text-decoration: none;
+  font-family: var(--nav-font);
   font-weight: 500;
-  font-size: 14px;
-  transition: all 0.25s ease;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease,
+              background 0.3s ease,
+              color 0.3s ease,
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 60;
 }
-.cta:hover {
-  background: var(--nav-text);
-  color: var(--nav-bg-overlay);
-  border-color: var(--nav-text);
-}
-.topbar.scrolled .cta { transform: translateY(-2px); }
 
-/* --- HAMBURGUESA ANIMADA --- */
+/* Punto de estado activo */
+.cta__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nav-accent);
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(0, 143, 245, 0.7);
+  animation: dot-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(0, 143, 245, 0.7); }
+  50%       { opacity: 0.5; box-shadow: 0 0 2px rgba(0, 143, 245, 0.3); }
+}
+
+.cta__label {
+  position: relative;
+  z-index: 1;
+  transition: color 0.25s ease;
+}
+
+/* Brillo interior al hover */
+.cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--nav-text);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.77, 0, 0.175, 1);
+  z-index: 0;
+}
+
+.cta:hover {
+  border-color: var(--nav-text);
+  color: var(--nav-bg-overlay);
+  transform: translateY(-1px);
+}
+.cta:hover::after { transform: scaleX(1); }
+.cta:hover .cta__dot {
+  background: var(--nav-bg-overlay);
+  box-shadow: none;
+  animation: none;
+}
+
+.topbar.scrolled .cta { transform: translateY(-1px); }
+.topbar.scrolled .cta:hover { transform: translateY(-2px); }
+
+/* ========================================
+   HAMBURGUESA — sin tocar estilos core
+   ======================================== */
 .icon-btn {
   width: 44px;
   height: 44px;
-  border-radius: 50%; 
+  border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
   color: var(--nav-text);
@@ -133,7 +194,10 @@
   place-items: center;
   cursor: pointer;
   padding: 0;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease,
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1000;
   position: relative;
   overflow: hidden;
@@ -144,46 +208,86 @@
   border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
 }
-.topbar.scrolled .icon-btn { transform: translateY(-2px); }
+
+.topbar.scrolled .icon-btn { transform: translateY(-1px); }
 
 .icon-btn svg .line {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease;
   transform-origin: center;
 }
 
-/* Estado: ABIERTO */
 .icon-btn.is-active {
   background: var(--nav-text);
   color: var(--nav-bg-overlay);
   border-color: var(--nav-text);
 }
-.icon-btn.is-active svg .line.top { transform: translateY(5px) rotate(45deg); }
+.icon-btn.is-active svg .line.top    { transform: translateY(5px) rotate(45deg); }
 .icon-btn.is-active svg .line.middle { opacity: 0; transform: translateX(-10px); }
 .icon-btn.is-active svg .line.bottom { transform: translateY(-5px) rotate(-45deg); }
 
 /* ========================================
-   2. OVERLAY (El Menú Desplegable)
+   2. OVERLAY
    ======================================== */
 .menu-overlay {
   position: fixed;
   inset: 0;
   background-color: var(--nav-bg-overlay);
-  font-family: var(--nav-font); /* Aplica Kelson por defecto al overlay */
+  font-family: var(--nav-font);
   z-index: 998;
   padding: 120px 40px 40px;
-  clip-path: inset(0 100% 0 0); 
-  transition: clip-path 0.6s cubic-bezier(0.77, 0, 0.175, 1),
-              visibility 0s 0.6s; 
+  clip-path: inset(0 100% 0 0);
   visibility: hidden;
   pointer-events: auto;
+  transition: clip-path 0.65s cubic-bezier(0.77, 0, 0.175, 1),
+              visibility 0s 0.65s;
+  overflow: hidden;
 }
 
 .menu-overlay.is-open {
-  clip-path: inset(0 0 0 0);
+  clip-path: inset(0 0% 0 0);
   visibility: visible;
-  transition: clip-path 0.6s cubic-bezier(0.77, 0, 0.175, 1); 
+  transition: clip-path 0.65s cubic-bezier(0.77, 0, 0.175, 1),
+              visibility 0s 0s;
 }
 
+/* Canvas de fondo animado */
+.menu-bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.3s;
+  pointer-events: none;
+}
+.menu-overlay.is-open .menu-bg-canvas {
+  opacity: 1;
+}
+
+/* Halo de luz azul sutil en la parte superior */
+.menu-light {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 300px;
+  background: radial-gradient(ellipse at center,
+    rgba(0, 143, 245, 0.12) 0%,
+    rgba(0, 143, 245, 0.04) 50%,
+    transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.9s ease 0.2s;
+}
+.menu-overlay.is-open .menu-light {
+  opacity: 1;
+}
+
+/* ========================================
+   MENU CONTENT
+   ======================================== */
 .menu-content {
   height: 100%;
   display: flex;
@@ -191,57 +295,109 @@
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
+/* ========================================
+   MENU GRID — fuente original del sistema
+   ======================================== */
 .menu-grid {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   align-items: center;
-  
-  /* AQUÍ APLICAMOS LA FUENTE ORIGINAL */
-  font-family: var(--nav-font-grid); 
+  font-family: var(--nav-font-grid);
 }
 
 .menu-item {
   text-decoration: none;
   display: flex;
   flex-direction: column;
+  gap: 10px;
   opacity: 0;
-  transform: translateX(-30px);
-  transition: all 0.5s ease;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .menu-overlay.is-open .menu-item {
   opacity: 1;
-  transform: translateX(0);
+  transform: translateY(0);
   transition-delay: var(--delay);
 }
 
+/* Índice numérico */
+.menu-index {
+  font-family: var(--nav-font);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.25s ease;
+}
+
 .menu-title {
-  /* Heredará la fuente de menu-grid (la original del sistema) en lugar de Kelson */
-  font-family: inherit; 
+  font-family: inherit; /* hereda var(--nav-font-grid) */
   font-size: clamp(30px, 4vw, 50px);
   font-weight: 900;
   color: #fff;
   margin: 0;
   line-height: 1;
   text-transform: uppercase;
+  transition: color 0.25s ease;
 }
 
-.menu-item:hover .menu-title { color: var(--nav-accent); }
+/* Barra de acento inferior — escala en hover */
+.menu-item__bar {
+  height: 1px;
+  background: rgba(0, 143, 245, 0.35);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1),
+              background 0.25s ease;
+}
 
+.menu-item:hover .menu-index   { color: rgba(0, 143, 245, 0.7); }
+.menu-item:hover .menu-title   { color: var(--nav-accent); }
+.menu-item:hover .menu-item__bar {
+  transform: scaleX(1);
+  background: var(--nav-accent);
+}
+
+/* ========================================
+   MENU FOOTER
+   ======================================== */
 .menu-footer {
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 20px;
   display: flex;
   justify-content: space-between;
-  color: #888;
-  font-size: 14px;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  font-family: var(--nav-font);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease 0.4s, transform 0.4s ease 0.4s;
 }
 
-/* Excepción para ocultar la Navbar cuando el Portfolio expande una foto */
+.menu-overlay.is-open .menu-footer {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.menu-footer__social {
+  display: grid;
+  place-items: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+.menu-footer__social:hover { opacity: 1; }
+
+/* ========================================
+   EXCEPCIÓN: Portfolio expandido
+   ======================================== */
 body.ag-is-expanded .topbar {
   transform: translateY(-100%);
   opacity: 0;
@@ -256,4 +412,5 @@ body.ag-is-expanded .topbar {
   .topbar { padding: 12px 16px; }
   .topbar.scrolled { padding: 10px 16px; }
   .menu-overlay { padding: 100px 20px 30px; }
+  .menu-light { width: 320px; }
 }

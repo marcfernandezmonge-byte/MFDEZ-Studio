@@ -1,54 +1,103 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacto - MFDEZ Studio</title>
-    
-    <!-- Navbar CSS -->
-    <link rel="stylesheet" href="./contacto.css">    
-    <link rel="stylesheet" href="../../components/navBar/NavBar.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto — MFDEZ Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;1,9..40,300&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../components/navBar/NavBar.css">
+  
+  <link rel="stylesheet" href="contacto.css">
 </head>
 <body>
-<script src="../../components/navBar/NavBar.js"></script>
-    
-    </head>
-<body>
-    <main class="contact-page">
-        <div class="contact-container">
-            <div class="contact-left">
-                
-                <div class="hero-title">
-                    CONTACTO
-                </div>
-                
-                <p>Si tienes alguna duda o deseas trabajar con nosotros, no dudes en ponerte en contacto</p>
-                
-                <form class="contact-form">
-                    <input type="text" placeholder="Nombre" required>
-                    <input type="email" placeholder="Email" required>
-                    <textarea placeholder="Mensaje" rows="4" required></textarea>
-                    <button type="submit">ENVIAR MENSAJE</button>
-                </form>
-            </div>
-            <div class="contact-right">
-                <img src="../../../public/images/_DSC3178-7-ac7d1fd0-1000.jpg" alt="Motorsport">
-            </div>
-        </div>
-    </main>
-</body>
-    <script src="../../components/navBar/NavBar.js"></script>
-              <footer class="menu-footer">
-            <div>©MFDEZ Studio</div>
-              <a href="https://instagram.com/mfdezphoto" style="display: grid; place-items: center;" aria-label="Instagram">
-                <lottie-player id="lottie" src='../../../public/icons/Instagram.json' 
-                   background="transparent" speed="1" 
-                   style="width: 28px; height: 28px;" 
-                   loop autoplay></lottie-player>
-              </a>
-            <div>2026</div>
-          </footer>
 
+  <div class="cursor-dot"  id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <script src="../../components/navBar/NavBar.js"></script>
+
+  <main class="contact-page">
+    <div class="contact-grid">
+
+      <div class="panel-left">
+
+        <p class="index-label">[01] &mdash; Contacto</p>
+
+        <h1 class="hero-title">
+          <span class="line"><span>HABLE&shy;MOS</span></span>
+          <span class="line"><span>JUNTOS</span></span>
+        </h1>
+
+        <div class="panel-divider"></div>
+
+        <p class="hero-sub">
+          Si tienes un proyecto en mente o deseas trabajar con nosotros,
+          escríbenos. Respondemos en menos de 24 horas.
+        </p>
+
+        <form class="contact-form" id="contactForm" novalidate>
+          <div class="field-group">
+            <label class="field-label" for="nombre">Nombre</label>
+            <input id="nombre" type="text" name="nombre" autocomplete="off" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="email">Email</label>
+            <input id="email" type="email" name="email" autocomplete="off" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="mensaje">Mensaje</label>
+            <textarea id="mensaje" name="mensaje" rows="4" required></textarea>
+          </div>
+          <div class="form-footer">
+            <button class="btn-submit" type="submit">
+              <span>Enviar mensaje</span>
+              <span class="arrow">→</span>
+            </button>
+            <span class="form-status" id="formStatus">Mensaje enviado ✓</span>
+          </div>
+        </form>
+
+      </div>
+
+      <div class="panel-right">
+        <div class="img-vignette"></div>
+        <img
+          src="../../../public/images/_DSC3178-7-ac7d1fd0-1000.jpg"
+          alt="MFDEZ Studio"
+          loading="eager"
+        >
+        <div class="contact-meta">
+          <div class="meta-item">
+            <p class="meta-label">Instagram</p>
+            <p class="meta-value">@mfdezphoto</p>
+          </div>
+          <div class="meta-item">
+            <p class="meta-label">Estudio</p>
+            <p class="meta-value">España</p>
+          </div>
         </div>
       </div>
+
+    </div></main>
+
+  <footer class="site-footer">
+    <span class="footer-copy">©MFDEZ Studio</span>
+    <div class="footer-social">
+      <a href="https://instagram.com/mfdezphoto" aria-label="Instagram">
+        <lottie-player
+          src="../../../public/icons/Instagram.json"
+          background="transparent" speed="1"
+          style="width:24px;height:24px;"
+          loop autoplay>
+        </lottie-player>
+      </a>
+    </div>
+    <span class="footer-year">2026</span>
+  </footer>
+
+  <script src="contacto.js"></script>
+</body>
 </html>
