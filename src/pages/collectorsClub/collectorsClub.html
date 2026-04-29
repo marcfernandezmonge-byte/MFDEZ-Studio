@@ -22,7 +22,7 @@
   <!-- =====================================================
        COLLECTOR'S CLUB — MFDEZ
   ===================================================== -->
-  <main class="cc-page">
+  <main class="cc-page" data-subscription-state="checking">
 
     <!-- ═══════════════════════════════
          HERO
@@ -33,12 +33,20 @@
       <!-- Contenido central -->
       <div class="cc-hero__inner">
 
-        <!-- Visual: imagen del print (placeholder) -->
+        <!-- Visual: imagen del print premium -->
         <div class="cc-hero__visual">
           <div class="cc-print-card">
-            <div class="cc-print-card__img">
-              <!-- Sustituir por <img src="..."> cuando haya asset -->
-              <div class="cc-print-card__placeholder">
+            <div class="cc-print-card__img" data-access-tier="premium" data-image-role="premium">
+              <img
+                class="cc-real-image cc-image-transition"
+                src="/public/images/club/@mfdezphoto-%20(1).jpg"
+                alt="MFDEZ Collector's Club premium print"
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+                data-image-role="premium"
+              >
+              <div class="cc-overlay-premium" aria-hidden="true">
                 <svg class="cc-print-card__lock" width="28" height="32" viewBox="0 0 28 32" fill="none" aria-hidden="true">
                   <rect x="4" y="13" width="20" height="17" rx="3" stroke="currentColor" stroke-width="1.5"/>
                   <path d="M9 13V10a5 5 0 0110 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -114,9 +122,16 @@
         </div>
 
         <div class="cc-teaser__right">
-          <div class="cc-teaser__visual">
-            <div class="cc-teaser__blur"></div>
-            <div class="cc-teaser__overlay">
+          <div class="cc-teaser__visual" data-access-tier="premium" data-image-role="teaser">
+            <img
+              class="cc-real-image cc-image-transition"
+              src="/public/images/club/@mfdezphoto--2.jpg"
+              alt="Teaser mensual Collector's Club"
+              loading="lazy"
+              decoding="async"
+              data-image-role="teaser"
+            >
+            <div class="cc-teaser__overlay cc-overlay-premium">
               <span class="cc-badge cc-badge--gold">Edición #07/100</span>
               <span class="cc-teaser__hint">Disponible al suscribirte</span>
             </div>
@@ -179,7 +194,12 @@
             <span class="cc-section-label">Vault</span>
             <span class="cc-vault__count">23 prints exclusivos</span>
           </div>
-          <div class="cc-vault__grid">
+          <div
+            class="cc-vault__grid cc-vault-gallery"
+            data-access-tier="premium"
+            data-image-role="vault-preview"
+            aria-live="polite"
+          >
             <div class="cc-vault__cell">
               <div class="cc-vault__blur cc-vault__blur--1"></div>
               <div class="cc-vault__overlay"><span class="cc-vault__lock" aria-hidden="true">🔒</span></div>
