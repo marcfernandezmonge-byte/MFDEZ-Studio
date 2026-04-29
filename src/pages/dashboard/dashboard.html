@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — MFDEZ Studio</title>
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ═══ FONDO 6 CAPAS ═══ -->
+  <div class="bg-scene" aria-hidden="true">
+    <div class="bg-mesh"></div>
+    <div class="bg-conic"></div>
+    <div class="orb orb--blue"></div>
+    <div class="orb orb--purple"></div>
+    <div class="orb orb--cyan"></div>
+    <div class="orb orb--indigo"></div>
+    <canvas id="bgParticles"></canvas>
+    <div class="noise-overlay"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <div class="dash-root" id="dashRoot">
+
+    <!-- ══════════════════════════════════════
+         HEADER
+    ══════════════════════════════════════ -->
+    <header class="dash-header" id="dashHeader">
+
+      <!-- Left: brand + volver al sitio -->
+      <div class="header-left">
+        <div class="header-brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+              <rect x="1" y="1" width="9" height="9" rx="2.5" fill="var(--color-accent)" opacity="0.9"/>
+              <rect x="12" y="1" width="9" height="9" rx="2.5" fill="var(--color-accent)" opacity="0.45"/>
+              <rect x="1" y="12" width="9" height="9" rx="2.5" fill="var(--color-accent)" opacity="0.45"/>
+              <rect x="12" y="12" width="9" height="9" rx="2.5" fill="var(--color-accent)" opacity="0.18"/>
+            </svg>
+          </div>
+          <span class="brand-name">MFDEZ <span class="brand-studio">Studio</span></span>
+        </div>
+
+        <!-- Separador -->
+        <div class="header-sep" aria-hidden="true"></div>
+
+        <!-- Volver al sitio -->
+        <a href="/src/pages/mainPage/mainPage.html" class="btn-back-site" aria-label="Volver al sitio principal">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+            <path d="M11 7H3M3 7L6.5 10.5M3 7L6.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Volver al sitio</span>
+        </a>
+      </div>
+
+      <!-- Center: status -->
+      <div class="header-center" aria-hidden="true">
+        <span class="header-status-dot"></span>
+        <span class="header-status-label">Sistema activo</span>
+      </div>
+
+      <!-- Right: user + logout -->
+      <div class="header-right">
+        <div class="user-avatar" id="userAvatar" aria-hidden="true">
+          <span id="userAvatarInitial">?</span>
+        </div>
+        <div class="user-meta">
+          <span class="user-name" id="headerUserName">Cargando…</span>
+          <span class="user-role" id="headerUserRole">Miembro</span>
+        </div>
+        <button class="btn-logout" id="logoutBtn" aria-label="Cerrar sesión">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+            <path d="M10.5 11L14 8L10.5 5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 8H6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+          </svg>
+          <span>Salir</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════════════
+         BODY
+    ══════════════════════════════════════ -->
+    <div class="dash-body">
+
+      <!-- ── SIDEBAR ── -->
+      <aside class="dash-sidebar" id="dashSidebar">
+        <nav class="sidebar-nav" role="navigation" aria-label="Menú principal">
+
+          <!-- General -->
+          <div class="nav-section">
+            <span class="nav-section-label">General</span>
+            <ul class="nav-list" role="list">
+              <li>
+                <button class="nav-item is-active" data-section="overview" aria-current="page">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                      <rect x="9" y="1.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                      <rect x="1.5" y="9" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                      <rect x="9" y="9" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Overview</span>
+                </button>
+              </li>
+              <li>
+                <button class="nav-item" data-section="servicios">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 4.5h12M2 8h8M2 11.5h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Mis Servicios</span>
+                  <span class="nav-count" id="navServicesCount" aria-hidden="true">0</span>
+                </button>
+              </li>
+              <li>
+                <button class="nav-item" data-section="membresia">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 1.5L9.73 5.97L14.5 6.32L11 9.36L12.08 14L8 11.57L3.92 14L5 9.36L1.5 6.32L6.27 5.97L8 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Mi Membresía</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Cuenta -->
+          <div class="nav-section">
+            <span class="nav-section-label">Cuenta</span>
+            <ul class="nav-list" role="list">
+              <li>
+                <button class="nav-item" data-section="perfil">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.3"/>
+                      <path d="M2.5 13.5C2.5 11.015 5.015 9 8 9C10.985 9 13.5 11.015 13.5 13.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Perfil</span>
+                  <span class="nav-badge nav-badge--soon">Pronto</span>
+                </button>
+              </li>
+              <li>
+                <button class="nav-item" data-section="configuracion">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/>
+                      <path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5M3.05 3.05L4.11 4.11M11.89 11.89L12.95 12.95M12.95 3.05L11.89 4.11M4.11 11.89L3.05 12.95" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Configuración</span>
+                  <span class="nav-badge nav-badge--soon">Pronto</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Admin — solo visible si role=admin -->
+          <div class="nav-section nav-section--admin" id="adminNavSection" hidden>
+            <span class="nav-section-label nav-section-label--admin">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M6 1L7.5 4.2L11 4.6L8.5 7L9.2 10.5L6 8.8L2.8 10.5L3.5 7L1 4.6L4.5 4.2L6 1Z" fill="currentColor"/>
+              </svg>
+              Admin
+            </span>
+            <ul class="nav-list" role="list">
+              <li>
+                <button class="nav-item" data-section="adminUsuarios">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <circle cx="6" cy="5" r="2" stroke="currentColor" stroke-width="1.2"/>
+                      <path d="M1 13c0-2.761 2.239-5 5-5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                      <circle cx="11.5" cy="5.5" r="2" stroke="currentColor" stroke-width="1.2"/>
+                      <path d="M8 13c0-1.933 1.567-3.5 3.5-3.5S15 11.067 15 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Usuarios</span>
+                </button>
+              </li>
+              <li>
+                <button class="nav-item" data-section="adminClub">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 1.5L9.73 5.97L14.5 6.32L11 9.36L12.08 14L8 11.57L3.92 14L5 9.36L1.5 6.32L6.27 5.97L8 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Gestión Club</span>
+                </button>
+              </li>
+              <li>
+                <button class="nav-item" data-section="adminMessages">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v7A1.5 1.5 0 0 1 12.5 12H9l-3 2.5V12H3.5A1.5 1.5 0 0 1 2 10.5v-7Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Messages</span>
+                  <span class="nav-badge-count nav-badge-count--unread" id="navMessagesBadge" style="display:none">0</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+          
+        </nav>
+
+        <div class="sidebar-footer">
+          <a href="/src/pages/mainPage/mainPage.html" class="sidebar-back-link">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+              <path d="M11 7H3M3 7L6.5 10.5M3 7L6.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Ir al sitio</span>
+          </a>
+          <div class="sidebar-version">v1.0.0</div>
+        </div>
+      </aside>
+
+      <!-- ── MAIN ── -->
+      <main class="dash-main" id="dashMain" role="main">
+
+        <!-- ══ OVERVIEW ══ -->
+        <section class="dash-section is-active" id="sectionOverview" aria-label="Overview">
+
+          <div class="welcome-block" id="welcomeBlock">
+            <div class="welcome-greeting" id="welcomeGreeting">Buenos días</div>
+            <h1 class="welcome-name">
+              <span class="welcome-user" id="welcomeUser">…</span>
+            </h1>
+            <p class="welcome-sub">Panel de control — MFDEZ Studio</p>
+          </div>
+
+          <div class="admin-overview-shell" id="adminOverviewShell">
+            <div class="admin-overview-main">
+              <div class="overview-grid">
+
+                <!-- Sesión activa -->
+                <div class="dash-card card--auth">
+                  <div class="card-header">
+                    <div class="card-icon card-icon--green">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2L3 4V8C3 11.314 5.239 13.5 8 14C10.761 13.5 13 11.314 13 8V4L8 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                        <path d="M5.5 8L7 9.5L10.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    <span class="card-tag card-tag--green">Activo</span>
+                  </div>
+                  <p class="card-title">Sesión autenticada</p>
+                  <div class="card-data-rows">
+                    <div class="data-row">
+                      <span class="data-label">Email</span>
+                      <span class="data-value" id="cardEmail">—</span>
+                    </div>
+                    <div class="data-row">
+                      <span class="data-label">Inicio sesión</span>
+                      <span class="data-value" id="loginTime">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Resumen servicios -->
+                <div class="dash-card card--services-summary" id="cardServicesSummary">
+                  <div class="card-header">
+                    <div class="card-icon card-icon--blue">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4.5h12M2 8h8M2 11.5h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <p class="card-title">Mis Servicios</p>
+                  <div class="services-summary-stats">
+                    <div class="summary-stat">
+                      <span class="summary-stat-num" id="servicesActiveCount">0</span>
+                      <span class="summary-stat-label">Activos</span>
+                    </div>
+                    <div class="summary-stat-divider"></div>
+                    <div class="summary-stat">
+                      <span class="summary-stat-num" id="servicesPendingCount">0</span>
+                      <span class="summary-stat-label">En curso</span>
+                    </div>
+                    <div class="summary-stat-divider"></div>
+                    <div class="summary-stat">
+                      <span class="summary-stat-num" id="servicesTotalCount">0</span>
+                      <span class="summary-stat-label">Total</span>
+                    </div>
+                  </div>
+                  <button class="card-link-btn" data-nav="servicios">
+                    Ver todos mis servicios
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M3 7H11M8 4L11 7L8 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Estado membresía -->
+                <div class="dash-card card--membership" id="cardMembership">
+                  <div class="card-header">
+                    <div class="card-icon card-icon--gold">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 1.5L9.73 5.97L14.5 6.32L11 9.36L12.08 14L8 11.57L3.92 14L5 9.36L1.5 6.32L6.27 5.97L8 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    <span class="card-tag" id="membershipTag">—</span>
+                  </div>
+                  <p class="card-title">Collector's Club</p>
+                  <p class="card-desc" id="membershipDesc">Cargando estado de membresía…</p>
+                  <button class="card-link-btn" data-nav="membresia">
+                    Ver detalles
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M3 7H11M8 4L11 7L8 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="admin-overview-panel admin-overview-panel--users" id="adminOverviewUsersPanel" hidden>
+                <div class="admin-overview-table-wrap">
+                  <table class="admin-overview-table">
+                    <thead>
+                      <tr id="adminOverviewUsersHeadRow">
+                        <th>Users</th>
+                        <th>User Email</th>
+                        <th>Role</th>
+                        <th>Message State</th>
+                      </tr>
+                    </thead>
+                    <tbody id="adminOverviewUsersBody">
+                      <tr class="admin-overview-empty-row">
+                        <td colspan="4"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-overview-panel admin-overview-panel--detail" id="adminOverviewSidePanel" hidden>
+              <div class="admin-overview-detail-empty" id="adminOverviewDetailEmpty">
+                <p>Selecciona un elemento para ver el detalle</p>
+              </div>
+
+              <div class="admin-overview-detail" id="adminOverviewDetail" hidden></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══ MIS SERVICIOS ══ -->
+        <section class="dash-section" id="sectionServicios" aria-label="Mis Servicios" hidden>
+
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow">Mi cuenta</span>
+              <h2 class="section-title">Mis Servicios</h2>
+              <p class="section-desc">Servicios contratados con MFDEZ Studio y su estado actual.</p>
+            </div>
+            <a href="/src/pages/servicios/servicios.html" class="btn-see-all" target="_blank" rel="noopener">
+              <span>Ver catálogo completo</span>
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                <path d="M3 11L11 3M11 3H5M11 3V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          </div>
+
+          <!-- Empty state (mostrado cuando no hay servicios) -->
+          <div class="services-empty" id="servicesEmpty">
+            <div class="empty-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M4 9h24M4 16h16M4 23h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="empty-title">Sin servicios contratados</h3>
+            <p class="empty-desc">Aún no tienes ningún servicio activo. Explora nuestro catálogo y contacta con nosotros para empezar.</p>
+            <a href="/src/pages/servicios/servicios.html" class="btn-primary-dash">
+              Ver servicios disponibles
+            </a>
+          </div>
+
+          <!-- Lista de servicios (mostrada cuando hay servicios) -->
+          <div class="services-list" id="servicesList" hidden>
+            <!-- JS inyecta .service-item aquí -->
+          </div>
+
+        </section>
+
+        <!-- ══ MI MEMBRESÍA ══ -->
+        <section class="dash-section" id="sectionMembresia" aria-label="Mi Membresía" hidden>
+
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow">Collector's Club</span>
+              <h2 class="section-title">Mi Membresía</h2>
+              <p class="section-desc">Estado y beneficios de tu membresía en el Collector's Club.</p>
+            </div>
+            <a href="/src/pages/collectorsClub/collectorsClub.html" class="btn-see-all" target="_blank" rel="noopener">
+              <span>Página del Club</span>
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                <path d="M3 11L11 3M11 3H5M11 3V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          </div>
+
+          <!-- Estado inactivo -->
+          <div class="membership-inactive" id="membershipInactive" hidden>
+            <div class="placeholder-block placeholder-block--gold">
+              <div class="placeholder-icon">
+                <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 1.5L9.73 5.97L14.5 6.32L11 9.36L12.08 14L8 11.57L3.92 14L5 9.36L1.5 6.32L6.27 5.97L8 1.5Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3 class="placeholder-title">No eres miembro todavía</h3>
+              <p class="placeholder-desc">Únete al Collector's Club y accede a contenido y beneficios exclusivos.</p>
+              <a href="/src/pages/collectorsClub/collectorsClub.html" class="btn-primary-dash btn-primary-dash--gold">
+                Conocer el Club
+              </a>
+            </div>
+          </div>
+
+          <!-- Estado activo -->
+          <div class="membership-active" id="membershipActive" hidden>
+            <div class="membership-hero-card">
+              <div class="membership-card-glow" aria-hidden="true"></div>
+              <div class="membership-card-header">
+                <svg width="28" height="28" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M8 1.5L9.73 5.97L14.5 6.32L11 9.36L12.08 14L8 11.57L3.92 14L5 9.36L1.5 6.32L6.27 5.97L8 1.5Z" fill="rgba(250,193,68,0.15)" stroke="#FAC144" stroke-width="1.2" stroke-linejoin="round"/>
+                </svg>
+                <div>
+                  <span class="membership-card-label">Collector's Club</span>
+                  <span class="membership-card-status">Miembro activo</span>
+                </div>
+                <span class="membership-badge-active">● Activo</span>
+              </div>
+              <div class="membership-card-name" id="membershipCardName">—</div>
+              <div class="membership-card-meta">
+                <div class="membership-meta-item">
+                  <span class="membership-meta-label">Miembro desde</span>
+                  <span class="membership-meta-value" id="memberSince">—</span>
+                </div>
+                <div class="membership-meta-item">
+                  <span class="membership-meta-label">Próxima renovación</span>
+                  <span class="membership-meta-value" id="memberRenewal">—</span>
+                </div>
+                <div class="membership-meta-item">
+                  <span class="membership-meta-label">Plan</span>
+                  <span class="membership-meta-value" id="memberPlan">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="benefits-grid">
+              <h3 class="benefits-title">Beneficios activos</h3>
+              <div class="benefits-list">
+                <div class="benefit-item">
+                  <span class="benefit-check" aria-hidden="true">✓</span>
+                  <span>Acceso a contenido exclusivo</span>
+                </div>
+                <div class="benefit-item">
+                  <span class="benefit-check" aria-hidden="true">✓</span>
+                  <span>Descargas de alta resolución</span>
+                </div>
+                <div class="benefit-item">
+                  <span class="benefit-check" aria-hidden="true">✓</span>
+                  <span>BTS y behind-the-scenes</span>
+                </div>
+                <div class="benefit-item">
+                  <span class="benefit-check" aria-hidden="true">✓</span>
+                  <span>Acceso anticipado a nuevos trabajos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ══ PERFIL ══ -->
+        <section class="dash-section" id="sectionPerfil" aria-label="Perfil" hidden>
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow">Mi cuenta</span>
+              <h2 class="section-title">Perfil</h2>
+            </div>
+          </div>
+          <div class="placeholder-block">
+            <div class="placeholder-icon">
+              <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1"/>
+                <path d="M2.5 13.5C2.5 11.015 5.015 9 8 9C10.985 9 13.5 11.015 13.5 13.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="placeholder-title">Perfil</h3>
+            <p class="placeholder-desc">Edición de perfil disponible próximamente.</p>
+          </div>
+        </section>
+
+        <!-- ══ CONFIGURACIÓN ══ -->
+        <section class="dash-section" id="sectionConfiguracion" aria-label="Configuración" hidden>
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow">Mi cuenta</span>
+              <h2 class="section-title">Configuración</h2>
+            </div>
+          </div>
+          <div class="placeholder-block">
+            <div class="placeholder-icon">
+              <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1"/>
+                <path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="placeholder-title">Configuración</h3>
+            <p class="placeholder-desc">Ajustes de cuenta disponibles próximamente.</p>
+          </div>
+        </section>
+
+        <!-- ══ ADMIN: USUARIOS ══ -->
+        <section class="dash-section" id="sectionAdminUsuarios" aria-label="Gestión de usuarios" hidden>
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow admin-eyebrow">Admin</span>
+              <h2 class="section-title">Usuarios registrados</h2>
+              <p class="section-desc">Listado de todos los usuarios con cuenta en MFDEZ Studio.</p>
+            </div>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="usersTable">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Registro</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr class="admin-table-empty">
+                  <td colspan="5">Cargando usuarios…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ══ ADMIN: GESTIÓN CLUB ══ -->
+        <section class="dash-section" id="sectionAdminClub" aria-label="Gestión Collector's Club" hidden>
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow admin-eyebrow">Admin</span>
+              <h2 class="section-title">Gestión Collector's Club</h2>
+              <p class="section-desc">Activar, desactivar y gestionar membresías del club.</p>
+            </div>
+          </div>
+          <div class="admin-stats-row">
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="adminActiveMembers">—</span>
+              <span class="admin-stat-label">Miembros activos</span>
+            </div>
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="adminPendingMembers">—</span>
+              <span class="admin-stat-label">Pendientes</span>
+            </div>
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="adminTotalRevenue">—</span>
+              <span class="admin-stat-label">Ingresos mes</span>
+            </div>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="membersTable">
+              <thead>
+                <tr>
+                  <th>Miembro</th>
+                  <th>Plan</th>
+                  <th>Desde</th>
+                  <th>Renovación</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="membersTableBody">
+                <tr class="admin-table-empty">
+                  <td colspan="6">Cargando miembros…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ══ ADMIN: MESSAGES INBOX ══ -->
+        <section class="dash-section" id="sectionAdminMessages" aria-label="Inbox de mensajes" hidden>
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow admin-eyebrow">Admin</span>
+              <h2 class="section-title">Messages</h2>
+              <p class="section-desc">Mensajes recibidos desde el formulario de contacto.</p>
+            </div>
+            <div class="inbox-header-actions">
+              <button class="btn-inbox-refresh" id="btnRefreshMessages">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13.5 2v3h-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Actualizar
+              </button>
+              <div class="inbox-unread-summary" id="inboxUnreadSummary" style="display:none">
+                <span class="inbox-unread-dot"></span>
+                <span id="inboxUnreadCount">0</span> sin leer
+              </div>
+            </div>
+          </div>
+          <div class="inbox-layout" id="inboxLayout">
+            <!-- Panel izquierdo: lista -->
+            <div class="inbox-list-panel" id="inboxListPanel" role="list">
+              <div class="inbox-empty-state" id="inboxEmptyState">
+                <div class="inbox-empty-icon"><svg width="26" height="26" viewBox="0 0 16 16" fill="none"><path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v7A1.5 1.5 0 0 1 12.5 12H9l-3 2.5V12H3.5A1.5 1.5 0 0 1 2 10.5v-7Z" stroke="currentColor" stroke-width="1"/></svg></div>
+                <p class="inbox-empty-title">Sin mensajes</p>
+                <p class="inbox-empty-desc">Los mensajes del formulario de contacto aparecerán aquí.</p>
+              </div>
+            </div>
+            <!-- Panel derecho: chat -->
+            <div class="inbox-detail-panel" id="inboxDetailPanel">
+              <div class="inbox-detail-empty" id="inboxDetailEmpty">
+                <div class="inbox-detail-empty__icon"><svg width="28" height="28" viewBox="0 0 16 16" fill="none"><path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v7A1.5 1.5 0 0 1 12.5 12H9l-3 2.5V12H3.5A1.5 1.5 0 0 1 2 10.5v-7Z" stroke="currentColor" stroke-width="1"/></svg></div>
+                <p>Selecciona un usuario para ver la conversación</p>
+              </div>
+
+              <!-- ═══ CHAT PANEL ═══ -->
+              <div id="chat-panel" class="chat-panel" hidden>
+
+                <!-- Header -->
+                <div class="chat-header">
+                  <div class="chat-header-left">
+                    <div class="chat-header-avatar" id="chatAvatar">?</div>
+                    <div class="chat-header-info">
+                      <span class="chat-user-email" id="chatUserEmail">—</span>
+                      <span class="chat-user-status" id="chatUserStatus">Usuario</span>
+                    </div>
+                  </div>
+                  <button class="chat-close-btn" id="chatCloseBtn" aria-label="Cerrar chat">
+                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                      <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Messages body -->
+                <div class="chat-messages" id="chat-messages">
+                  <div class="chat-loading" id="chatLoading">
+                    <span class="chat-loading-dot"></span>
+                    <span class="chat-loading-dot"></span>
+                    <span class="chat-loading-dot"></span>
+                  </div>
+                </div>
+
+                <!-- Input area -->
+                <div class="chat-input-area">
+                  <textarea
+                    class="chat-input"
+                    id="chat-input"
+                    placeholder="Escribe un mensaje…"
+                    rows="1"
+                    aria-label="Mensaje"
+                  ></textarea>
+                  <button class="chat-send-btn" id="chat-send" aria-label="Enviar">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M14 2L2 7.5L7 8.5M14 2L9 14L7 8.5M14 2L7 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+
+              </div>
+              <!-- /chat-panel -->
+
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Mobile overlays -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+  <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Abrir menú">
+    <span></span><span></span><span></span>
+  </button>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

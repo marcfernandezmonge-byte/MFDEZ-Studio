@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acceso — MFDEZ Studio</title>
+  <link rel="stylesheet" href="login.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SISTEMA DE FONDO — 6 CAPAS APILADAS
+       ─────────────────────────────────────────────────────
+       1. bg-mesh      → mesh gradient animado (CSS)
+       2. bg-conic     → cónico rotante — profundidad angular
+       3. orb ×4       → iluminación ambiental aurora
+       4. canvas#bgParticles → partículas digitales (JS)
+       5. noise-overlay → textura grain de película
+       6. vignette     → oscurece bordes, focaliza el centro
+  ═══════════════════════════════════════════════════════ -->
+  <div class="bg-scene" aria-hidden="true">
+
+    <!-- Capa 1: Mesh gradient animado — fluye muy lentamente -->
+    <div class="bg-mesh"></div>
+
+    <!-- Capa 2: Cónico rotante — da profundidad angular -->
+    <div class="bg-conic"></div>
+
+    <!-- Capa 3: Orbes de luz ambiental -->
+    <div class="orb orb--blue"></div>
+    <div class="orb orb--purple"></div>
+    <div class="orb orb--cyan"></div>
+    <div class="orb orb--indigo"></div>
+
+    <!-- Capa 4: Partículas digitales en canvas (JS las genera) -->
+    <canvas id="bgParticles"></canvas>
+
+    <!-- Capa 5: Grain de película -->
+    <div class="noise-overlay"></div>
+
+    <!-- Capa 6: Viñeta perimetral — encuadre cinematográfico -->
+    <div class="vignette"></div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       CONTENEDOR PRINCIPAL
+  ══════════════════════════════════════════════ -->
+  <main class="page-center">
+
+    <!-- Halo radial detrás del panel — simula que el panel emite luz -->
+    <div class="panel-halo" aria-hidden="true"></div>
+
+    <!--
+      PANEL GLASS
+      Sin logo — la jerarquía comienza directamente en el título.
+      El panel tiene un `data-mouse-x` y `data-mouse-y` que JS
+      actualiza para la microinteracción de luz que sigue al ratón.
+    -->
+    <div class="glass-panel" id="loginPanel">
+
+      <!-- Reflejo de luz que sigue el cursor (pseudo-elemento controlado por JS) -->
+      <div class="panel-glare" id="panelGlare" aria-hidden="true"></div>
+
+      <!-- ── ENCABEZADO ── -->
+      <header class="panel-header" id="animLogo">
+        <h1 class="panel-title">Bienvenido de vuelta</h1>
+        <p class="panel-subtitle">Introduce tus credenciales para continuar</p>
+      </header>
+
+      <!-- ── FORMULARIO ── -->
+      <form class="login-form" id="loginForm" novalidate>
+
+        <!-- Email -->
+        <div class="field-group" id="fieldEmail">
+          <label class="field-label" for="email">Correo electrónico</label>
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                <path d="M2 4C2 3.44772 2.44772 3 3 3H13C13.5523 3 14 3.44772 14 4V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V4Z" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M2 4.5L8 8.5L14 4.5" stroke="currentColor" stroke-width="1.3"/>
+              </svg>
+            </span>
+            <input
+              class="field-input"
+              type="email"
+              id="email"
+              name="email"
+              placeholder="tu@correo.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+          <span class="field-error" role="alert" aria-live="polite"></span>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="field-group" id="fieldPassword">
+          <div class="field-label-row">
+            <label class="field-label" for="password">Contraseña</label>
+            <a href="#" class="link-forgot" id="forgotLink">¿La olvidaste?</a>
+          </div>
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M5 7V5.5C5 3.567 6.343 2 8 2C9.657 2 11 3.567 11 5.5V7" stroke="currentColor" stroke-width="1.3"/>
+                <circle cx="8" cy="10.5" r="1" fill="currentColor"/>
+              </svg>
+            </span>
+            <input
+              class="field-input"
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Mostrar contraseña">
+              <svg class="eye-icon eye-icon--show" width="15" height="15" viewBox="0 0 16 16" fill="none">
+                <path d="M8 3C4.5 3 1.5 8 1.5 8C1.5 8 4.5 13 8 13C11.5 13 14.5 8 14.5 8C14.5 8 11.5 3 8 3Z" stroke="currentColor" stroke-width="1.3"/>
+                <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/>
+              </svg>
+              <svg class="eye-icon eye-icon--hide" width="15" height="15" viewBox="0 0 16 16" fill="none" style="display:none">
+                <path d="M2 2L14 14M8 3C4.5 3 1.5 8 1.5 8C1.5 8 3.08 10.5 5.5 12M10.5 11.5C12.5 10 14.5 8 14.5 8C14.5 8 11.5 3 8 3" stroke="currentColor" stroke-width="1.3"/>
+                <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" role="alert" aria-live="polite"></span>
+        </div>
+
+        <!-- Botón login -->
+        <button type="submit" class="btn-login" id="submitBtn">
+          <span class="btn-label">Acceder</span>
+          <span class="btn-spinner" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="9" r="7" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+              <path d="M9 2C5.134 2 2 5.134 2 9" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+        </button>
+
+      </form>
+
+      <!-- ── DIVIDER ── -->
+      <div class="divider" aria-hidden="true">
+        <span class="divider-line"></span>
+        <span class="divider-text">o continúa con</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <!-- ── SOCIAL ── -->
+      <div class="social-row">
+        <button type="button" class="btn-social" aria-label="Acceder con Google">
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
+            <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
+            <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+          </svg>
+          <span>Continuar con Google</span>
+        </button>
+      </div>
+
+      <!-- ── FOOTER ── -->
+      <footer class="panel-footer">
+        <p class="register-cta">
+          ¿Primera vez aquí?&nbsp;<a href="registro.html" class="link-accent">Crear cuenta</a>
+        </p>
+        <button type="button" class="btn-ghost" id="guestBtn">
+          Continuar sin iniciar sesión
+        </button>
+      </footer>
+
+    </div><!-- /glass-panel -->
+  </main>
+
+  <script src="login.js"></script>
+</body>
+</html>

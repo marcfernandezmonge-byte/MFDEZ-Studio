@@ -1,0 +1,955 @@
+/* ═══════════════════════════════════════════════════════════
+   LOGIN PREMIUM — login.css  v4
+   Sin logo · Fondo cinematográfico de 6 capas · Glare en panel
+   Estética: Dark · Cinematic · Glassmorphism · Electric Blue
+   ═══════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────
+   DESIGN TOKENS
+────────────────────────────────────────── */
+:root {
+  --color-bg:           #07080C;
+  --color-accent:       #008FF5;
+  --color-accent-glow:  rgba(0, 143, 245, 0.45);
+  --color-accent-soft:  rgba(0, 143, 245, 0.15);
+
+  /* Glass — gradiente diagonal para efecto de incidencia lumínica */
+  --glass-bg-from:      rgba(255, 255, 255, 0.058);
+  --glass-bg-to:        rgba(255, 255, 255, 0.024);
+  --glass-border:       rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.13);
+  --glass-blur:         36px;
+
+  /* Input */
+  --input-bg:     rgba(255, 255, 255, 0.036);
+  --input-border: rgba(255, 255, 255, 0.08);
+
+  /* Texto */
+  --text-primary:   rgba(255, 255, 255, 0.93);
+  --text-secondary: rgba(255, 255, 255, 0.46);
+  --text-muted:     rgba(255, 255, 255, 0.25);
+  --text-error:     #F45C5C;
+
+  /* Easing */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:    cubic-bezier(0, 0, 0.3, 1);
+}
+
+/* ──────────────────────────────────────────
+   RESET
+────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100%;
+  background-color: var(--color-bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SISTEMA DE FONDO — 6 CAPAS
+   ─────────────────────────────────────────────────────────
+   Stack visual (de fondo a frente):
+   bg-mesh → bg-conic → orbs → canvas → noise → vignette
+   ═══════════════════════════════════════════════════════════ */
+.bg-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+
+/* ── CAPA 1: Mesh gradient animado ──────────────
+   Simula un campo de energía en movimiento lento.
+   Usa background-position animation (solo bg-position)
+   para deslizamiento suave sin reflow.                   */
+.bg-mesh {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(ellipse 55% 40% at 20% 30%, rgba(0, 80, 220, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 50% at 80% 70%, rgba(100, 20, 200, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 35% at 60% 15%, rgba(0, 180, 220, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 45% at 30% 80%, rgba(40,  0, 160, 0.12) 0%, transparent 55%);
+  animation: mesh-drift 38s ease-in-out infinite alternate;
+  pointer-events: none;
+  will-change: transform;
+}
+
+@keyframes mesh-drift {
+  0%   { transform: translate(0%,   0%)   scale(1);    }
+  25%  { transform: translate(-3%, -2%)   scale(1.02); }
+  50%  { transform: translate(2%,   3%)   scale(0.98); }
+  75%  { transform: translate(-2%,  1.5%) scale(1.01); }
+  100% { transform: translate(3%,  -2.5%) scale(1.03); }
+}
+
+/* ── CAPA 2: Cónico rotante ──────────────────────
+   border-radius:50% lo convierte en círculo:
+   al rotar, ningún borde recto queda expuesto.
+   260% garantiza cobertura total en cualquier
+   proporción de pantalla sin dejar esquinas.       */
+.bg-conic {
+  position: absolute;
+  width: 260%;
+  height: 260%;
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent                0deg,
+    rgba(0,  80, 230, 0.05)   55deg,
+    transparent               110deg,
+    rgba(100, 20, 200, 0.035) 180deg,
+    transparent               240deg,
+    rgba(0, 180, 220, 0.035)  305deg,
+    transparent               360deg
+  );
+  animation: conic-rotate 60s linear infinite;
+  pointer-events: none;
+  will-change: transform;
+}
+
+@keyframes conic-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ── CAPA 3: Orbes de luz ambiental ─────────────
+   Iluminación orgánica. Cada orbe tiene timing
+   diferente para evitar sincronía artificial.       */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.orb--blue {
+  width: 760px;
+  height: 760px;
+  background: radial-gradient(circle, rgba(0, 90, 255, 0.22) 0%, transparent 62%);
+  filter: blur(92px);
+  top: -16%;
+  right: -10%;
+  animation: orb-a 34s ease-in-out infinite alternate;
+}
+
+.orb--purple {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(110, 30, 200, 0.18) 0%, transparent 60%);
+  filter: blur(100px);
+  bottom: -18%;
+  left: -8%;
+  animation: orb-b 27s ease-in-out infinite alternate;
+}
+
+.orb--cyan {
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle, rgba(0, 190, 215, 0.11) 0%, transparent 65%);
+  filter: blur(82px);
+  top: 4%;
+  left: 25%;
+  animation: orb-c 40s ease-in-out infinite alternate;
+}
+
+.orb--indigo {
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(50, 0, 170, 0.12) 0%, transparent 60%);
+  filter: blur(110px);
+  bottom: 10%;
+  right: 12%;
+  animation: orb-d 46s ease-in-out infinite alternate;
+}
+
+@keyframes orb-a {
+  0%   { transform:translate(0,0)      scale(1);    opacity:.85; }
+  30%  { transform:translate(-26px,20px) scale(1.04); opacity:1;   }
+  65%  { transform:translate(16px,-28px) scale(0.96); opacity:.80; }
+  100% { transform:translate(-16px,50px) scale(1.03); opacity:.88; }
+}
+@keyframes orb-b {
+  0%   { transform:translate(0,0)       scale(1);    }
+  35%  { transform:translate(36px,-26px) scale(1.08); }
+  70%  { transform:translate(-16px,16px) scale(0.93); }
+  100% { transform:translate(-30px,60px) scale(1.05); }
+}
+@keyframes orb-c {
+  0%   { transform:translate(0,0)       scale(1);    opacity:.70; }
+  40%  { transform:translate(-60px,26px) scale(1.14); opacity:.98; }
+  78%  { transform:translate(26px,-16px) scale(0.90); opacity:.74; }
+  100% { transform:translate(40px,-50px) scale(0.86); opacity:.66; }
+}
+@keyframes orb-d {
+  0%   { transform:translate(0,0)       scale(1);    opacity:.62; }
+  50%  { transform:translate(-52px,-36px) scale(1.1); opacity:.86; }
+  100% { transform:translate(46px,26px)  scale(0.92); opacity:.60; }
+}
+
+/* ── CAPA 4: Canvas de partículas (JS las gestiona) ── */
+#bgParticles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* ── CAPA 5: Grain de película ───────────────────── */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ── CAPA 6: Viñeta perimetral ───────────────────── */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 105% 95% at 50% 50%,
+    transparent 38%,
+    rgba(0, 0, 0, 0.52) 100%
+  );
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════════ */
+.page-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  padding: 24px 16px;
+}
+
+/* ══════════════════════════════════════════════════
+   HALO AMBIENTAL
+   El panel parece emitir luz propia.
+   Animación de respiración 7s.
+══════════════════════════════════════════════════ */
+.panel-halo {
+  position: absolute;
+  width: 540px;
+  height: 420px;
+  background: radial-gradient(
+    ellipse 72% 62% at 50% 50%,
+    rgba(0, 143, 245, 0.10) 0%,
+    rgba(0,  80, 255, 0.05) 45%,
+    transparent             72%
+  );
+  filter: blur(64px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: halo-breathe 7s ease-in-out infinite alternate;
+}
+
+@keyframes halo-breathe {
+  0%   { opacity: .55; transform: scale(1); }
+  100% { opacity: 1;   transform: scale(1.08); }
+}
+
+/* ══════════════════════════════════════════════════
+   PANEL GLASS
+   ──────────────────────────────────────────────────
+   Sin logo → el título es el primer elemento.
+   Gradiente diagonal para ilusión de superficie
+   iluminada. El pseudo .panel-glare sigue el cursor.
+══════════════════════════════════════════════════ */
+.glass-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 412px;
+  padding: 52px 42px 42px;
+
+  background: linear-gradient(
+    148deg,
+    rgba(255, 255, 255, 0.058) 0%,
+    rgba(255, 255, 255, 0.022) 100%
+  );
+  backdrop-filter: blur(var(--glass-blur)) saturate(185%) brightness(1.04);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(185%) brightness(1.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 26px;
+  overflow: hidden; /* contiene el glare */
+
+  box-shadow:
+    0 1px 0  rgba(255,255,255, 0.07) inset,  /* highlight superior */
+    0 -1px 0 rgba(0,0,0, 0.14) inset,        /* sombra inferior inset */
+    0 2px 4px  rgba(0,0,0, 0.24),
+    0 14px 36px rgba(0,0,0, 0.40),
+    0 40px 96px rgba(0,0,0, 0.60),
+    0 60px 120px rgba(0, 143, 245, 0.04);    /* glow azul base */
+
+  /* Estado inicial de animación de entrada */
+  opacity: 0;
+  transform: scale(0.94) translateY(18px);
+  filter: blur(10px);
+  transition:
+    border-color 0.35s var(--ease-smooth),
+    box-shadow   0.45s var(--ease-smooth);
+}
+
+/* Gradiente de acento angular — visible en hover */
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    148deg,
+    rgba(0, 143, 245, 0.08)  0%,
+    transparent              38%,
+    transparent              66%,
+    rgba(80,  40, 200, 0.05) 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.42s var(--ease-smooth);
+}
+
+/* Highlight superior — borde vidrio iluminado */
+.glass-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.09) 20%,
+    rgba(255,255,255,0.30) 44%,
+    rgba(255,255,255,0.36) 50%,
+    rgba(255,255,255,0.30) 56%,
+    rgba(255,255,255,0.09) 80%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.glass-panel:hover {
+  border-color: var(--glass-border-hover);
+  box-shadow:
+    0 1px 0  rgba(255,255,255, 0.09) inset,
+    0 -1px 0 rgba(0,0,0, 0.14) inset,
+    0 2px 4px   rgba(0,0,0, 0.24),
+    0 18px 44px rgba(0,0,0, 0.44),
+    0 48px 110px rgba(0,0,0, 0.64),
+    0 0 90px rgba(0, 143, 245, 0.07);
+}
+
+.glass-panel:hover::before {
+  opacity: 1;
+}
+
+/* ── GLARE — punto de luz que sigue al cursor ──
+   JS actualiza --gx y --gy con la posición relativa
+   del cursor dentro del panel (valores 0–100%).
+   Al salir el cursor, se desvanece.             */
+.panel-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle 280px at var(--gx, 50%) var(--gy, -20%),
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-smooth);
+  z-index: 0;
+}
+
+.glass-panel:hover .panel-glare {
+  opacity: 1;
+}
+
+/* Todo el contenido del panel va sobre el glare */
+.panel-header,
+.login-form,
+.divider,
+.social-row,
+.panel-footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════════════════
+   ENCABEZADO
+   Sin logo → mayor padding superior en el panel (52px).
+   El título es el primer elemento visual del panel.
+══════════════════════════════════════════════════ */
+.panel-header {
+  margin-bottom: 38px;
+  /* id="animLogo" reutilizado para la animación de entrada */
+  opacity: 0;
+  transform: scale(0.92) translateY(-8px);
+}
+
+.panel-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  color: var(--text-primary);
+  margin-bottom: 9px;
+  line-height: 1.14;
+}
+
+.panel-subtitle {
+  font-size: 13.5px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  letter-spacing: 0.005em;
+  line-height: 1.58;
+}
+
+/* ══════════════════════════════════════════════════
+   FORMULARIO
+══════════════════════════════════════════════════ */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Label + "¿la olvidaste?" en la misma fila */
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  transition: color 0.3s var(--ease-smooth);
+  user-select: none;
+}
+
+.field-group:focus-within .field-label {
+  color: rgba(0, 143, 245, 0.78);
+}
+
+/* Wrapper */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  transition: color 0.3s var(--ease-smooth);
+  z-index: 1;
+}
+
+.field-group:focus-within .input-icon {
+  color: var(--color-accent);
+}
+
+/* Input */
+.field-input {
+  width: 100%;
+  padding: 11.5px 40px 11.5px 38px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-primary);
+  outline: none;
+  transition:
+    border-color 0.28s var(--ease-smooth),
+    box-shadow   0.28s var(--ease-smooth),
+    background   0.28s var(--ease-smooth);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.field-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 300;
+  opacity: 0.65;
+}
+
+/* Autofill oscuro */
+.field-input:-webkit-autofill,
+.field-input:-webkit-autofill:hover,
+.field-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px #0D0F16 inset;
+  -webkit-text-fill-color: var(--text-primary);
+  caret-color: var(--text-primary);
+}
+
+/* Focus — triple glow */
+.field-input:focus {
+  border-color: #008FF5;
+  background: rgba(0, 143, 245, 0.030);
+  box-shadow:
+    0 0 0 3px rgba(0, 143, 245, 0.16),
+    0 -1px 0 rgba(0, 143, 245, 0.20) inset,
+    0 2px 6px rgba(0, 0, 0, 0.14) inset;
+}
+
+/* Error */
+.field-group.has-error .field-input {
+  border-color: var(--text-error);
+  box-shadow: 0 0 0 3px rgba(244, 92, 92, 0.14);
+}
+
+.field-group.has-error .input-icon { color: var(--text-error); }
+.field-group.has-error .field-label { color: rgba(244, 92, 92, 0.72); }
+
+.field-error {
+  font-size: 11.5px;
+  color: var(--text-error);
+  min-height: 15px;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition:
+    opacity   0.2s var(--ease-smooth),
+    transform 0.2s var(--ease-spring);
+}
+
+.field-group.has-error .field-error {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Toggle password */
+.password-toggle {
+  position: absolute;
+  right: 11px;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 5px;
+  transition: color 0.22s var(--ease-smooth), background 0.18s;
+}
+
+.password-toggle:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ══════════════════════════════════════════════════
+   BOTÓN LOGIN
+   Gradiente volumétrico + shimmer sweep + sombra glow
+══════════════════════════════════════════════════ */
+.btn-login {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(180deg, #1aa3ff 0%, #008FF5 46%, #0070d6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  margin-top: 10px;
+  transition:
+    transform  0.22s var(--ease-spring),
+    box-shadow 0.28s var(--ease-smooth),
+    filter     0.18s var(--ease-smooth);
+  box-shadow:
+    0 1px 0 rgba(255,255,255, 0.18) inset,
+    0 4px 16px rgba(0, 143, 245, 0.30),
+    0 1px 3px  rgba(0, 0, 0, 0.34);
+}
+
+/* Highlight interno superior */
+.btn-login::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.16) 0%, transparent 100%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Shimmer sweep en hover */
+.btn-login::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -80%;
+  width: 44%;
+  height: 200%;
+  background: linear-gradient(
+    108deg,
+    transparent 0%,
+    rgba(255,255,255,0.12) 50%,
+    transparent 100%
+  );
+  transform: skewX(-12deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: left 0.52s var(--ease-out), opacity 0.28s;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.07);
+  box-shadow:
+    0 1px 0 rgba(255,255,255, 0.18) inset,
+    0 16px 42px rgba(0, 143, 245, 0.54),
+    0 4px 14px rgba(0, 143, 245, 0.28),
+    0 1px 3px  rgba(0, 0, 0, 0.32);
+}
+
+.btn-login:hover::after {
+  left: 130%;
+  opacity: 1;
+}
+
+.btn-login:active {
+  transform: scale(0.97) translateY(0);
+  filter: brightness(0.95);
+  box-shadow:
+    0 1px 0 rgba(255,255,255, 0.1) inset,
+    0 4px 10px rgba(0, 143, 245, 0.26),
+    0 1px 2px  rgba(0, 0, 0, 0.30);
+  transition-duration: 0.08s;
+}
+
+.btn-login:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(0, 143, 245, 0.52),
+    0 4px 16px rgba(0, 143, 245, 0.30);
+}
+
+/* Estado loading */
+.btn-login.is-loading .btn-label {
+  opacity: 0;
+  transform: scale(0.86);
+  transition: opacity 0.15s, transform 0.15s var(--ease-spring);
+}
+
+.btn-login.is-loading .btn-spinner {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.btn-spinner {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.2s, transform 0.2s var(--ease-spring);
+}
+
+.btn-spinner svg { animation: spin 0.72s linear infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-label {
+  transition: opacity 0.15s, transform 0.15s var(--ease-spring);
+}
+
+/* ══════════════════════════════════════════════════
+   DIVIDER
+══════════════════════════════════════════════════ */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 30px 0 18px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.065) 25%,
+    rgba(255,255,255,0.065) 75%,
+    transparent
+  );
+}
+
+.divider-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ══════════════════════════════════════════════════
+   BOTÓN SOCIAL
+══════════════════════════════════════════════════ */
+.social-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 11px 16px;
+  background: rgba(255,255,255, 0.035);
+  border: 1px solid var(--glass-border);
+  border-radius: 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background   0.24s var(--ease-smooth),
+    border-color 0.24s var(--ease-smooth),
+    color        0.24s var(--ease-smooth),
+    transform    0.20s var(--ease-spring),
+    box-shadow   0.24s var(--ease-smooth);
+  outline: none;
+}
+
+.btn-social:hover {
+  background: rgba(255,255,255, 0.062);
+  border-color: rgba(255,255,255, 0.13);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(0,0,0, 0.26);
+}
+
+.btn-social:active {
+  transform: scale(0.97) translateY(0);
+  transition-duration: 0.08s;
+}
+
+.btn-social:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 143, 245, 0.35);
+}
+
+/* ══════════════════════════════════════════════════
+   LINKS
+══════════════════════════════════════════════════ */
+.link-forgot {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: color 0.22s var(--ease-smooth);
+}
+
+.link-forgot:hover { color: rgba(255,255,255, 0.5); }
+
+.link-accent {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s, text-shadow 0.28s;
+}
+
+.link-accent:hover {
+  opacity: 0.82;
+  text-shadow: 0 0 14px rgba(0, 143, 245, 0.5);
+}
+
+/* ══════════════════════════════════════════════════
+   FOOTER DEL PANEL
+══════════════════════════════════════════════════ */
+.panel-footer {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.register-cta {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Acceso sin sesión — texto puro, sin borde */
+.btn-ghost {
+  display: inline-block;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  padding: 4px 0;
+  text-align: center;
+  opacity: 0.72;
+  transition:
+    opacity 0.24s var(--ease-smooth),
+    color   0.24s var(--ease-smooth);
+  outline: none;
+}
+
+.btn-ghost:hover {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255,255,255, 0.14);
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════════════════════════
+   SHAKE DE ERROR
+══════════════════════════════════════════════════ */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  16%     { transform: translateX(-5px); }
+  33%     { transform: translateX(4px); }
+  50%     { transform: translateX(-3px); }
+  66%     { transform: translateX(2px); }
+  83%     { transform: translateX(-1px); }
+}
+
+.shake { animation: shake 0.42s var(--ease-smooth); }
+
+/* ══════════════════════════════════════════════════
+   ANIMACIONES DE ENTRADA
+   Panel: blur reveal 700ms spring
+   Header (id=animLogo): delay 160ms
+══════════════════════════════════════════════════ */
+.glass-panel.is-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0px);
+  transition:
+    opacity   700ms var(--ease-spring),
+    transform 700ms var(--ease-spring),
+    filter    700ms var(--ease-spring),
+    border-color 0.35s var(--ease-smooth),
+    box-shadow   0.45s var(--ease-smooth);
+}
+
+/* El encabezado usa id="animLogo" (preservado para JS) */
+.panel-header.is-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition:
+    opacity   500ms var(--ease-spring) 180ms,
+    transform 500ms var(--ease-spring) 180ms;
+}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .glass-panel {
+    padding: 40px 28px 36px;
+    max-width: 100%;
+    border-radius: 20px;
+  }
+  .panel-title { font-size: 25px; }
+}
+
+@media (max-width: 400px) {
+  .glass-panel {
+    padding: 34px 20px 30px;
+    border-radius: 16px;
+  }
+  .panel-title { font-size: 22px; }
+  body { overflow: auto; }
+}
+
+/* ══════════════════════════════════════════════════
+   PREFERENCIAS DE MOVIMIENTO REDUCIDO
+══════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .bg-mesh,
+  .bg-conic,
+  .panel-halo {
+    animation: none;
+  }
+
+  .glass-panel,
+  .panel-header {
+    transition: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .btn-login,
+  .btn-social,
+  .btn-ghost,
+  .field-input {
+    transition: none;
+  }
+
+  .btn-login::after { display: none; }
+}

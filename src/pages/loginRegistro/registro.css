@@ -1,0 +1,326 @@
+/* ═══════════════════════════════════════════════════════════
+   REGISTER — register.css
+   ─────────────────────────────────────────────────────────
+   Extiende login.css mediante @import.
+   Este archivo SOLO contiene los deltas específicos del
+   formulario de registro:
+     · Override de overflow para panel más alto
+     · .register-form (estructura de formulario)
+     · .strength-wrap / .strength-bar (fuerza de contraseña)
+     · .terms-group / .terms-label (checkbox de términos)
+     · Estados de éxito en campos (.has-match)
+     · Ajustes responsive adicionales
+   ─────────────────────────────────────────────────────────
+   ⚠  Requiere que login.css esté en el mismo directorio.
+      Servir desde HTTP/HTTPS para que @import funcione
+      correctamente en todos los navegadores.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Importar el sistema visual completo del login ── */
+@import './login.css';
+
+
+/* ══════════════════════════════════════════════════
+   OVERRIDE GLOBAL
+   El panel de registro tiene más campos que el login,
+   por lo que necesita scroll vertical en pantallas bajas.
+══════════════════════════════════════════════════ */
+body {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+
+/* ══════════════════════════════════════════════════
+   FORMULARIO DE REGISTRO
+   Hereda toda la lógica de campo de .login-form.
+   Se reduce el gap a 14px para acomodar 4 campos
+   cómodamente en la mayoría de viewports.
+══════════════════════════════════════════════════ */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* Necesario: hereda z-index del stack del panel */
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ══════════════════════════════════════════════════
+   BARRA DE FUERZA DE CONTRASEÑA
+   ──────────────────────────────────────────────────
+   Aparece con fade cuando el usuario empieza a
+   escribir. Cuatro niveles de color:
+     1 → rojo    (débil, < 6 chars)
+     2 → naranja (básica, 6+ chars)
+     3 → verde   (buena, 8+ + mayúscula/número)
+     4 → teal    (fuerte, todo lo anterior + especial)
+   La transición spring le da vida al fill.
+══════════════════════════════════════════════════ */
+.strength-wrap {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.065);
+  border-radius: 999px;
+  overflow: hidden;
+  /* Empieza invisible — aparece con .is-active */
+  opacity: 0;
+  margin-top: 2px;
+  transition: opacity 0.32s var(--ease-smooth);
+}
+
+.strength-wrap.is-active {
+  opacity: 1;
+}
+
+.strength-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  transition:
+    width      0.46s var(--ease-spring),
+    background 0.46s var(--ease-smooth),
+    box-shadow 0.46s var(--ease-smooth);
+}
+
+/* Nivel 1 — débil */
+.strength-bar[data-level="1"] {
+  width: 25%;
+  background: #f45c5c;
+  box-shadow: none;
+}
+
+/* Nivel 2 — básica */
+.strength-bar[data-level="2"] {
+  width: 50%;
+  background: #f09030;
+  box-shadow: none;
+}
+
+/* Nivel 3 — buena */
+.strength-bar[data-level="3"] {
+  width: 75%;
+  background: #48c78e;
+  box-shadow: none;
+}
+
+/* Nivel 4 — fuerte */
+.strength-bar[data-level="4"] {
+  width: 100%;
+  background: linear-gradient(90deg, #00d4a0 0%, #00c8e0 100%);
+  box-shadow: 0 0 10px rgba(0, 212, 160, 0.44);
+}
+
+
+/* ══════════════════════════════════════════════════
+   ESTADO DE COINCIDENCIA — confirmPassword
+   ──────────────────────────────────────────────────
+   Cuando el campo confirm coincide con password,
+   se aplica .has-match para feedback positivo verde.
+   Comparte la misma lógica estructural que .has-error
+   pero con la paleta de éxito.
+══════════════════════════════════════════════════ */
+.field-group.has-match .field-input {
+  border-color: #48c78e;
+  box-shadow:
+    0 0 0 3px rgba(72, 199, 142, 0.16),
+    0 -1px 0 rgba(72, 199, 142, 0.20) inset,
+    0 2px 6px rgba(0, 0, 0, 0.12) inset;
+  background: rgba(72, 199, 142, 0.028);
+}
+
+.field-group.has-match .input-icon {
+  color: #48c78e;
+}
+
+.field-group.has-match .field-label {
+  color: rgba(72, 199, 142, 0.78);
+}
+
+
+/* ══════════════════════════════════════════════════
+   TÉRMINOS Y CONDICIONES
+   ──────────────────────────────────────────────────
+   Checkbox custom completamente accesible.
+   El input nativo queda invisible pero operativo
+   (teclado, screen readers).
+   El check mark se dibuja con SVG data-URI
+   como máscara CSS — sin dependencias de imagen.
+══════════════════════════════════════════════════ */
+.terms-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 4px;
+  /* Hereda z-index del stack del panel */
+  position: relative;
+  z-index: 1;
+}
+
+.terms-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Ocultar el checkbox nativo preservando accesibilidad */
+.terms-check {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Checkbox custom */
+.terms-custom {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+  border: 1px solid var(--input-border);
+  border-radius: 5px;
+  background: var(--input-bg);
+  position: relative;
+  transition:
+    border-color 0.24s var(--ease-smooth),
+    background   0.24s var(--ease-smooth),
+    box-shadow   0.24s var(--ease-smooth);
+}
+
+/* Check mark dibujado con máscara SVG */
+.terms-custom::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%) scale(0.3);
+  background: #fff;
+  opacity: 0;
+  transition:
+    opacity   0.18s var(--ease-spring),
+    transform 0.22s var(--ease-spring);
+  /* Check SVG como máscara — evita dependencia de imagen -->*/
+  -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.5 5L4 7.5L8.5 2.5' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.5 5L4 7.5L8.5 2.5' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Checked */
+.terms-check:checked + .terms-custom {
+  border-color: var(--color-accent);
+  background: rgba(0, 143, 245, 0.16);
+  box-shadow: 0 0 0 3px rgba(0, 143, 245, 0.16);
+}
+
+.terms-check:checked + .terms-custom::after {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Focus visible — accesibilidad por teclado */
+.terms-check:focus-visible + .terms-custom {
+  box-shadow: 0 0 0 3px rgba(0, 143, 245, 0.38);
+  border-color: var(--color-accent);
+}
+
+/* Error state */
+.terms-group.has-error .terms-custom {
+  border-color: var(--text-error);
+  box-shadow: 0 0 0 3px rgba(244, 92, 92, 0.14);
+}
+
+.terms-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  padding-top: 1px;
+}
+
+/* Error de términos debajo del label */
+.terms-group .field-error {
+  padding-left: 28px; /* alinear con el texto, no con el checkbox */
+}
+
+
+/* ══════════════════════════════════════════════════
+   FOOTER AJUSTADO — sin btn-ghost
+   El register solo tiene el CTA de login.
+══════════════════════════════════════════════════ */
+.glass-panel .panel-footer {
+  margin-top: 20px;
+}
+
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE — pantallas compactas
+══════════════════════════════════════════════════ */
+
+/* Panel alto en pantallas pequeñas */
+@media (max-width: 600px) {
+  .register-form {
+    gap: 12px;
+  }
+
+  .terms-text {
+    font-size: 12px;
+  }
+}
+
+/* Pantallas con altura reducida — ajuste de spacing vertical */
+@media (max-height: 740px) {
+  .glass-panel {
+    padding: 38px 40px 34px;
+  }
+
+  .panel-header {
+    margin-bottom: 26px;
+  }
+
+  .register-form {
+    gap: 11px;
+  }
+
+  .terms-group {
+    margin-top: 2px;
+  }
+}
+
+@media (max-height: 620px) {
+  .glass-panel {
+    padding: 28px 36px 28px;
+  }
+
+  .panel-header {
+    margin-bottom: 20px;
+  }
+
+  .register-form {
+    gap: 9px;
+  }
+
+  .panel-title { font-size: 24px; }
+}
+
+
+/* ══════════════════════════════════════════════════
+   PREFERENCIAS DE MOVIMIENTO REDUCIDO
+   Ampliación del bloque de login.css para los
+   nuevos elementos del registro.
+══════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .strength-bar,
+  .strength-wrap,
+  .terms-custom,
+  .terms-custom::after {
+    transition: none;
+  }
+}

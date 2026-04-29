@@ -263,3 +263,161 @@
   window.addEventListener('load', detectNavbar);
 
 })();
+/* ═══════════════════════════════════════════════════════════════
+   SUBSCRIPTION SYSTEM
+   Control de acceso a imágenes + modal auth/suscripción
+═══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  const API_BASE = 'http://localhost:3000/api';
+
+  function getToken()   { return localStorage.getItem('token') || null; }
+  function isLoggedIn() { return Boolean(getToken()); }
+
+  async function checkSubscription() {
+    const token = getToken();
+    if (!token) return false;
+    try {
+      const res = await fetch(`${API_BASE}/user/subscription`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      return Boolean(data.subscription?.active);
+    } catch {
+      return false;
+    }
+  }
+
+  /* ── Modal ───────────────────────────────────────────────── */
+  let authOverlay = null;
+
+  function buildAuthModal() {
+    if (document.getElementById('ccAuthOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'cc-auth-overlay';
+    overlay.id        = 'ccAuthOverlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.innerHTML = `
+      <div class="cc-auth-modal" role="dialog" aria-modal="true">
+        <span class="cc-auth-modal__icon" id="ccAuthIcon">🔒</span>
+        <h3 class="cc-auth-modal__title" id="ccAuthTitle">Contenido exclusivo</h3>
+        <p  class="cc-auth-modal__sub"   id="ccAuthSub">Únete al Collector's Club para acceder.</p>
+        <div class="cc-auth-modal__actions" id="ccAuthActions"></div>
+        <button class="cc-auth-modal__dismiss" id="ccAuthDismiss">Cerrar</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    authOverlay = overlay;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeAuthModal(); });
+    document.getElementById('ccAuthDismiss').addEventListener('click', closeAuthModal);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeAuthModal();
+    });
+  }
+
+  function openAuthModal(loggedIn) {
+    if (!authOverlay) buildAuthModal();
+    const actionsEl = document.getElementById('ccAuthActions');
+    const titleEl   = document.getElementById('ccAuthTitle');
+    const subEl     = document.getElementById('ccAuthSub');
+    const iconEl    = document.getElementById('ccAuthIcon');
+    actionsEl.innerHTML = '';
+
+    if (!loggedIn) {
+      iconEl.textContent  = '🔐';
+      titleEl.textContent = 'Inicia sesión';
+      subEl.textContent   = 'Necesitas una cuenta para ver este contenido.';
+      const btnLogin = document.createElement('button');
+      btnLogin.className   = 'cc-auth-modal__btn cc-auth-modal__btn--primary';
+      btnLogin.textContent = 'Iniciar sesión';
+      btnLogin.addEventListener('click', () => {
+        window.location.href = '/src/pages/loginRegistro/login.html';
+      });
+      const btnReg = document.createElement('button');
+      btnReg.className   = 'cc-auth-modal__btn cc-auth-modal__btn--secondary';
+      btnReg.textContent = 'Registrarse gratis';
+      btnReg.addEventListener('click', () => {
+        window.location.href = '/src/pages/loginRegistro/registro.html';
+      });
+      actionsEl.appendChild(btnLogin);
+      actionsEl.appendChild(btnReg);
+    } else {
+      iconEl.textContent  = '🔒';
+      titleEl.textContent = 'Acceso para miembros';
+      subEl.textContent   = 'Suscríbete al Collector\'s Club para desbloquear este contenido.';
+      const btnSub = document.createElement('button');
+      btnSub.className   = 'cc-auth-modal__btn cc-auth-modal__btn--primary';
+      btnSub.textContent = 'Suscribirme — 15€/mes';
+      btnSub.addEventListener('click', () => {
+        closeAuthModal();
+        document.querySelector('[data-modal="open"]')?.click();
+      });
+      actionsEl.appendChild(btnSub);
+    }
+
+    authOverlay.setAttribute('aria-hidden', 'false');
+    authOverlay.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAuthModal() {
+    authOverlay?.classList.remove('is-open');
+    authOverlay?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  /* ── Bloqueo de imágenes ─────────────────────────────────── */
+  async function initImageLock() {
+    const subscribed = await checkSubscription();
+    if (subscribed) return;
+
+    const loggedIn = isLoggedIn();
+
+    const targets = document.querySelectorAll(
+      '.cc-vault__blur, .cc-teaser__blur, .cc-print-card__placeholder'
+    );
+
+    targets.forEach((el) => {
+      const parent = el.closest('.cc-vault__cell, .cc-teaser__visual, .cc-print-card__img');
+      if (!parent) return;
+      if (getComputedStyle(parent).position === 'static') {
+        parent.style.position = 'relative';
+      }
+
+      el.classList.add('locked-image');
+
+      const overlay = document.createElement('div');
+      overlay.className = 'image-overlay-lock';
+      overlay.setAttribute('role', 'button');
+      overlay.setAttribute('tabindex', '0');
+      overlay.setAttribute('aria-label', 'Contenido exclusivo para miembros');
+
+      const icon = document.createElement('span');
+      icon.className   = 'lock-icon';
+      icon.textContent = '🔒';
+      icon.setAttribute('aria-hidden', 'true');
+      overlay.appendChild(icon);
+
+      const handleClick = () => openAuthModal(loggedIn);
+      overlay.addEventListener('click', handleClick);
+      overlay.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') handleClick();
+      });
+
+      parent.appendChild(overlay);
+    });
+  }
+
+  /* ── Init ────────────────────────────────────────────────── */
+  function init() {
+    buildAuthModal();
+    initImageLock();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();

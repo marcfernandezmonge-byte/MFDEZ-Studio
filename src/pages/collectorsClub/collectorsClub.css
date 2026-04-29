@@ -1267,3 +1267,119 @@
     padding-top: max(calc(var(--cc-nav-h) + 80px), 100px);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   SUBSCRIPTION SYSTEM — additions (no modifica clases existentes)
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Imagen bloqueada ───────────────────────────────────────── */
+.locked-image {
+  filter: blur(8px);
+  transition: filter 0.3s ease;
+  pointer-events: none;
+}
+
+/* ── Overlay de bloqueo dinámico ────────────────────────────── */
+.image-overlay-lock {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  border-radius: inherit;
+  transition: background 0.2s ease;
+}
+.image-overlay-lock:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.lock-icon {
+  font-size: 30px;
+  line-height: 1;
+  user-select: none;
+}
+
+/* ── Modal de autenticación/suscripción ─────────────────────── */
+.cc-auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+.cc-auth-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cc-auth-modal {
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2rem 2rem 1.75rem;
+  width: min(92vw, 380px);
+  text-align: center;
+  transform: translateY(8px) scale(0.97);
+  transition: transform 0.22s ease;
+}
+.cc-auth-overlay.is-open .cc-auth-modal {
+  transform: translateY(0) scale(1);
+}
+.cc-auth-modal__icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+.cc-auth-modal__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.4rem;
+}
+.cc-auth-modal__sub {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.55);
+  margin: 0 0 1.5rem;
+}
+.cc-auth-modal__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cc-auth-modal__btn {
+  padding: 0.55rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+.cc-auth-modal__btn:hover { opacity: 0.88; }
+.cc-auth-modal__btn--primary  { background: #e5281e; color: #fff; }
+.cc-auth-modal__btn--secondary {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.cc-auth-modal__dismiss {
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+}
+.cc-auth-modal__dismiss:hover { color: rgba(255,255,255,0.6); }

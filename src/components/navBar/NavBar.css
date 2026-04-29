@@ -13,7 +13,8 @@
 }
 
 :root {
-  --nav-z-index: 999;
+  --nav-z-index: 11000;
+  --nav-overlay-z-index: 10990;
   --nav-bg-overlay: #0B0E12;
   --nav-accent: #008FF5;
   --nav-text: #f2f2f2;
@@ -110,75 +111,190 @@
 .cta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 20px 9px 14px;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 18px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
   color: var(--nav-text);
   text-decoration: none;
   font-family: var(--nav-font);
   font-weight: 500;
   font-size: 13px;
   letter-spacing: 0.04em;
-  background: rgba(255, 255, 255, 0.03);
+  line-height: 1;
   position: relative;
+  isolation: isolate;
   overflow: hidden;
-  transition: border-color 0.3s ease,
-              background 0.3s ease,
-              color 0.3s ease,
-              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    inset 0 -1px 0 rgba(255,255,255,0.05),
+    0 8px 30px rgba(0,0,0,0.35);
+  --x: 50%;
+  --y: 50%;
+  --cta-tx: 0px;
+  --cta-ty: 0px;
+  --cta-scale: 1;
+  transform: translate3d(var(--cta-tx), var(--cta-ty), 0) scale(var(--cta-scale));
+  will-change: transform, box-shadow, border-color;
+  transition:
+    transform 0.25s cubic-bezier(0.16,1,0.3,1),
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.35s ease,
+    color 0.3s ease;
+  animation: breathe 6s ease-in-out infinite;
   z-index: 60;
 }
 
-/* Punto de estado activo */
-.cta__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--nav-accent);
-  flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(0, 143, 245, 0.7);
-  animation: dot-pulse 2.4s ease-in-out infinite;
-}
-
-@keyframes dot-pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(0, 143, 245, 0.7); }
-  50%       { opacity: 0.5; box-shadow: 0 0 2px rgba(0, 143, 245, 0.3); }
-}
-
-.cta__label {
-  position: relative;
-  z-index: 1;
-  transition: color 0.25s ease;
-}
-
-/* Brillo interior al hover */
-.cta::after {
+.cta::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: var(--nav-text);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.35s cubic-bezier(0.77, 0, 0.175, 1);
+  background: radial-gradient(
+    circle at var(--x) var(--y),
+    rgba(255,255,255,0.25),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
   z-index: 0;
+  pointer-events: none;
+}
+
+.cta::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.4),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.7s ease;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .cta:hover {
-  border-color: var(--nav-text);
-  color: var(--nav-bg-overlay);
-  transform: translateY(-1px);
-}
-.cta:hover::after { transform: scaleX(1); }
-.cta:hover .cta__dot {
-  background: var(--nav-bg-overlay);
-  box-shadow: none;
-  animation: none;
+  border-color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.34),
+    inset 0 -1px 0 rgba(255,255,255,0.08),
+    0 14px 36px rgba(0,0,0,0.36),
+    0 0 0 1px rgba(255,255,255,0.06);
 }
 
-.topbar.scrolled .cta { transform: translateY(-1px); }
-.topbar.scrolled .cta:hover { transform: translateY(-2px); }
+.cta:hover::before,
+.cta:focus-visible::before {
+  opacity: 1;
+}
+
+.cta:hover::after,
+.cta:focus-visible::after {
+  left: 130%;
+}
+
+.cta:focus-visible {
+  outline: none;
+  border-color: rgba(255,255,255,0.46);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.34),
+    inset 0 -1px 0 rgba(255,255,255,0.08),
+    0 0 0 3px rgba(0, 143, 245, 0.22),
+    0 12px 34px rgba(0,0,0,0.34);
+}
+
+.cta:active {
+  --cta-scale: 0.94;
+}
+
+.cta__icon,
+.cta__label {
+  position: relative;
+  z-index: 2;
+}
+
+.cta__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: rgba(255, 255, 255, 0.92);
+  transition: transform 0.3s ease, color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.cta__icon svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cta:hover .cta__icon,
+.cta:focus-visible .cta__icon {
+  transform: translateX(4px);
+}
+
+.cta__label {
+  transition: color 0.25s ease, transform 0.3s ease;
+}
+
+.cta:hover .cta__label,
+.cta:focus-visible .cta__label {
+  transform: translateX(1px);
+}
+
+@keyframes breathe {
+  0%, 100% {
+    background: rgba(255,255,255,0.06);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(255,255,255,0.05),
+      0 8px 30px rgba(0,0,0,0.35);
+  }
+  50% {
+    background: rgba(255,255,255,0.075);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.34),
+      inset 0 -1px 0 rgba(255,255,255,0.08),
+      0 10px 32px rgba(0,0,0,0.38);
+  }
+}
+
+.topbar.scrolled .cta {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 -1px 0 rgba(255,255,255,0.05),
+    0 10px 26px rgba(0,0,0,0.32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    animation: none;
+    transition: border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+    transform: none;
+  }
+
+  .cta::after,
+  .cta__icon,
+  .cta__label {
+    transition: none;
+  }
+}
 
 /* ========================================
    HAMBURGUESA — sin tocar estilos core
@@ -232,23 +348,55 @@
 .menu-overlay {
   position: fixed;
   inset: 0;
+  box-sizing: border-box;
+  min-height: 100dvh;
   background-color: var(--nav-bg-overlay);
   font-family: var(--nav-font);
-  z-index: 998;
+  z-index: var(--nav-overlay-z-index);
   padding: 120px 40px 40px;
-  clip-path: inset(0 100% 0 0);
+  -webkit-clip-path: none;
+  clip-path: none;
+  opacity: 0;
+  transform: translate3d(-100%, 0, 0);
   visibility: hidden;
-  pointer-events: auto;
-  transition: clip-path 0.65s cubic-bezier(0.77, 0, 0.175, 1),
-              visibility 0s 0.65s;
+  pointer-events: none;
+  transition:
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.24s ease,
+    visibility 0s linear 0.85s;
   overflow: hidden;
+  isolation: isolate;
+  will-change: transform, opacity;
 }
 
 .menu-overlay.is-open {
-  clip-path: inset(0 0% 0 0);
+  -webkit-clip-path: none;
+  clip-path: none;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
   visibility: visible;
-  transition: clip-path 0.65s cubic-bezier(0.77, 0, 0.175, 1),
-              visibility 0s 0s;
+  pointer-events: auto;
+  transition:
+    transform 0.62s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.24s ease,
+    visibility 0s linear 0s;
+}
+
+.menu-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.03), transparent 42%),
+    rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.menu-overlay.is-open::after {
+  opacity: 1;
 }
 
 /* Canvas de fondo animado */
@@ -258,6 +406,7 @@
   width: 100%;
   height: 100%;
   opacity: 0;
+  z-index: 0;                    /* FIX: explícito, siempre debajo de menu-content */
   transition: opacity 0.8s ease 0.3s;
   pointer-events: none;
 }
@@ -278,6 +427,7 @@
     rgba(0, 143, 245, 0.04) 50%,
     transparent 70%);
   pointer-events: none;
+  z-index: 0;
   opacity: 0;
   transition: opacity 0.9s ease 0.2s;
 }
@@ -289,9 +439,9 @@
    MENU CONTENT
    ======================================== */
 .menu-content {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  min-height: calc(100dvh - 160px);
+  display: grid;
+  grid-template-rows: 1fr auto;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -303,12 +453,34 @@
    MENU GRID — fuente original del sistema
    ======================================== */
 .menu-grid {
-  flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(280px, 420px));
+  justify-content: center;
+  align-content: center;
+  gap: 80px 120px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  align-self: center;
   align-items: center;
   font-family: var(--nav-font-grid);
+}
+
+.menu-grid > :nth-child(3),
+.menu-grid > :nth-child(4) {
+  translate: 0 40px;
+}
+
+@media (max-width: 1100px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 64px;
+  }
+
+  .menu-grid > :nth-child(3),
+  .menu-grid > :nth-child(4) {
+    translate: 0 20px;
+  }
 }
 
 .menu-item {
@@ -316,15 +488,22 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 1;
+  transform: none;
+  /* FIX: sin transition — la animación lo gestiona desde .is-open */
+}
+
+/* FIX: animation en vez de transition + transition-delay: var() */
+/* Las keyframe animations disparan siempre al añadir la clase,
+   sin depender del estado "from" calculado por el browser */
+@keyframes menuItemReveal {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .menu-overlay.is-open .menu-item {
   opacity: 1;
-  transform: translateY(0);
-  transition-delay: var(--delay);
+  transform: none;
 }
 
 /* Índice numérico */
@@ -377,14 +556,166 @@
   font-size: 13px;
   letter-spacing: 0.04em;
   font-family: var(--nav-font);
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.4s ease 0.4s, transform 0.4s ease 0.4s;
+  opacity: 1;
+  transform: none;
+  /* FIX: sin transition — la animación lo gestiona */
+}
+
+@keyframes menuFooterReveal {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .menu-overlay.is-open .menu-footer {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
+  animation: menuFooterReveal 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ========================================
+   CINEMATIC LAYERING
+   ======================================== */
+.menu-bg-canvas {
+  transform: translate3d(-12%, 0, 0) scale(1.08);
+  opacity: 0;
+  z-index: 0;
+  transform-origin: left center;
+  transition:
+    transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 1s ease;
+  will-change: transform, opacity;
+}
+
+.menu-overlay.is-open .menu-bg-canvas {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
+  transition-delay: 0.12s;
+}
+
+.menu-light {
+  transform: translate(-50%, -80px) scale(0.9);
+  z-index: 2;
+  opacity: 0;
+  filter: blur(18px);
+  transition:
+    transform 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 1s ease,
+    filter 0.9s ease;
+  will-change: transform, opacity, filter;
+}
+
+.menu-overlay.is-open .menu-light {
+  transform: translate(-50%, 0) scale(1);
+  opacity: 1;
+  filter: blur(0);
+  transition-delay: 0.18s;
+}
+
+.menu-content {
+  z-index: 3;
+  transform: translate3d(-80px, 0, 0) scale(0.96);
+  opacity: 0;
+  filter: blur(8px);
+  transform-origin: left center;
+  transition:
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.5s ease,
+    filter 0.7s ease;
+  will-change: transform, filter, opacity;
+}
+
+.menu-overlay.is-open .menu-content {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
+  filter: blur(0);
+  transition-delay: 0.08s;
+  animation: contentSettle 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+@keyframes contentSettle {
+  0% {
+    transform: translate3d(-80px, 0, 0) scale(0.94);
+  }
+  60% {
+    transform: translate3d(6px, 0, 0) scale(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.menu-overlay:not(.is-open)::after {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.menu-overlay:not(.is-open) {
+  transition:
+    transform 0.84s cubic-bezier(0.22, 1, 0.36, 1) 0.08s,
+    opacity 0.24s ease 0.62s,
+    visibility 0s linear 0.92s;
+}
+
+.menu-overlay:not(.is-open) .menu-content {
+  transform: translate3d(-40px, 0, 0) scale(0.95);
+  opacity: 0;
+  filter: blur(8px);
+  transition:
+    transform 0.5s cubic-bezier(0.4, 0, 1, 1),
+    opacity 0.35s ease,
+    filter 0.4s ease;
+  transition-delay: 0.08s;
+  animation: exitInertia 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
+}
+
+.menu-overlay:not(.is-open) .menu-item {
+  opacity: 0 !important;
+  transform: translateY(16px) scale(0.98) !important;
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s cubic-bezier(0.4, 0, 1, 1);
+  transition-delay: 0.05s;
+}
+
+.menu-overlay:not(.is-open) .menu-footer {
+  opacity: 0 !important;
+  transform: translateY(60px) !important;
+  transition:
+    opacity 0.25s ease,
+    transform 0.35s cubic-bezier(0.4, 0, 1, 1);
+  transition-delay: 0s;
+}
+
+.menu-overlay:not(.is-open) .menu-bg-canvas {
+  transform: translate3d(-2%, 0, 0) scale(1.02);
+  opacity: 0;
+  transition:
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.6s ease;
+  transition-delay: 0.12s;
+}
+
+.menu-overlay:not(.is-open) .menu-light {
+  opacity: 0;
+  transform: translate(-50%, -30px) scale(0.96);
+  filter: blur(16px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s ease,
+    filter 0.6s ease;
+  transition-delay: 0.1s;
+}
+
+@keyframes exitInertia {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(-12px, 0, 0) scale(0.98);
+  }
+  100% {
+    transform: translate3d(-40px, 0, 0) scale(0.95);
+  }
 }
 
 .menu-footer__social {
@@ -411,6 +742,21 @@ body.ag-is-expanded .topbar {
 @media (max-width: 768px) {
   .topbar { padding: 12px 16px; }
   .topbar.scrolled { padding: 10px 16px; }
-  .menu-overlay { padding: 100px 20px 30px; }
+  .menu-overlay {
+    padding: 100px 20px 30px;
+    transition:
+      transform 0.78s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.24s ease,
+      visibility 0s linear 0.85s;
+  }
+  .menu-content { min-height: calc(100dvh - 130px); }
   .menu-light { width: 320px; }
+  .menu-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    justify-items: center;
+  }
+  .menu-grid > * {
+    translate: none;
+  }
 }
