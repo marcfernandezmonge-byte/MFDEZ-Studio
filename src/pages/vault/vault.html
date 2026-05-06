@@ -3,60 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050505">
-  <title>Vault — Collector's Club</title>
-
-  <!-- Preconnect for fast font load -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link rel="stylesheet" href="../collectorsClub/collectorsClub.css">
+  <meta name="theme-color" content="#050507">
+  <title>Vault - Collector's Club</title>
   <link rel="stylesheet" href="vault.css">
 </head>
 <body>
+  <main class="vault-page" data-vault-ready="false">
+    <section class="vault-viewer" aria-label="Collector's Club Vault">
+      <button class="vault-click-zone vault-click-zone--prev" type="button" data-direction="prev" aria-label="Imagen anterior"></button>
+      <button class="vault-click-zone vault-click-zone--next" type="button" data-direction="next" aria-label="Imagen siguiente"></button>
 
-<main class="vault-page">
-
-  <!-- VIEWER -->
-  <section class="vault-viewer">
-    <div class="vault-image-container">
-      <!-- Ambient glow behind the artwork -->
-      <div class="vault-image-glow" id="vaultImageGlow" aria-hidden="true"></div>
-      <!-- is-visible class toggled by JS after load -->
-      <img class="vault-image" id="vaultImage" alt="" />
-    </div>
-
-    <!-- UI overlay — editorial header -->
-    <div class="vault-overlay-ui" id="vaultUI">
-      <!-- Meta: title + index injected by JS -->
-      <div class="vault-meta" id="vaultMeta"></div>
-
-      <div class="vault-actions">
-        <button data-action="download">Descargar</button>
-        <button data-action="info">Info</button>
+      <div class="vault-image-container" aria-live="polite">
+        <img class="vault-image vault-image--front" id="vaultImageFront" alt="" decoding="async">
+        <img class="vault-image vault-image--back" id="vaultImageBack" alt="" decoding="async" aria-hidden="true">
       </div>
+
+      <div class="vault-overlay-ui" id="vaultOverlayUi">
+        <div class="vault-meta">
+          <span class="vault-meta__count" id="vaultMetaCount">00 / 00</span>
+          <span class="vault-meta__title" id="vaultMetaTitle">Collector's Vault</span>
+        </div>
+
+        <div class="vault-actions" aria-label="Acciones de imagen">
+          <button class="vault-action" type="button" data-action="download">Download</button>
+          <button class="vault-action" type="button" data-action="info" aria-expanded="false">Info</button>
+        </div>
+      </div>
+    </section>
+
+    <button class="vault-tray-trigger" id="vaultTrayTrigger" type="button" aria-expanded="false" aria-controls="vaultTray">
+      Coleccion (0)
+    </button>
+
+    <section class="vault-tray" id="vaultTray" aria-label="Coleccion" aria-hidden="true">
+      <div class="vault-tray__label">Vault</div>
+      <div
+        class="vault-tray-track cc-vault-gallery"
+        id="vaultGallery"
+        data-access-tier="premium"
+        data-image-role="vault-full"
+        aria-live="polite"
+      ></div>
+    </section>
+
+    <aside class="vault-info-panel" id="vaultInfoPanel" aria-label="Informacion de imagen" aria-hidden="true"></aside>
+
+    <div class="vault-status" id="vaultStatus" role="status" aria-live="polite">
+      <span>Checking access</span>
     </div>
-  </section>
+  </main>
 
-  <!-- TRIGGER -->
-  <button class="vault-tray-trigger" id="trayTrigger" aria-label="Abrir colección">
-    Colección · 0
-  </button>
-
-  <!-- TRAY -->
-  <div class="vault-tray" id="vaultTray" role="region" aria-label="Miniaturas de la colección">
-    <!-- .vault-tray-label injected by JS -->
-    <div class="vault-tray-track cc-vault-gallery"></div>
-  </div>
-
-  <!-- INFO PANEL — content rendered by JS -->
-  <aside class="vault-info-panel" id="infoPanel" aria-label="Información de la obra"></aside>
-
-</main>
-
-<!-- Architecture unchanged: collectorsClub first -->
-<script src="../collectorsClub/collectorsClub.js"></script>
-<script src="vault.js"></script>
-
+  <script src="../collectorsClub/collectorsClub.js"></script>
+  <script src="vault.js"></script>
 </body>
 </html>

@@ -1,945 +1,494 @@
-/* ═══════════════════════════════════════════════════════════
-   VAULT — Collector's Club  ·  Premium Edition
-   ═══════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Mono:wght@300;400&family=Cormorant:ital,wght@1,300&display=swap');
-
-/* ─── DESIGN TOKENS ─── */
 :root {
-  /* Foundations */
-  --vault-bg:            #050507;
-  --vault-bg-warm:       #07060a;
-  --vault-surface:       rgba(255, 255, 255, 0.028);
-  --vault-surface-hover: rgba(255, 255, 255, 0.052);
-  --vault-border:        rgba(255, 255, 255, 0.065);
-  --vault-border-faint:  rgba(255, 255, 255, 0.032);
-
-  /* Text scale — no pure white */
-  --vault-text-primary:   #e8e4dd;     /* warm off-white */
-  --vault-text-secondary: #8a867f;     /* warm grey */
-  --vault-text-muted:     #4a4742;     /* deep muted */
-  --vault-text-micro:     #2e2c29;     /* barely visible */
-
-  /* Accent */
-  --vault-accent:         rgba(230, 215, 185, 0.88);   /* warm ivory */
-  --vault-accent-dim:     rgba(230, 215, 185, 0.42);
-  --vault-accent-glow:    rgba(210, 185, 140, 0.09);
-  --vault-gold-line:      rgba(200, 175, 120, 0.18);
-
-  /* Atmosphere */
-  --vault-vignette-inner: rgba(5, 5, 7, 0.0);
-  --vault-vignette-outer: rgba(2, 1, 4, 0.88);
-  --vault-spotlight:      rgba(255, 248, 230, 0.03);
-
-  /* Timing */
-  --ease-out-expo:        cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out-quart:    cubic-bezier(0.76, 0, 0.24, 1);
-  --ease-out-circ:        cubic-bezier(0, 0.55, 0.45, 1);
-  --ease-spring:          cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  --dur-fast:    140ms;
-  --dur-med:     320ms;
-  --dur-slow:    580ms;
-  --dur-reveal:  860ms;
-  --dur-glacial: 1400ms;
-
-  /* Typography */
-  --font-serif:   'Cormorant Garamond', Georgia, serif;
-  --font-display: 'Cormorant', 'Cormorant Garamond', Georgia, serif;
-  --font-mono:    'DM Mono', 'Courier New', monospace;
+  --vault-bg: #050507;
+  --vault-bg-soft: #0a090d;
+  --vault-text: #f0eee8;
+  --vault-muted: rgba(240, 238, 232, 0.58);
+  --vault-faint: rgba(240, 238, 232, 0.22);
+  --vault-line: rgba(240, 238, 232, 0.1);
+  --vault-panel: rgba(6, 6, 8, 0.84);
+  --vault-panel-strong: rgba(8, 8, 10, 0.94);
+  --vault-accent: rgba(219, 200, 158, 0.78);
+  --vault-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --vault-font: "DM Sans", "Inter", "Segoe UI", Arial, sans-serif;
+  --vault-mono: "DM Mono", "SFMono-Regular", Consolas, monospace;
 }
 
-/* ─── RESET ─── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
   margin: 0;
-  padding: 0;
-}
-
-/* ─── BASE ─── */
-.vault-page {
   background: var(--vault-bg);
-  color: var(--vault-text-primary);
-  height: 100vh;
-  width: 100vw;
   overflow: hidden;
-  font-family: var(--font-serif);
-  cursor: none;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   ATMOSPHERE — The "Room"
-   Multi-layer background creates physical gallery depth.
-══════════════════════════════════════════════════════════════ */
+button {
+  font: inherit;
+}
 
-/* Layer 1: Radial center spotlight — room lighting feel */
-.vault-page::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+.vault-page {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  color: var(--vault-text);
   background:
-    /* Central warm spotlight — where the art lives */
-    radial-gradient(
-      ellipse 62% 58% at 50% 50%,
-      rgba(255, 248, 225, 0.025) 0%,
-      rgba(20, 16, 12, 0.0) 55%,
-      rgba(4, 3, 6, 0.72) 100%
-    ),
-    /* Secondary cool ambient — gives dimension to the dark */
-    radial-gradient(
-      ellipse 90% 75% at 50% 50%,
-      rgba(12, 10, 18, 0.0) 0%,
-      rgba(5, 4, 8, 0.45) 70%,
-      rgba(2, 1, 5, 0.90) 100%
-    );
+    radial-gradient(circle at 50% 44%, rgba(255, 244, 220, 0.055), transparent 34%),
+    radial-gradient(circle at 18% 18%, rgba(96, 112, 132, 0.12), transparent 28%),
+    radial-gradient(circle at 82% 80%, rgba(98, 71, 47, 0.13), transparent 32%),
+    var(--vault-bg);
+  font-family: var(--vault-font);
+  isolation: isolate;
 }
 
-/* Layer 2: Film grain overlay */
 .vault-page::after {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
-  z-index: 1001;
-  opacity: 0.032;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 192px;
-  mix-blend-mode: overlay;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.45), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.45)),
+    radial-gradient(circle at 50% 50%, transparent 34%, rgba(0, 0, 0, 0.34) 78%, rgba(0, 0, 0, 0.68));
 }
 
-/* Hard vignette — frame darkness pulls focus inward */
-.vault-viewer::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 5;
-  background: radial-gradient(
-    ellipse 100% 100% at 50% 50%,
-    transparent 30%,
-    rgba(3, 2, 5, 0.25) 60%,
-    rgba(2, 1, 4, 0.72) 88%,
-    rgba(1, 0, 3, 0.92) 100%
-  );
-}
-
-/* Subtle ceiling light — gallery spotlight feel */
-.vault-viewer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 60%;
-  height: 1px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  z-index: 6;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(255, 248, 220, 0.06) 30%,
-    rgba(255, 248, 220, 0.10) 50%,
-    rgba(255, 248, 220, 0.06) 70%,
-    transparent
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════
-   CUSTOM CURSOR — refined crosshair
-══════════════════════════════════════════════════════════════ */
-.vault-cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  pointer-events: none;
-  z-index: 9999;
-}
-
-/* Outer ring — lags behind for gallery feel */
-.vault-cursor::before {
-  content: '';
-  position: absolute;
-  width: 26px;
-  height: 26px;
-  border: 1px solid rgba(230, 215, 185, 0.22);
-  border-radius: 50%;
-  background: transparent;
-  transform: translate(-50%, -50%);
-  transition:
-    width   200ms var(--ease-out-expo),
-    height  200ms var(--ease-out-expo),
-    opacity 200ms ease;
-}
-
-/* Inner dot — precise */
-.vault-cursor::after {
-  content: '';
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: var(--vault-accent);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.7;
-}
-
-.vault-page:has(button:hover, a:hover) .vault-cursor::before {
-  width: 48px;
-  height: 48px;
-  border-color: rgba(230, 215, 185, 0.16);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   VIEWER
-══════════════════════════════════════════════════════════════ */
 .vault-viewer {
   position: relative;
-  height: 100vh;
-  width: 100%;
   z-index: 1;
+  width: 100%;
+  height: 100%;
 }
 
 .vault-image-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 4vw, 56px);
 }
 
-/* ── THE IMAGE — treated as a physical object ── */
 .vault-image {
-  max-height: 84vh;
-  max-width: 82vw;
+  position: absolute;
+  max-width: min(92vw, 1800px);
+  max-height: 90vh;
+  max-height: 90svh;
   width: auto;
   height: auto;
   object-fit: contain;
-  display: block;
-  position: relative;
-  z-index: 2;
-
-  /* Physical elevation — ambient + directional shadows */
-  box-shadow:
-    /* Barely visible edge — defines the object */
-    0 0 0 1px rgba(255, 255, 255, 0.022),
-    /* Soft ambient lift */
-    0 8px 32px rgba(0, 0, 0, 0.55),
-    /* Deep shadow — anchors to ground */
-    0 40px 100px rgba(0, 0, 0, 0.75),
-    0 80px 160px rgba(0, 0, 0, 0.45),
-    /* Warm glow halo — very low opacity */
-    0 0 60px rgba(200, 175, 130, 0.038),
-    0 0 120px rgba(200, 175, 130, 0.018);
-
   opacity: 0;
-  transform: scale(0.982) translateY(3px);
+  transform: scale(0.992);
+  filter: saturate(0.98);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 32px 110px rgba(0, 0, 0, 0.62);
   transition:
-    opacity    var(--dur-slow)   var(--ease-out-expo),
-    transform  var(--dur-reveal) var(--ease-out-expo),
-    box-shadow var(--dur-slow)   var(--ease-out-expo);
-
-  will-change: transform, opacity;
+    opacity 260ms var(--vault-ease),
+    transform 300ms var(--vault-ease),
+    filter 260ms var(--vault-ease);
+  will-change: opacity, transform;
 }
 
 .vault-image.is-visible {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  transform: scale(1);
 }
 
-.vault-image.is-exiting {
-  opacity: 0;
-  transform: scale(1.012) translateY(-2px);
-  transition:
-    opacity   var(--dur-med) var(--ease-in-out-quart),
-    transform var(--dur-med) var(--ease-in-out-quart);
+.vault-image.is-preview {
+  filter: saturate(1.04) brightness(1.02);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   OVERLAY UI — editorial header, barely-there
-══════════════════════════════════════════════════════════════ */
+.vault-click-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 8;
+  width: 38vw;
+  padding: 0;
+  border: 0;
+  color: transparent;
+  background: transparent;
+  cursor: pointer;
+}
+
+.vault-click-zone--prev {
+  left: 0;
+}
+
+.vault-click-zone--next {
+  right: 0;
+}
+
 .vault-overlay-ui {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  padding: 32px 40px;
+  z-index: 20;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-
+  gap: 24px;
+  padding: clamp(18px, 3.3vw, 42px);
   opacity: 0;
+  pointer-events: none;
   transform: translateY(-8px);
   transition:
-    opacity   var(--dur-slow) var(--ease-out-expo),
-    transform var(--dur-slow) var(--ease-out-expo);
-
-  pointer-events: none;
-  z-index: 100;
-
-  /* Gradient mask — legibility without opaque bar */
-  background: linear-gradient(
-    to bottom,
-    rgba(3, 2, 6, 0.52) 0%,
-    rgba(3, 2, 6, 0.20) 55%,
-    transparent 100%
-  );
+    opacity 230ms var(--vault-ease),
+    transform 230ms var(--vault-ease);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent);
 }
 
-.vault-overlay-ui.visible {
+.vault-page.is-ui-visible .vault-overlay-ui,
+.vault-page.is-tray-open .vault-overlay-ui,
+.vault-page.is-info-open .vault-overlay-ui {
   opacity: 1;
-  transform: translateY(0);
   pointer-events: auto;
+  transform: translateY(0);
 }
 
-/* Meta block — artwork identification */
 .vault-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
 }
 
-.vault-meta-index {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 300;
-  letter-spacing: 0.22em;
-  color: var(--vault-text-muted);
+.vault-meta__count,
+.vault-action,
+.vault-tray-trigger,
+.vault-tray__label,
+.vault-info__eyebrow,
+.vault-info__key {
+  font-family: var(--vault-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  user-select: none;
 }
 
-.vault-meta-title {
-  font-family: var(--font-serif);
-  font-size: 15px;
-  font-weight: 300;
-  font-style: italic;
-  letter-spacing: 0.02em;
-  color: var(--vault-text-secondary);
+.vault-meta__count {
+  color: var(--vault-faint);
+}
+
+.vault-meta__title {
+  max-width: min(42vw, 560px);
+  color: var(--vault-muted);
+  font-size: clamp(14px, 1.5vw, 18px);
   line-height: 1.3;
-  /* Subtle reveal animation from bottom */
-  animation: meta-rise 600ms var(--ease-out-expo) both;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-@keyframes meta-rise {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Action buttons — invisible until needed ── */
 .vault-actions {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   align-items: center;
 }
 
-.vault-actions button {
-  background: rgba(255, 255, 255, 0.034);
-  border: 1px solid rgba(255, 255, 255, 0.055);
-  color: var(--vault-text-muted);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 300;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  padding: 9px 17px;
-  cursor: none;
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
+.vault-action,
+.vault-tray-trigger,
+.vault-info__close {
+  border: 1px solid var(--vault-line);
+  color: var(--vault-muted);
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  cursor: pointer;
   transition:
-    background    var(--dur-med) var(--ease-out-expo),
-    color         var(--dur-med) var(--ease-out-expo),
-    border-color  var(--dur-med) var(--ease-out-expo),
-    box-shadow    var(--dur-med) var(--ease-out-expo),
-    transform     var(--dur-fast) var(--ease-out-expo);
-  position: relative;
-  overflow: hidden;
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms var(--vault-ease);
 }
 
-/* Button shimmer on hover */
-.vault-actions button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    105deg,
-    transparent 30%,
-    rgba(230, 215, 185, 0.04) 50%,
-    transparent 70%
-  );
-  transform: translateX(-100%);
-  transition: transform 500ms var(--ease-out-expo);
+.vault-action {
+  min-height: 38px;
+  padding: 0 15px;
 }
 
-.vault-actions button:hover::before {
-  transform: translateX(100%);
+.vault-action:hover,
+.vault-tray-trigger:hover,
+.vault-info__close:hover {
+  color: var(--vault-text);
+  border-color: rgba(219, 200, 158, 0.28);
+  background: rgba(219, 200, 158, 0.08);
 }
 
-.vault-actions button:hover {
-  background: rgba(230, 215, 185, 0.055);
-  border-color: rgba(230, 215, 185, 0.14);
-  color: var(--vault-accent);
-  box-shadow:
-    0 0 16px rgba(200, 175, 130, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transform: translateY(-1px);
+.vault-action:focus-visible,
+.vault-tray-trigger:focus-visible,
+.vault-info__close:focus-visible,
+.cc-vault-gallery__item:focus-visible {
+  outline: 2px solid rgba(219, 200, 158, 0.55);
+  outline-offset: 3px;
 }
 
-.vault-actions button:active {
-  transform: translateY(0);
-  transition-duration: 80ms;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   TRAY TRIGGER — physical object feel
-══════════════════════════════════════════════════════════════ */
 .vault-tray-trigger {
   position: fixed;
-  bottom: 36px;
-  left: 36px;
-  z-index: 200;
-
-  background: rgba(255, 255, 255, 0.030);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-
-  border: 1px solid rgba(255, 255, 255, 0.058);
-  color: var(--vault-text-muted);
-
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 300;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-
-  padding: 11px 20px;
-  cursor: none;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.055),
-    0 1px 0 rgba(0, 0, 0, 0.4);
-
-  animation: vault-idle-breath 5s var(--ease-in-out-quart) infinite;
-
-  transition:
-    background   var(--dur-med) var(--ease-out-expo),
-    border-color var(--dur-med) var(--ease-out-expo),
-    color        var(--dur-med) var(--ease-out-expo),
-    box-shadow   var(--dur-med) var(--ease-out-expo),
-    transform    var(--dur-fast) var(--ease-spring);
+  left: clamp(16px, 3vw, 38px);
+  bottom: clamp(16px, 3vw, 38px);
+  z-index: 28;
+  min-height: 44px;
+  padding: 0 18px;
 }
 
-@keyframes vault-idle-breath {
-  0%, 100% {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.04),
-      0 1px 0 rgba(0, 0, 0, 0.4),
-      0 0 0 rgba(200, 175, 130, 0);
-  }
-  50% {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
-      0 1px 0 rgba(0, 0, 0, 0.4),
-      0 0 22px rgba(200, 175, 130, 0.038);
-  }
-}
-
-.vault-tray-trigger:hover {
-  background: rgba(230, 215, 185, 0.058);
-  border-color: rgba(230, 215, 185, 0.15);
-  color: var(--vault-accent);
-  animation-play-state: paused;
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    0 0 32px rgba(200, 175, 130, 0.08),
-    0 12px 28px rgba(0, 0, 0, 0.35);
-}
-
-.vault-tray-trigger:active {
-  transform: translateY(0);
-  transition-duration: 80ms;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   TRAY — collection drawer
-══════════════════════════════════════════════════════════════ */
 .vault-tray {
   position: fixed;
-  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 22vh;
-  min-height: 136px;
-  max-height: 196px;
-
+  right: 0;
+  bottom: 0;
+  z-index: 24;
+  height: clamp(148px, 23vh, 224px);
+  padding-top: 24px;
+  background:
+    linear-gradient(180deg, rgba(12, 12, 14, 0.82), rgba(4, 4, 6, 0.96)),
+    var(--vault-panel-strong);
+  border-top: 1px solid var(--vault-line);
+  box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
   transform: translateY(100%);
-  transition: transform var(--dur-slow) var(--ease-out-expo);
-
-  background: linear-gradient(
-    to top,
-    rgba(4, 3, 7, 0.99) 0%,
-    rgba(8, 7, 12, 0.97) 50%,
-    rgba(14, 12, 18, 0.88) 100%
-  );
-  backdrop-filter: blur(36px) saturate(140%);
-  -webkit-backdrop-filter: blur(36px) saturate(140%);
-
-  border-top: 1px solid var(--vault-border-faint);
-  z-index: 150;
-
-  box-shadow:
-    0 -1px 0 rgba(255, 255, 255, 0.022),
-    0 -50px 80px rgba(0, 0, 0, 0.55);
+  transition: transform 280ms var(--vault-ease);
 }
 
-.vault-tray.open {
+.vault-tray.is-open {
   transform: translateY(0);
+}
+
+.vault-tray__label {
+  position: absolute;
+  top: 12px;
+  left: clamp(16px, 3vw, 38px);
+  color: rgba(240, 238, 232, 0.28);
+  pointer-events: none;
 }
 
 .vault-tray-track {
   display: flex;
-  gap: 9px;
-  padding: 22px 36px 22px;
-  overflow-x: auto;
-  height: 100%;
   align-items: center;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  gap: 10px;
+  height: 100%;
+  padding: 18px clamp(16px, 3vw, 38px) 24px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(240, 238, 232, 0.18) transparent;
 }
 
-.vault-tray-track::-webkit-scrollbar { display: none; }
+.vault-tray-track::-webkit-scrollbar {
+  height: 4px;
+}
 
-/* ── Thumbnail atoms ── */
-.vault-tray-track img {
-  height: 68px;
-  width: auto;
-  flex-shrink: 0;
-  cursor: none;
-  object-fit: cover;
+.vault-tray-track::-webkit-scrollbar-track {
+  background: transparent;
+}
 
+.vault-tray-track::-webkit-scrollbar-thumb {
+  background: rgba(240, 238, 232, 0.16);
+}
+
+.cc-vault-gallery__item,
+.cc-vault__cell {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(52px, 6.1vw, 82px);
+  aspect-ratio: 3 / 4;
+  padding: 0;
   border: 1px solid transparent;
-  opacity: 0.45;
-  transform: scale(1) translateY(0);
+  background: rgba(255, 255, 255, 0.04);
+  overflow: visible;
+  opacity: 0.72;
+  cursor: pointer;
+  transform: scale(1);
   transform-origin: center bottom;
-  filter: brightness(0.85) saturate(0.7);
-
   transition:
-    opacity      var(--dur-med) var(--ease-out-expo),
-    transform    var(--dur-med) var(--ease-out-expo),
-    box-shadow   var(--dur-med) var(--ease-out-expo),
-    border-color var(--dur-med) var(--ease-out-expo),
-    filter       var(--dur-med) var(--ease-out-expo);
-
-  will-change: transform, opacity;
+    opacity 220ms var(--vault-ease),
+    transform 220ms var(--vault-ease),
+    border-color 220ms var(--vault-ease),
+    filter 220ms var(--vault-ease);
 }
 
-/* Active thumbnail — selected */
-.vault-tray-track img.is-active {
-  opacity: 0.88;
-  filter: brightness(1) saturate(1);
-  border-color: var(--vault-gold-line);
-  box-shadow:
-    0 0 0 1px rgba(200, 175, 120, 0.08),
-    0 6px 20px rgba(0, 0, 0, 0.6);
-}
-
-/* Hover: spotlight on one, others recede */
-.vault-tray-track:hover img {
-  opacity: 0.15;
-  filter: brightness(0.5) saturate(0.4);
-  transform: scale(0.93) translateY(3px);
-}
-
-.vault-tray-track img:hover {
-  opacity: 1 !important;
-  filter: brightness(1.02) saturate(1.05) !important;
-  transform: scale(1.68) translateY(-9px) !important;
-  z-index: 10;
-  border-color: var(--vault-gold-line) !important;
-  box-shadow:
-    0 20px 48px rgba(0, 0, 0, 0.72),
-    0 0 0 1px rgba(200, 175, 120, 0.10),
-    0 0 28px rgba(200, 175, 130, 0.05) !important;
-}
-
-/* Tray label */
-.vault-tray-label {
+.cc-vault-gallery__item img,
+.cc-vault__cell img {
   position: absolute;
-  top: 10px;
-  left: 36px;
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 300;
-  letter-spacing: 0.30em;
-  text-transform: uppercase;
-  color: var(--vault-text-micro);
-  pointer-events: none;
-  user-select: none;
-  letter-spacing: 0.32em;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  filter: saturate(0.82) brightness(0.9);
+  transition: filter 220ms var(--vault-ease);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   INFO PANEL — museum description card
-══════════════════════════════════════════════════════════════ */
+.cc-vault-gallery__item .cc-overlay-premium,
+.cc-vault-gallery__item::after {
+  display: none !important;
+}
+
+.cc-vault-gallery__item.is-active {
+  opacity: 1;
+  border-color: var(--vault-accent);
+}
+
+.vault-tray-track.is-previewing .cc-vault-gallery__item {
+  opacity: 0.12;
+  filter: brightness(0.7);
+  transform: scale(0.92) translateY(4px);
+}
+
+.vault-tray-track.is-previewing .cc-vault-gallery__item.is-previewed {
+  z-index: 5;
+  opacity: 1;
+  filter: brightness(1);
+  transform: scale(1.5) translateY(-12px);
+  border-color: rgba(219, 200, 158, 0.45);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.58);
+}
+
+.vault-tray-track.is-previewing .cc-vault-gallery__item.is-previewed img,
+.cc-vault-gallery__item.is-active img {
+  filter: saturate(1.02) brightness(1);
+}
+
 .vault-info-panel {
   position: fixed;
-  right: -460px;
   top: 0;
-  width: 420px;
-  height: 100%;
-  overflow-y: auto;
-  scrollbar-width: none;
-
-  /* Rich warm dark surface */
-  background:
-    linear-gradient(
-      160deg,
-      rgba(16, 13, 10, 0.99) 0%,
-      rgba(11, 9, 7, 0.99) 50%,
-      rgba(8, 6, 4, 0.98) 100%
-    );
-
-  /* Warm left edge line — like a physical frame */
-  border-left: 1px solid rgba(200, 175, 120, 0.10);
-  backdrop-filter: blur(48px);
-  -webkit-backdrop-filter: blur(48px);
-
-  transition: right var(--dur-slow) var(--ease-out-expo);
-  z-index: 300;
-
-  box-shadow:
-    -1px 0 0 rgba(255, 255, 255, 0.02),
-    -24px 0 72px rgba(0, 0, 0, 0.55),
-    -60px 0 120px rgba(0, 0, 0, 0.30);
-}
-
-.vault-info-panel::-webkit-scrollbar { display: none; }
-
-.vault-info-panel.open {
   right: 0;
+  z-index: 32;
+  width: min(390px, 88vw);
+  height: 100vh;
+  height: 100svh;
+  padding: 34px;
+  color: var(--vault-text);
+  background:
+    linear-gradient(180deg, rgba(14, 13, 12, 0.98), rgba(5, 5, 7, 0.98)),
+    var(--vault-panel-strong);
+  border-left: 1px solid var(--vault-line);
+  box-shadow: -28px 0 80px rgba(0, 0, 0, 0.42);
+  transform: translateX(100%);
+  transition: transform 280ms var(--vault-ease);
 }
 
-.vault-info-panel-inner {
-  padding: 72px 44px 56px;
+.vault-info-panel.is-open {
+  transform: translateX(0);
 }
 
-/* Close button */
-.vault-info-close {
-  position: absolute;
-  top: 30px;
-  right: 32px;
-  background: none;
-  border: none;
-  cursor: none;
-  color: var(--vault-text-micro);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  transition: color var(--dur-med) ease;
-  padding: 4px 0;
+.vault-info__close {
+  min-height: 36px;
+  padding: 0 12px;
+  margin-left: auto;
+  display: block;
 }
 
-.vault-info-close:hover {
-  color: var(--vault-accent-dim);
+.vault-info__eyebrow {
+  margin-top: 52px;
+  color: var(--vault-faint);
 }
 
-/* ── Typography hierarchy — museum label scale ── */
-.vault-info-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 8.5px;
+.vault-info__title {
+  margin: 18px 0 18px;
+  font-size: clamp(28px, 4vw, 42px);
   font-weight: 300;
-  letter-spacing: 0.36em;
-  text-transform: uppercase;
-  color: var(--vault-text-micro);
-  margin-bottom: 20px;
-  /* Warm accent rule above — like a gallery category bar */
-  padding-top: 14px;
-  border-top: 1px solid rgba(200, 175, 120, 0.08);
+  line-height: 1.02;
+  letter-spacing: 0;
 }
 
-.vault-info-title {
-  font-family: var(--font-display);
-  font-size: 34px;
-  font-weight: 300;
-  font-style: italic;
-  line-height: 1.12;
-  color: var(--vault-text-primary);
-  letter-spacing: -0.015em;
-  margin-bottom: 10px;
-  /* Slight warm tint to title */
-  color: #ddd7cc;
+.vault-info__body {
+  margin: 0 0 30px;
+  color: var(--vault-muted);
+  font-size: 15px;
+  line-height: 1.7;
 }
 
-.vault-info-subtitle {
-  font-family: var(--font-serif);
-  font-size: 13px;
-  font-weight: 300;
-  color: var(--vault-text-muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.vault-info__rows {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--vault-line);
 }
 
-/* Rule — minimal elegant divider */
-.vault-info-rule {
-  width: 28px;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    rgba(200, 175, 120, 0.25),
-    rgba(200, 175, 120, 0.0)
-  );
-  margin: 32px 0;
-}
-
-/* Body text — generous line height */
-.vault-info-body {
-  font-family: var(--font-serif);
-  font-size: 15.5px;
-  font-weight: 300;
-  line-height: 1.82;
-  color: rgba(232, 228, 221, 0.48);
-  letter-spacing: 0.01em;
-}
-
-.vault-info-body + .vault-info-body {
-  margin-top: 16px;
-}
-
-/* Metadata rows */
-.vault-info-meta-row {
+.vault-info__row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  padding: 13px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.034);
-  gap: 16px;
+  gap: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--vault-line);
 }
 
-.vault-info-meta-row:last-child {
-  border-bottom: none;
+.vault-info__key {
+  color: var(--vault-faint);
 }
 
-.vault-info-meta-key {
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--vault-text-micro);
-  flex-shrink: 0;
-}
-
-.vault-info-meta-value {
-  font-family: var(--font-serif);
-  font-size: 13.5px;
-  font-weight: 300;
-  color: var(--vault-text-secondary);
-  font-style: italic;
+.vault-info__value {
+  color: var(--vault-muted);
   text-align: right;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   NAV HINT — whisper to the user
-══════════════════════════════════════════════════════════════ */
-.vault-nav-hint {
-  position: fixed;
-  bottom: 40px;
-  right: 40px;
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--vault-text-micro);
-  pointer-events: none;
-  user-select: none;
-  opacity: 1;
-  animation: vault-hint-fade 6s 2.5s var(--ease-in-out-quart) forwards;
-}
-
-@keyframes vault-hint-fade {
-  0%   { opacity: 1; }
-  75%  { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   LOADER — vestibule moment
-══════════════════════════════════════════════════════════════ */
-.vault-loader {
+.vault-status {
   position: fixed;
   inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  color: var(--vault-faint);
   background: var(--vault-bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  z-index: 9998;
-  transition: opacity var(--dur-slow) var(--ease-out-expo);
+  font-family: var(--vault-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: opacity 240ms ease;
 }
 
-.vault-loader.is-done {
+.vault-status.is-hidden {
   opacity: 0;
   pointer-events: none;
 }
 
-.vault-loader-mark {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 300;
-  font-style: italic;
-  letter-spacing: 0.55em;
-  text-transform: uppercase;
-  color: var(--vault-text-muted);
-  animation: vault-loader-breath 2.4s var(--ease-in-out-quart) infinite;
-}
-
-/* Fine loading line beneath the mark */
-.vault-loader::after {
-  content: '';
-  width: 24px;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(200, 175, 120, 0.3),
-    transparent
-  );
-  animation: vault-loader-line 2.4s var(--ease-in-out-quart) infinite;
-}
-
-@keyframes vault-loader-breath {
-  0%, 100% { opacity: 0.25; }
-  50%       { opacity: 0.65; }
-}
-
-@keyframes vault-loader-line {
-  0%, 100% { opacity: 0.2; transform: scaleX(0.5); }
-  50%       { opacity: 0.9; transform: scaleX(1.4); }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   SCROLLBAR (info panel)
-══════════════════════════════════════════════════════════════ */
-.vault-info-panel::-webkit-scrollbar {
-  width: 2px;
-}
-.vault-info-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-.vault-info-panel::-webkit-scrollbar-thumb {
-  background: rgba(200, 175, 120, 0.12);
-  border-radius: 1px;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   REDUCED MOTION — respect system preferences
-══════════════════════════════════════════════════════════════ */
-@media (prefers-reduced-motion: reduce) {
-  .vault-image,
-  .vault-overlay-ui,
-  .vault-tray,
-  .vault-info-panel,
-  .vault-tray-track img,
-  .vault-actions button {
-    transition-duration: 0.01ms !important;
-    animation-duration:  0.01ms !important;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   RESPONSIVE
-══════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
+@media (max-width: 760px) {
   .vault-overlay-ui {
-    padding: 22px 22px;
+    gap: 12px;
+    padding: 16px;
   }
 
-  .vault-tray-trigger {
-    bottom: 22px;
-    left: 22px;
-    padding: 10px 16px;
-    font-size: 8.5px;
+  .vault-meta__title {
+    max-width: 50vw;
+  }
+
+  .vault-actions {
+    gap: 6px;
+  }
+
+  .vault-action {
+    min-height: 36px;
+    padding: 0 11px;
+    font-size: 9px;
+  }
+
+  .vault-click-zone {
+    width: 28vw;
   }
 
   .vault-tray {
-    height: 28vh;
-    max-height: none;
-  }
-
-  .vault-tray-track {
-    padding: 16px 22px;
-    gap: 7px;
-  }
-
-  .vault-tray-track img {
-    height: 60px;
+    height: clamp(158px, 25vh, 240px);
   }
 
   .vault-info-panel {
-    width: 100%;
-    right: -100%;
-  }
-
-  .vault-info-panel.open {
-    right: 0;
-  }
-
-  .vault-info-panel-inner {
-    padding: 52px 28px 44px;
-  }
-
-  .vault-info-title {
-    font-size: 26px;
-  }
-
-  .vault-nav-hint {
-    display: none;
+    width: 100vw;
+    padding: 26px;
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   IMAGE AMBIENT GLOW — warm halo that breathes behind artwork
-   Positioned below z-index of image, above background.
-══════════════════════════════════════════════════════════════ */
-.vault-image-container {
-  position: relative;
-}
-
-.vault-image-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 60%;
-  height: 60%;
-  transform: translate(-50%, -50%) scale(0.8);
-  pointer-events: none;
-  z-index: 1;
-
-  background: radial-gradient(
-    ellipse at center,
-    rgba(200, 175, 130, 0.055) 0%,
-    rgba(200, 175, 130, 0.020) 45%,
-    transparent 70%
-  );
-  filter: blur(40px);
-  opacity: 0;
-  transition:
-    opacity    var(--dur-glacial) var(--ease-out-expo),
-    transform  var(--dur-glacial) var(--ease-out-expo);
-
-  will-change: opacity, transform;
-}
-
-/* Glow follows image visibility state — same trigger as img.is-visible */
-.vault-image-container:has(.vault-image.is-visible) .vault-image-glow {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1.1);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
