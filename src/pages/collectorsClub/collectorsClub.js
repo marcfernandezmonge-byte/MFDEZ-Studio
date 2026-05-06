@@ -137,6 +137,8 @@
     if (!overlay) return;
 
     function openModal() {
+      if (document.documentElement.dataset.ccSubscriptionState === 'subscriber') return;
+
       overlay.classList.add('is-open');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
@@ -442,7 +444,7 @@
       id: 'club-hero-07',
       role: 'premium',
       tier: 'premium',
-      edition: 'Print #07/100',
+      edition: 'Print #01/100',
       src: '@mfdezphoto- (1).jpg',
       alt: "MFDEZ Collector's Club premium print",
       priority: true,
@@ -451,7 +453,7 @@
       id: 'club-drop-07',
       role: 'teaser',
       tier: 'premium',
-      edition: 'Drop #07',
+      edition: 'Drop #01',
       src: '@mfdezphoto--2.jpg',
       alt: "Teaser mensual Collector's Club",
     },
@@ -739,6 +741,54 @@
     },
   };
 
+  function hideSubscriberPremiumOverlays(state) {
+    if (state !== SUBSCRIPTION_STATES.SUBSCRIBER) return;
+
+    document.querySelectorAll('.cc-overlay-premium').forEach((overlay) => {
+      overlay.hidden = true;
+      overlay.inert = true;
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.setAttribute('tabindex', '-1');
+    });
+  }
+
+  function normalizeCtaText(text) {
+    return text
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function applySubscriberCTAs(state) {
+    if (state !== SUBSCRIPTION_STATES.SUBSCRIBER) return;
+
+    document.querySelectorAll('[data-modal="open"]').forEach((button) => {
+      if (button.dataset.ccSubscriberCtaBound === 'true') return;
+      button.dataset.ccSubscriberCtaBound = 'true';
+
+      const label = normalizeCtaText(button.textContent || '');
+
+      if (label.startsWith('reserva')) {
+        button.textContent = 'Acceder al Vault';
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          document.querySelector('.cc-vault')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        });
+        return;
+      }
+
+      button.textContent = label.includes('suscripcion') ? 'Ver mi cuenta' : 'Vault';
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        window.location.href = '/src/pages/vault/vault.html';
+      });
+    });
+  }
+
   async function initPremiumImageSystem() {
     collectorsClubModalAccess.init();
     collectorsClubImageManager.attachImageLifecycle();
@@ -746,8 +796,12 @@
 
     const state = await collectorsClubSubscriptionAccess.resolveState();
     collectorsClubSubscriptionAccess.applyState(state);
+    applySubscriberCTAs(state);
+    hideSubscriberPremiumOverlays(state);
     collectorsClubVaultRenderer.render(state);
+    hideSubscriberPremiumOverlays(state);
     collectorsClubModalAccess.bindPremiumTriggers(state);
+    hideSubscriberPremiumOverlays(state);
 
     if (state === SUBSCRIPTION_STATES.SUBSCRIBER) {
       collectorsClubImageManager.preloadPremiumImages();

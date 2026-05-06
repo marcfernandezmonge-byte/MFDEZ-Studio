@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050505">
+  <title>Vault — Collector's Club</title>
+
+  <!-- Preconnect for fast font load -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="../collectorsClub/collectorsClub.css">
+  <link rel="stylesheet" href="vault.css">
+</head>
+<body>
+
+<main class="vault-page">
+
+  <!-- VIEWER -->
+  <section class="vault-viewer">
+    <div class="vault-image-container">
+      <!-- Ambient glow behind the artwork -->
+      <div class="vault-image-glow" id="vaultImageGlow" aria-hidden="true"></div>
+      <!-- is-visible class toggled by JS after load -->
+      <img class="vault-image" id="vaultImage" alt="" />
+    </div>
+
+    <!-- UI overlay — editorial header -->
+    <div class="vault-overlay-ui" id="vaultUI">
+      <!-- Meta: title + index injected by JS -->
+      <div class="vault-meta" id="vaultMeta"></div>
+
+      <div class="vault-actions">
+        <button data-action="download">Descargar</button>
+        <button data-action="info">Info</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRIGGER -->
+  <button class="vault-tray-trigger" id="trayTrigger" aria-label="Abrir colección">
+    Colección · 0
+  </button>
+
+  <!-- TRAY -->
+  <div class="vault-tray" id="vaultTray" role="region" aria-label="Miniaturas de la colección">
+    <!-- .vault-tray-label injected by JS -->
+    <div class="vault-tray-track cc-vault-gallery"></div>
+  </div>
+
+  <!-- INFO PANEL — content rendered by JS -->
+  <aside class="vault-info-panel" id="infoPanel" aria-label="Información de la obra"></aside>
+
+</main>
+
+<!-- Architecture unchanged: collectorsClub first -->
+<script src="../collectorsClub/collectorsClub.js"></script>
+<script src="vault.js"></script>
+
+</body>
+</html>
