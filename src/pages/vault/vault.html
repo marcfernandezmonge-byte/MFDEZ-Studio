@@ -3,21 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050507">
-  <title>Vault - Collector's Club</title>
+  <meta name="theme-color" content="#030305">
+  <title>The Archive — MFDEZ Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="vault.css">
 </head>
 <body>
   <main class="vault-page" data-vault-ready="false">
-    <section class="vault-viewer" aria-label="Collector's Club Vault">
-      <button class="vault-click-zone vault-click-zone--prev" type="button" data-direction="prev" aria-label="Imagen anterior"></button>
-      <button class="vault-click-zone vault-click-zone--next" type="button" data-direction="next" aria-label="Imagen siguiente"></button>
 
+    <!-- Atmospheric scaffolding — purely presentational architecture.
+         Each layer is a fixed pseudo-architectural element. -->
+    <div class="vault-atmosphere" aria-hidden="true">
+      <div class="vault-atmosphere__columns"></div>
+      <div class="vault-atmosphere__ceiling"></div>
+      <div class="vault-atmosphere__floor"></div>
+      <div class="vault-atmosphere__bloom"></div>
+      <div class="vault-atmosphere__dust"></div>
+      <div class="vault-atmosphere__aura"></div>
+    </div>
+
+    <section class="vault-viewer" aria-label="Collector's Club Vault">
+      <!-- Invisible navigation click-zones -->
+      <button
+        class="vault-click-zone vault-click-zone--prev"
+        type="button"
+        data-direction="prev"
+        aria-label="Imagen anterior"
+      ></button>
+      <button
+        class="vault-click-zone vault-click-zone--next"
+        type="button"
+        data-direction="next"
+        aria-label="Imagen siguiente"
+      ></button>
+
+      <!-- Dual-layer image canvas for crossfade transitions -->
       <div class="vault-image-container" aria-live="polite">
-        <img class="vault-image vault-image--front" id="vaultImageFront" alt="" decoding="async">
-        <img class="vault-image vault-image--back" id="vaultImageBack" alt="" decoding="async" aria-hidden="true">
+        <img
+          class="vault-image vault-image--front"
+          id="vaultImageFront"
+          alt=""
+          decoding="async"
+        >
+        <img
+          class="vault-image vault-image--back"
+          id="vaultImageBack"
+          alt=""
+          decoding="async"
+          aria-hidden="true"
+        >
       </div>
 
+      <!-- Overlay UI — fades in on activity, dissolves away -->
       <div class="vault-overlay-ui" id="vaultOverlayUi">
         <div class="vault-meta">
           <span class="vault-meta__count" id="vaultMetaCount">00 / 00</span>
@@ -25,18 +63,29 @@
         </div>
 
         <div class="vault-actions" aria-label="Acciones de imagen">
-          <button class="vault-action" type="button" data-action="download">Download</button>
-          <button class="vault-action" type="button" data-action="info" aria-expanded="false">Info</button>
+          <button class="vault-action" type="button" data-action="download">Descargar</button>
+          <button class="vault-action" type="button" data-action="info" aria-expanded="false">Ficha</button>
         </div>
       </div>
     </section>
 
-    <button class="vault-tray-trigger" id="vaultTrayTrigger" type="button" aria-expanded="false" aria-controls="vaultTray">
-      Coleccion (0)
-    </button>
+    <!-- Collection drawer trigger — archival handle, bottom-left -->
+    <button
+      class="vault-tray-trigger"
+      id="vaultTrayTrigger"
+      type="button"
+      aria-expanded="false"
+      aria-controls="vaultTray"
+    >Archivo (0)</button>
 
-    <section class="vault-tray" id="vaultTray" aria-label="Coleccion" aria-hidden="true">
-      <div class="vault-tray__label">Vault</div>
+    <!-- Collection tray — floating panel, lower-left quadrant -->
+    <section
+      class="vault-tray"
+      id="vaultTray"
+      aria-label="Coleccion"
+      aria-hidden="true"
+    >
+      <div class="vault-tray__label">Archivo</div>
       <div
         class="vault-tray-track cc-vault-gallery"
         id="vaultGallery"
@@ -46,11 +95,19 @@
       ></div>
     </section>
 
-    <aside class="vault-info-panel" id="vaultInfoPanel" aria-label="Informacion de imagen" aria-hidden="true"></aside>
+    <!-- Info panel — museum exhibition plaque, right edge -->
+    <aside
+      class="vault-info-panel"
+      id="vaultInfoPanel"
+      aria-label="Informacion de imagen"
+      aria-hidden="true"
+    ></aside>
 
+    <!-- Access gate -->
     <div class="vault-status" id="vaultStatus" role="status" aria-live="polite">
-      <span>Checking access</span>
+      <span>Accediendo al archivo</span>
     </div>
+
   </main>
 
   <script src="../collectorsClub/collectorsClub.js"></script>

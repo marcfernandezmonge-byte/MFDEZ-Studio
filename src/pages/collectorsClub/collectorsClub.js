@@ -38,9 +38,9 @@
     const step = () => {
       if (current <= target) { el.textContent = current; return; }
       el.textContent = current--;
-      setTimeout(step, 80 + Math.random() * 60);
+      setTimeout(step, 140 + Math.random() * 100);
     };
-    setTimeout(step, 600);
+    setTimeout(step, 1200);
   }
 
   /* ── 3. COUNTDOWN TIMER ───────────────────────────────────── */
@@ -71,14 +71,11 @@
       if (els.h) els.h.textContent = pad(h);
       if (els.m) els.m.textContent = pad(m);
 
-      // Tick animation on seconds
+      // Tick animation on seconds — subtle gravitational
       if (els.s) {
         const newS = pad(s);
         if (els.s.textContent !== newS) {
-          els.s.classList.remove('tick');
-          void els.s.offsetWidth;          // reflow to restart animation
           els.s.textContent = newS;
-          els.s.classList.add('tick');
         }
       }
     }
@@ -110,16 +107,16 @@
       toggle.querySelectorAll('[data-plan]').forEach(b => b.classList.remove('cc-toggle__btn--active'));
       btn.classList.add('cc-toggle__btn--active');
 
-      // Animate price change
+      // Animate price change — gravitational
       if (priceNum) {
-        priceNum.style.transform = 'translateY(-6px)';
+        priceNum.style.transform = 'translateY(-4px)';
         priceNum.style.opacity   = '0';
         setTimeout(() => {
           priceNum.textContent     = plans[plan].num;
           priceNum.style.transform = 'translateY(0)';
           priceNum.style.opacity   = '1';
-        }, 180);
-        priceNum.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
+        }, 400);
+        priceNum.style.transition = 'transform 0.6s ease, opacity 0.6s ease';
       }
       if (pricePer)  pricePer.textContent  = plans[plan].per;
       if (priceNote) priceNote.textContent  = plans[plan].note;
@@ -142,11 +139,11 @@
       overlay.classList.add('is-open');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-      // Focus first input
+      // Focus first input — delayed for gravitational entrance
       setTimeout(() => {
         const first = overlay.querySelector('input, button');
         if (first) first.focus();
-      }, 320);
+      }, 800);
     }
 
     function closeModal() {
@@ -183,7 +180,7 @@
           submitBtn.textContent = 'Procesando...';
           submitBtn.disabled    = true;
         }
-        // Simulate processing
+        // Simulate processing — ceremonial delay
         setTimeout(() => {
           if (step1) step1.classList.add('cc-modal__step--hidden');
           if (step2) step2.classList.remove('cc-modal__step--hidden');
@@ -193,7 +190,7 @@
           const slots = 47;
           if (sl)  sl.textContent  = slots - 1;
           if (sb)  sb.textContent  = '54';
-        }, 1200);
+        }, 1800);
       });
     }
   }
@@ -234,11 +231,11 @@
           obs.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
+    }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
 
-    // Stagger quotes
+    // Stagger quotes — slow ceremonial reveal
     document.querySelectorAll('.cc-quote').forEach((q, i) => {
-      q.style.transitionDelay = `${i * 90}ms`;
+      q.style.transitionDelay = `${i * 200}ms`;
     });
 
     targets.forEach(el => obs.observe(el));

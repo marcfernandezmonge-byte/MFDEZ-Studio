@@ -1,130 +1,638 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&display=swap');
+
+/* ─────────────────────────────────────────
+   DESIGN TOKENS — ARISTOCRATIC SALON
+   ───────────────────────────────────────── */
 :root {
-  --vault-bg: #050507;
-  --vault-bg-soft: #0a090d;
-  --vault-text: #f0eee8;
-  --vault-muted: rgba(240, 238, 232, 0.58);
-  --vault-faint: rgba(240, 238, 232, 0.22);
-  --vault-line: rgba(240, 238, 232, 0.1);
-  --vault-panel: rgba(6, 6, 8, 0.84);
-  --vault-panel-strong: rgba(8, 8, 10, 0.94);
-  --vault-accent: rgba(219, 200, 158, 0.78);
-  --vault-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --vault-font: "DM Sans", "Inter", "Segoe UI", Arial, sans-serif;
-  --vault-mono: "DM Mono", "SFMono-Regular", Consolas, monospace;
+  /* Core palette — obsidian with warm mineral undertone */
+  --v-void:        #030304;
+  --v-obsidian:    #060609;
+  --v-graphite:    #0d0c11;
+  --v-charcoal:    #141317;
+  --v-smoke:       #1d1c22;
+  --v-stone:       #292830;
+
+  /* Text */
+  --v-text:        #e8e4dc;
+  --v-muted:       rgba(232, 228, 220, 0.44);
+  --v-faint:       rgba(232, 228, 220, 0.267);
+  --v-ghost:       rgba(232, 228, 220, 0.06);
+
+  /* Bronze accent — mineral, desaturated */
+  --v-bronze:      rgba(180, 158, 112, 0.72);
+  --v-bronze-dim:  rgba(180, 158, 112, 0.22);
+  --v-bronze-glow: rgba(180, 158, 112, 0.06);
+  --v-champagne:   rgba(220, 205, 165, 0.45);
+
+  /* Material palette — engraved metal hierarchy */
+  --v-brass:        rgba(196, 172, 122, 0.85);   /* polished brass */
+  --v-brass-soft:   rgba(196, 172, 122, 0.18);   /* satin brass */
+  --v-brass-edge:   rgba(220, 196, 148, 0.32);   /* lit brass rim */
+  --v-patina:       rgba(108, 116, 94, 0.10);    /* aged green undertone */
+  --v-ink:          rgba(232, 228, 220, 0.288);   /* worn editorial ink */
+  --v-engraved:     rgba(0, 0, 0, 0.32);         /* incised shadow */
+  --v-paper:        rgba(232, 224, 200, 0.018);  /* archival paper warmth */
+
+  /* Surfaces */
+  --v-glass:       rgba(8, 8, 12, 0.88);
+  --v-glass-light: rgba(14, 14, 20, 0.76);
+  --v-border:      rgba(237, 233, 224, 0.07);
+  --v-border-warm: rgba(196, 172, 122, 0.18);
+  --v-border-rim:  rgba(196, 172, 122, 0.32);    /* visible brass border */
+
+  /* Typography */
+  --v-display: 'Cormorant Garamond', 'Garamond', Georgia, serif;
+  --v-mono:    'DM Mono', 'SF Mono', Consolas, monospace;
+
+  /* Motion — heavy, slow, inertial */
+  --v-ease:     cubic-bezier(0.16, 1, 0.3, 1);
+  --v-ease-in:  cubic-bezier(0.76, 0, 0.24, 1);
+  --v-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --v-mechanical: cubic-bezier(0.34, 0.04, 0.16, 1);  /* mechanical drawer feel */
+  --v-curatorial: cubic-bezier(0.25, 0.46, 0.20, 1);  /* slow ceremonial */
+  --v-slow:     900ms;
+  --v-medium:   520ms;
+  --v-fast:     320ms;
+  --v-ceremonial: 1200ms;     /* the new "hover" default */
+  --v-monumental: 1800ms;     /* major state changes */
 }
 
+/* ─────────────────────────────────────────
+   RESET
+   ───────────────────────────────────────── */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-html,
-body {
+html, body {
   width: 100%;
   min-height: 100%;
-  margin: 0;
-  background: var(--vault-bg);
+  background: var(--v-void);
   overflow: hidden;
 }
 
 button {
   font: inherit;
+  cursor: pointer;
 }
 
+/* ─────────────────────────────────────────
+   STAGE — THE SALON ITSELF
+   Layers (back to front):
+   1. Deep void background
+   2. Architectural depth gradients
+   3. Central exhibition light bloom
+   4. Atmospheric haze
+   5. Edge vignettes
+   ───────────────────────────────────────── */
 .vault-page {
   position: relative;
   width: 100vw;
   height: 100vh;
   height: 100svh;
   overflow: hidden;
-  color: var(--vault-text);
-  background:
-    radial-gradient(circle at 50% 44%, rgba(255, 244, 220, 0.055), transparent 34%),
-    radial-gradient(circle at 18% 18%, rgba(96, 112, 132, 0.12), transparent 28%),
-    radial-gradient(circle at 82% 80%, rgba(98, 71, 47, 0.13), transparent 32%),
-    var(--vault-bg);
-  font-family: var(--vault-font);
+  color: var(--v-text);
+  font-family: var(--v-mono);
   isolation: isolate;
+
+  /* Layer 1 — absolute void foundation */
+  background: var(--v-void);
 }
 
+/* Focus state — when a thumbnail is being previewed, the entire
+   chamber subtly retreats. Architecture darkens, light intensifies
+   on the artwork. Implemented via filter to avoid clashing with
+   the breathing animations on ::before / ::after. */
+.vault-page.is-focusing::before {
+  filter: brightness(0.78) contrast(1.05);
+  transition: filter 1.2s var(--v-ease);
+}
+
+.vault-page.is-focusing::after {
+  filter: brightness(1.15) contrast(1.04);
+  transition: filter 1.2s var(--v-ease);
+}
+
+.vault-page::before,
 .vault-page::after {
-  content: "";
+  transition: filter 1.2s var(--v-ease);
+}
+
+/* ─────────────────────────────────────────
+   THE GRAND SALON — MONUMENTAL ATMOSPHERE
+   A complete architectural scaffolding rendered as
+   layered presentational elements. Each layer
+   contributes one dimension of implied space.
+   ───────────────────────────────────────── */
+.vault-atmosphere {
   position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: 1;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.45), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.45)),
-    radial-gradient(circle at 50% 50%, transparent 34%, rgba(0, 0, 0, 0.34) 78%, rgba(0, 0, 0, 0.68));
+  overflow: hidden;
+
+  /* Mouse-driven parallax — updated by JS */
+  --mx: 0;
+  --my: 0;
 }
 
+.vault-atmosphere > * {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── COLUMNS ── Monumental lateral verticals.
+   Suggests colossal columns flanking the chamber.
+   Reacts to mouse parallax. */
+.vault-atmosphere__columns {
+  background:
+    /* Far-left column mass */
+    linear-gradient(90deg,
+      rgba(0, 0, 0, 0.46) 0%,
+      rgba(0, 0, 0, 0.22) 3%,
+      transparent 7%
+    ),
+    /* Inner-left column division — subtle paneling */
+    linear-gradient(90deg,
+      transparent 11%,
+      rgba(0, 0, 0, 0.08) 13%,
+      rgba(8, 8, 12, 0.04) 14%,
+      transparent 16%
+    ),
+    /* Inner-right column division */
+    linear-gradient(90deg,
+      transparent 84%,
+      rgba(0, 0, 0, 0.08) 86%,
+      rgba(8, 8, 12, 0.04) 87%,
+      transparent 89%
+    ),
+    /* Far-right column mass */
+    linear-gradient(270deg,
+      rgba(0, 0, 0, 0.46) 0%,
+      rgba(0, 0, 0, 0.22) 3%,
+      transparent 7%
+    );
+  transform: translate3d(calc(var(--mx, 0) * -10px), 0, 0);
+  transition: transform 2.4s var(--v-ease);
+  animation: vault-columns-sway 30s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* ── CEILING ── Vault recession.
+   Suggests towering height disappearing into shadow. */
+.vault-atmosphere__ceiling {
+  background:
+    /* Primary ceiling vault — deep recession */
+    linear-gradient(180deg,
+      rgba(0, 0, 0, 0.70) 0%,
+      rgba(0, 0, 0, 0.36) 5%,
+      rgba(0, 0, 0, 0.14) 12%,
+      rgba(0, 0, 0, 0.04) 22%,
+      transparent 34%
+    ),
+    /* Secondary cornice line — implied architectural moulding */
+    linear-gradient(180deg,
+      transparent 8%,
+      rgba(0, 0, 0, 0.06) 8.4%,
+      transparent 8.8%
+    );
+  transform: translate3d(calc(var(--mx, 0) * 3px), calc(var(--my, 0) * -5px), 0);
+  transition: transform 2.4s var(--v-ease);
+  will-change: transform;
+}
+
+/* ── FLOOR ── Implicit polished surface.
+   Subtle reflection haze + grounding mass. */
+.vault-atmosphere__floor {
+  background:
+    /* Deep floor absorption — grounding weight */
+    linear-gradient(0deg,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.42) 5%,
+      rgba(0, 0, 0, 0.16) 14%,
+      rgba(0, 0, 0, 0.04) 24%,
+      transparent 36%
+    ),
+    /* Reflection haze — polished stone subtle glow */
+    radial-gradient(ellipse 70% 12% at 50% 92%,
+      rgba(180, 165, 130, 0.014) 0%,
+      rgba(140, 128, 100, 0.005) 50%,
+      transparent 75%
+    );
+  transform: translate3d(calc(var(--mx, 0) * 3px), calc(var(--my, 0) * 5px), 0);
+  transition: transform 2.4s var(--v-ease);
+  animation: vault-floor-shimmer 24s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* ── BLOOM ── Atmospheric volumetric haze.
+   The "air" of the chamber — invisible warm diffusion. */
+.vault-atmosphere__bloom {
+  background:
+    /* Central warm pool */
+    radial-gradient(ellipse 60% 50% at 50% 45%,
+      rgba(220, 198, 158, 0.018) 0%,
+      rgba(180, 160, 125, 0.006) 45%,
+      transparent 70%
+    ),
+    /* Left wall warm bounce */
+    radial-gradient(ellipse 18% 50% at 6% 50%,
+      rgba(160, 140, 105, 0.010) 0%,
+      transparent 75%
+    ),
+    /* Right wall warm bounce */
+    radial-gradient(ellipse 18% 50% at 94% 50%,
+      rgba(160, 140, 105, 0.010) 0%,
+      transparent 75%
+    );
+  animation: vault-bloom-drift 24s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+/* ── DUST ── Microscopic atmospheric particles.
+   Cinematic dust illuminated by museum lights.
+   Implemented as low-density SVG noise drifting slowly. */
+.vault-atmosphere__dust {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.86 0 0 0 0 0.78 0 0 0 0 0.6 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)'/%3E%3C/svg%3E");
+  background-size: 600px 600px;
+  opacity: 0.06;
+  mix-blend-mode: screen;
+  animation: vault-dust-drift 38s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* ── AURA ── Ambient presence emanated by the artwork.
+   A wide breathing radial that intensifies subtly with
+   the artwork's centrality. */
+.vault-atmosphere__aura {
+  background: radial-gradient(
+    ellipse 55% 42% at 50% 46%,
+    rgba(232, 215, 175, 0.018) 0%,
+    rgba(190, 170, 130, 0.008) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 1.8s var(--v-ease),
+    transform 2.2s var(--v-ease);
+}
+
+.vault-page[data-vault-ready="true"] .vault-atmosphere__aura {
+  opacity: 1;
+  transform: scale(1);
+  animation: vault-aura-breath 18s ease-in-out infinite;
+}
+
+/* Focus intensification — aura swells during preview */
+.vault-page.is-focusing .vault-atmosphere__aura {
+  opacity: 1.5;
+  transform: scale(1.08);
+}
+
+/* Focus intensification — dust slightly more visible during preview */
+.vault-page.is-focusing .vault-atmosphere__dust {
+  opacity: 0.09;
+}
+
+/* Layer 5 — Ultra-subtle cinematic grain.
+   Adds mineral texture to the void — like stone surface patina. */
+.vault-page > .vault-viewer::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  pointer-events: none;
+  opacity: 0.032;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+
+/* Layer 2 — Ghost Architecture.
+   Abstracted from salon gallery paneling: vertical wall rhythm,
+   colossal shadow columns, ceiling vault recession.
+   The user must subconsciously perceive an immense obsidian
+   chamber with paneled walls disappearing into darkness. */
+.vault-page::before {
+  content: '';
+  position: fixed;
+  inset: -1%;
+  z-index: 0;
+  pointer-events: none;
+  animation: vault-architecture-sigh 38s ease-in-out infinite;
+  will-change: opacity, transform;
+  background:
+    /* Salon panel rhythm — ghost vertical divisions
+       suggesting wainscoting/paneling dissolved into obsidian */
+    linear-gradient(90deg,
+      transparent 7%,
+      rgba(0, 0, 0, 0.05) 8%,
+      rgba(8, 8, 12, 0.025) 9%,
+      transparent 10%,
+      transparent 19%,
+      rgba(0, 0, 0, 0.035) 20%,
+      transparent 21%,
+      transparent 34%,
+      rgba(0, 0, 0, 0.03) 35%,
+      transparent 36%,
+      transparent 64%,
+      rgba(0, 0, 0, 0.03) 65%,
+      transparent 66%,
+      transparent 79%,
+      rgba(0, 0, 0, 0.035) 80%,
+      transparent 81%,
+      transparent 90%,
+      rgba(0, 0, 0, 0.05) 91%,
+      rgba(8, 8, 12, 0.025) 92%,
+      transparent 93%
+    ),
+    /* Monumental vignette — colossal spatial enclosure */
+    radial-gradient(ellipse 52% 60% at 50% 46%,
+      transparent 24%,
+      rgba(0, 0, 0, 0.24) 60%,
+      rgba(0, 0, 0, 0.60) 100%
+    ),
+    /* Distant depth atmosphere — soft warm bloom at center */
+    radial-gradient(ellipse 90% 80% at 50% 42%,
+      rgba(28, 24, 18, 0.18) 0%,
+      transparent 50%
+    ),
+    /* Graphite chamber base — warm-shifted mineral room */
+    radial-gradient(ellipse 170% 150% at 50% 44%,
+      #0c0b10 0%,
+      #08070c 24%,
+      #050408 52%,
+      var(--v-void) 100%
+    );
+}
+
+/* Layer 3 — Consecrated Exhibition Lighting.
+   Abstracted from gallery overhead track lighting:
+   directional pools from above, warm wall-bounce,
+   monumental atmospheric diffusion.
+   The light BREATHES — slow ambient lumination drift. */
+.vault-page::after {
+  content: '';
+  position: fixed;
+  inset: -2%;
+  z-index: 1;
+  pointer-events: none;
+  animation: vault-light-breathing 22s ease-in-out infinite;
+  will-change: opacity, transform;
+  background:
+    /* Primary overhead spotlight — directional museum track light */
+    radial-gradient(ellipse 36% 42% at 50% 42%,
+      rgba(255, 250, 235, 0.060) 0%,
+      rgba(245, 232, 195, 0.035) 28%,
+      rgba(220, 200, 155, 0.014) 52%,
+      transparent 68%
+    ),
+    /* Secondary overhead pool — wider ambient fill */
+    radial-gradient(ellipse 60% 54% at 50% 44%,
+      rgba(220, 208, 172, 0.024) 0%,
+      rgba(195, 180, 145, 0.011) 40%,
+      transparent 68%
+    ),
+    /* Ceiling illumination band — suggests recessed fixtures */
+    radial-gradient(ellipse 78% 16% at 50% 2%,
+      rgba(200, 188, 155, 0.020) 0%,
+      rgba(180, 168, 138, 0.008) 50%,
+      transparent 80%
+    ),
+    /* Tertiary light pool — extends warmth outward */
+    radial-gradient(ellipse 100% 88% at 50% 42%,
+      rgba(180, 168, 140, 0.014) 0%,
+      rgba(150, 138, 112, 0.005) 35%,
+      transparent 60%
+    ),
+    /* Floor reflected warmth — deep ambient uplighting */
+    radial-gradient(ellipse 80% 20% at 50% 108%,
+      rgba(140, 128, 100, 0.010) 0%,
+      transparent 50%
+    );
+}
+
+/* ─────────────────────────────────────────
+   VIEWER STAGE
+   ───────────────────────────────────────── */
 .vault-viewer {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   height: 100%;
 }
 
+/* ─────────────────────────────────────────
+   IMAGE CONTAINER & PRESENTATION
+   The artwork is sacred. It floats in darkness.
+   ───────────────────────────────────────── */
 .vault-image-container {
   position: absolute;
   inset: 0;
   display: grid;
+  /* Asymmetric exhibition positioning — the artwork is installed
+     slightly above center with more weight to the left,
+     like a salon-hung masterpiece with breathing room below */
   place-items: center;
-  padding: clamp(18px, 4vw, 56px);
+  padding:
+    clamp(90px, 13vh, 150px)
+    clamp(100px, 12vw, 180px)
+    clamp(110px, 15vh, 180px)
+    clamp(130px, 15vw, 240px);
+}
+
+/* Layer 4 — Localized depth field around artwork.
+   Creates the sensation of recessed exhibition alcove. */
+.vault-image-container::before {
+  content: '';
+  position: absolute;
+  inset: 8% 12%;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 100% 100% at 50% 48%,
+    rgba(180, 168, 140, 0.014) 0%,
+    rgba(140, 128, 105, 0.005) 35%,
+    transparent 65%
+  );
+  filter: blur(60px);
+  animation: vault-light-breathing 22s ease-in-out infinite;
+  animation-delay: -8s;
+}
+
+/* Volumetric halo behind artwork — consecration light pool.
+   This is the "spotlight on the artwork" effect made physical. */
+.vault-image-container::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(420px, 50vw, 920px);
+  height: clamp(280px, 40vh, 600px);
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 100% 100% at 50% 50%,
+    rgba(220, 200, 160, 0.020) 0%,
+    rgba(180, 160, 120, 0.008) 40%,
+    transparent 70%
+  );
+  filter: blur(80px);
+  opacity: 0;
+  transition: opacity 1.6s var(--v-ease);
+}
+
+.vault-page[data-vault-ready="true"] .vault-image-container::after {
+  opacity: 1;
+  animation: vault-light-breathing 22s ease-in-out infinite;
 }
 
 .vault-image {
   position: absolute;
-  max-width: min(92vw, 1800px);
-  max-height: 90vh;
-  max-height: 90svh;
+  max-width: min(78vw, 1480px);
+  max-height: 74vh;
+  max-height: 74svh;
   width: auto;
   height: auto;
   object-fit: contain;
   opacity: 0;
-  transform: scale(0.992);
-  filter: saturate(0.98);
+  transform: scale(1.008) translateY(2px);
+  filter: saturate(0.6) brightness(0.7) blur(3px);
+
+  /* Museum mounting — floating in volumetric darkness */
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.035),
-    0 32px 110px rgba(0, 0, 0, 0.62);
+    0 0 0 1px rgba(232, 228, 220, 0.015),
+    0 4px 8px rgba(0, 0, 0, 0.52),
+    0 16px 40px rgba(0, 0, 0, 0.56),
+    0 48px 120px rgba(0, 0, 0, 0.62),
+    0 96px 220px rgba(0, 0, 0, 0.44);
+
+  /* Cinematic transition — slow ceremonial emergence */
   transition:
-    opacity 260ms var(--vault-ease),
-    transform 300ms var(--vault-ease),
-    filter 260ms var(--vault-ease);
-  will-change: opacity, transform;
+    opacity 1.6s var(--v-ease-out),
+    transform 2s var(--v-ease-out),
+    filter 1.8s var(--v-ease);
+  will-change: opacity, transform, filter;
 }
 
 .vault-image.is-visible {
   opacity: 1;
-  transform: scale(1);
+  transform: scale(1) translateY(0);
+  filter: saturate(1) brightness(1) blur(0);
 }
 
 .vault-image.is-preview {
-  filter: saturate(1.04) brightness(1.02);
+  filter: saturate(1.02) brightness(1.02) blur(0);
+  box-shadow:
+    0 0 0 1px rgba(232, 228, 220, 0.03),
+    0 4px 10px rgba(0, 0, 0, 0.48),
+    0 16px 36px rgba(0, 0, 0, 0.55),
+    0 48px 110px rgba(0, 0, 0, 0.60),
+    0 96px 200px rgba(0, 0, 0, 0.42);
 }
 
+/* ─────────────────────────────────────────
+   CLICK ZONES — INVISIBLE NAVIGATION
+   Vast invisible regions on either side of the artwork.
+   On hover, a discreet curatorial chevron emerges from
+   the edge — like a silent docent gesture.
+   ───────────────────────────────────────── */
 .vault-click-zone {
   position: absolute;
   top: 0;
   bottom: 0;
   z-index: 8;
-  width: 38vw;
-  padding: 0;
+  width: 36vw;
   border: 0;
-  color: transparent;
   background: transparent;
-  cursor: pointer;
+  color: transparent;
 }
 
-.vault-click-zone--prev {
+.vault-click-zone--prev { left: 0; cursor: w-resize; }
+.vault-click-zone--next { right: 0; cursor: e-resize; }
+
+/* Curatorial chevron — emerges discreetly from the edge on hover.
+   Constructed entirely with CSS transforms. */
+.vault-click-zone::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-top: 1px solid var(--v-brass-edge);
+  border-left: 1px solid var(--v-brass-edge);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 1.4s var(--v-curatorial),
+    transform 1.6s var(--v-curatorial);
+}
+
+.vault-click-zone--prev::before {
+  left: clamp(24px, 4vw, 56px);
+  transform: translateY(-50%) translateX(8px) rotate(-45deg);
+}
+
+.vault-click-zone--next::before {
+  right: clamp(24px, 4vw, 56px);
+  transform: translateY(-50%) translateX(-8px) rotate(135deg);
+}
+
+.vault-click-zone--prev:hover::before {
+  opacity: 0.55;
+  transform: translateY(-50%) translateX(0) rotate(-45deg);
+}
+
+.vault-click-zone--next:hover::before {
+  opacity: 0.55;
+  transform: translateY(-50%) translateX(0) rotate(135deg);
+}
+
+/* Ambient warm wash on the side being approached.
+   The chamber's light shifts subtly toward the direction
+   of intended navigation. */
+.vault-click-zone::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.6s var(--v-curatorial);
+}
+
+.vault-click-zone--prev::after {
   left: 0;
+  background: linear-gradient(90deg,
+    rgba(220, 196, 148, 0.018) 0%,
+    transparent 35%
+  );
 }
 
-.vault-click-zone--next {
+.vault-click-zone--next::after {
   right: 0;
+  background: linear-gradient(270deg,
+    rgba(220, 196, 148, 0.018) 0%,
+    transparent 35%
+  );
 }
 
+.vault-click-zone:hover::after {
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────
+   OVERLAY UI — DISSOLVES WHEN IDLE
+   ───────────────────────────────────────── */
 .vault-overlay-ui {
   position: fixed;
   top: 0;
@@ -135,354 +643,1276 @@ button {
   justify-content: space-between;
   align-items: flex-start;
   gap: 24px;
-  padding: clamp(18px, 3.3vw, 42px);
+  padding: clamp(28px, 4vw, 52px) clamp(28px, 4vw, 56px);
+
+  /* Architectural ceiling shadow — enormous cornice */
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.22) 35%,
+    rgba(0, 0, 0, 0.06) 65%,
+    transparent 100%
+  );
+
+  /* Sealed state — emerge as fog, not as fade */
   opacity: 0;
   pointer-events: none;
   transform: translateY(-8px);
+  filter: blur(4px);
   transition:
-    opacity 230ms var(--vault-ease),
-    transform 230ms var(--vault-ease);
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent);
+    opacity 1.2s var(--v-ease),
+    transform 1.2s var(--v-ease),
+    filter 1.4s var(--v-ease);
 }
 
 .vault-page.is-ui-visible .vault-overlay-ui,
-.vault-page.is-tray-open .vault-overlay-ui,
-.vault-page.is-info-open .vault-overlay-ui {
+.vault-page.is-tray-open  .vault-overlay-ui,
+.vault-page.is-info-open  .vault-overlay-ui {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+  filter: blur(0);
 }
 
+/* META — left side: museum cartouche (edition count + title).
+   Floating exposition label, not a navbar. */
 .vault-meta {
   display: grid;
-  gap: 6px;
+  gap: 12px;
   min-width: 0;
+  position: relative;
 }
 
-.vault-meta__count,
-.vault-action,
-.vault-tray-trigger,
-.vault-tray__label,
-.vault-info__eyebrow,
-.vault-info__key {
-  font-family: var(--vault-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+/* Curatorial rule — vertical brass hairline framing the cartouche */
+.vault-meta::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: -18px;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg,
+    rgba(220, 196, 148, 0.16) 0%,
+    rgba(220, 196, 148, 0.04) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
 
 .vault-meta__count {
-  color: var(--vault-faint);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--v-mono);
+  font-size: 7.5px;
+  font-weight: 400;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--v-ink);
+
+  /* Engraved institutional notation */
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 0 6px rgba(220, 196, 148, 0.03);
+
+  transition:
+    color var(--v-ceremonial) var(--v-curatorial),
+    letter-spacing var(--v-ceremonial) var(--v-curatorial);
+}
+
+/* Brass dot before edition notation — museum case marker */
+.vault-meta__count::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  background: var(--v-brass-edge);
+  transform: rotate(45deg);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.vault-page.is-ui-visible .vault-meta__count {
+  color: var(--v-muted);
+  letter-spacing: 0.46em;
 }
 
 .vault-meta__title {
-  max-width: min(42vw, 560px);
-  color: var(--vault-muted);
-  font-size: clamp(14px, 1.5vw, 18px);
-  line-height: 1.3;
+  max-width: min(36vw, 420px);
+  font-family: var(--v-display);
+  font-size: clamp(15px, 1.6vw, 21px);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: var(--v-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.20;
+
+  /* Editorial italic — slight ink weight */
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 0 10px rgba(220, 196, 148, 0.025);
+
+  transition: color var(--v-ceremonial) var(--v-curatorial);
 }
 
+.vault-page.is-ui-visible .vault-meta__title {
+  color: var(--v-text);
+}
+
+/* ACTIONS — right side */
 .vault-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
+/* ─────────────────────────────────────────
+   BUTTONS — ENGRAVED BRONZE PLAQUES
+   Inspired by museum exposition labels,
+   aged elevator buttons, and curatorial cartouches.
+   The buttons are NOT UI — they are physical objects
+   integrated into the salon's architecture.
+   ───────────────────────────────────────── */
 .vault-action,
 .vault-tray-trigger,
 .vault-info__close {
-  border: 1px solid var(--vault-line);
-  color: var(--vault-muted);
-  background: rgba(255, 255, 255, 0.035);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  cursor: pointer;
+  position: relative;
+  font-family: var(--v-mono);
+  font-size: 7.5px;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--v-ink);
+
+  /* Engraved typography — the text feels incised into metal */
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 -0.5px 0 rgba(220, 196, 148, 0.04);
+
+  /* Plaque material — smoked obsidian over warm patina substrate */
+  background:
+    /* Top edge highlight — caught light on metal */
+    linear-gradient(180deg,
+      rgba(232, 220, 188, 0.025) 0%,
+      transparent 18%
+    ),
+    /* Bottom edge shadow — recessed bottom rim */
+    linear-gradient(0deg,
+      rgba(0, 0, 0, 0.18) 0%,
+      transparent 20%
+    ),
+    /* Subtle patina undertone */
+    var(--v-patina),
+    /* Smoked base */
+    rgba(6, 6, 9, 0.78);
+
+  /* Hairline rim — visible but discreet, like a polished plaque edge */
+  border: 1px solid var(--v-border);
+
+  /* Material depth — inner highlight + outer recess shadow */
+  box-shadow:
+    /* Inner top highlight — captured lumination */
+    inset 0 1px 0 rgba(232, 220, 188, 0.025),
+    /* Inner bottom shadow — material depth */
+    inset 0 -1px 0 rgba(0, 0, 0, 0.30),
+    /* Outer drop shadow — object floats over surface */
+    0 1px 2px rgba(0, 0, 0, 0.30),
+    0 6px 18px rgba(0, 0, 0, 0.25);
+
+  backdrop-filter: blur(20px) saturate(0.75);
+  -webkit-backdrop-filter: blur(20px) saturate(0.75);
+  overflow: hidden;
+
+  /* Slow ceremonial transitions */
   transition:
-    color 180ms ease,
-    border-color 180ms ease,
-    background 180ms ease,
-    transform 180ms var(--vault-ease);
+    color var(--v-ceremonial) var(--v-curatorial),
+    border-color var(--v-ceremonial) var(--v-curatorial),
+    background var(--v-ceremonial) var(--v-curatorial),
+    letter-spacing var(--v-ceremonial) var(--v-curatorial),
+    text-shadow var(--v-ceremonial) var(--v-curatorial),
+    box-shadow var(--v-ceremonial) var(--v-curatorial),
+    transform var(--v-ceremonial) var(--v-curatorial);
+}
+
+/* Bronze rim emergence — the brass edge lights up on hover.
+   Implemented as a pseudo-element so it can fade in independently. */
+.vault-action::before,
+.vault-tray-trigger::after,
+.vault-info__close::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  /* Two-layer warm light: side gleam + soft inner glow */
+  background:
+    /* Diagonal gleam — the curator's spotlight crossing slowly */
+    linear-gradient(118deg,
+      transparent 28%,
+      rgba(232, 208, 162, 0.05) 48%,
+      rgba(220, 196, 148, 0.07) 52%,
+      transparent 72%
+    );
+  opacity: 0;
+  transform: translateX(-110%);
+  transition:
+    opacity 1.1s var(--v-curatorial),
+    transform 1.8s var(--v-curatorial);
+}
+
+.vault-action:hover::before,
+.vault-info__close:hover::before,
+.vault-tray-trigger:hover::after {
+  opacity: 1;
+  transform: translateX(110%);
 }
 
 .vault-action {
   min-height: 38px;
-  padding: 0 15px;
+  padding: 0 18px;
 }
 
+/* HOVER — the museum's light touches the plaque.
+   Border lights, typography emerges, material warms,
+   curatorial glow blooms outward. */
 .vault-action:hover,
-.vault-tray-trigger:hover,
 .vault-info__close:hover {
-  color: var(--vault-text);
-  border-color: rgba(219, 200, 158, 0.28);
-  background: rgba(219, 200, 158, 0.08);
+  color: var(--v-muted);
+  border-color: var(--v-border-rim);
+  letter-spacing: 0.32em;
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 0 8px rgba(232, 208, 162, 0.12);
+
+  background:
+    linear-gradient(180deg,
+      rgba(232, 220, 188, 0.04) 0%,
+      transparent 22%
+    ),
+    linear-gradient(0deg,
+      rgba(0, 0, 0, 0.22) 0%,
+      transparent 22%
+    ),
+    var(--v-patina),
+    rgba(28, 22, 14, 0.65);
+
+  box-shadow:
+    /* Curatorial inner glow — warm chamber light catches the rim */
+    inset 0 0 0 1px rgba(220, 196, 148, 0.10),
+    inset 0 1px 0 rgba(232, 220, 188, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.36),
+    /* Outer warm halo — the object emits subtle presence */
+    0 0 0 1px rgba(220, 196, 148, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 10px 32px rgba(0, 0, 0, 0.32),
+    0 0 28px rgba(220, 196, 148, 0.04);
+}
+
+/* Active / pressed state — the plaque sinks slightly into its setting */
+.vault-action:active,
+.vault-info__close:active,
+.vault-tray-trigger:active {
+  transform: translateY(0.5px);
+  transition: transform 200ms var(--v-curatorial);
 }
 
 .vault-action:focus-visible,
 .vault-tray-trigger:focus-visible,
 .vault-info__close:focus-visible,
-.cc-vault-gallery__item:focus-visible {
-  outline: 2px solid rgba(219, 200, 158, 0.55);
-  outline-offset: 3px;
+.vault-thumb:focus-visible {
+  outline: 1px solid rgba(220, 196, 148, 0.45);
+  outline-offset: 4px;
 }
 
+/* ─────────────────────────────────────────
+   TRAY TRIGGER — WALL-MOUNTED BRONZE ESCUTCHEON
+   The architectural handle to the archive.
+   Aristocratic bronze fitting, almost dissolved into the wall.
+   ───────────────────────────────────────── */
 .vault-tray-trigger {
   position: fixed;
-  left: clamp(16px, 3vw, 38px);
-  bottom: clamp(16px, 3vw, 38px);
+  left: clamp(24px, 3.5vw, 44px);
+  bottom: clamp(24px, 3.5vw, 44px);
   z-index: 28;
-  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
   padding: 0 18px;
+
+  /* Dormant — barely visible fitting integrated into the wall.
+     Revealed when the user signals presence (mouse movement). */
+  color: var(--v-ink);
+  opacity: 0.45;
+  transition:
+    opacity var(--v-monumental) var(--v-curatorial),
+    color var(--v-ceremonial) var(--v-curatorial),
+    letter-spacing var(--v-ceremonial) var(--v-curatorial),
+    background var(--v-ceremonial) var(--v-curatorial),
+    text-shadow var(--v-ceremonial) var(--v-curatorial);
+
+  /* Sentinel breathing — extremely subtle warm halo.
+     Wider, lower-frequency than before. */
+  animation: vault-trigger-breath 7.5s ease-in-out infinite;
 }
 
+/* The archival handle reveals itself when the visitor is present */
+.vault-page.is-ui-visible .vault-tray-trigger,
+.vault-page.is-tray-open  .vault-tray-trigger {
+  opacity: 0.85;
+}
+
+/* Glyph — stacked horizontal bars (drawer mechanism symbol) */
+.vault-tray-trigger::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 11px;
+  flex-shrink: 0;
+  /* Three thin bronze bars — engraved handle indication */
+  background:
+    linear-gradient(var(--v-brass-edge), var(--v-brass-edge)) center 0px / 16px 1px no-repeat,
+    linear-gradient(var(--v-brass-soft), var(--v-brass-soft)) center 5px / 11px 1px no-repeat,
+    linear-gradient(var(--v-brass-edge), var(--v-brass-edge)) center 10px / 16px 1px no-repeat;
+  opacity: 0.82;
+  transition:
+    opacity var(--v-ceremonial) var(--v-curatorial),
+    transform var(--v-monumental) var(--v-mechanical);
+}
+
+.vault-tray-trigger:hover {
+  color: var(--v-muted);
+  border-color: var(--v-border-rim);
+  opacity: 1;
+  letter-spacing: 0.32em;
+
+  background:
+    linear-gradient(180deg,
+      rgba(232, 220, 188, 0.05) 0%,
+      transparent 22%
+    ),
+    linear-gradient(0deg,
+      rgba(0, 0, 0, 0.24) 0%,
+      transparent 22%
+    ),
+    var(--v-patina),
+    rgba(28, 22, 14, 0.70);
+
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 0 8px rgba(232, 208, 162, 0.14);
+}
+
+.vault-tray-trigger:hover::before {
+  opacity: 1;
+}
+
+/* Glyph rotates with mechanical inertia when the archive opens */
+.vault-page.is-tray-open .vault-tray-trigger::before {
+  transform: scaleY(-1);
+  opacity: 1;
+}
+
+/* Breathing — extremely subtle warm sentinel halo.
+   Wider, lower-frequency than before for a more aristocratic feel. */
+@keyframes vault-trigger-breath {
+  0%, 100% {
+    box-shadow:
+      inset 0 1px 0 rgba(232, 220, 188, 0.025),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.30),
+      0 1px 2px rgba(0, 0, 0, 0.30),
+      0 6px 18px rgba(0, 0, 0, 0.26);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(232, 220, 188, 0.030),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.30),
+      0 0 0 1px rgba(220, 196, 148, 0.03),
+      0 2px 4px rgba(0, 0, 0, 0.32),
+      0 8px 24px rgba(0, 0, 0, 0.32),
+      0 0 22px rgba(220, 196, 148, 0.025);
+  }
+}
+
+/* ─────────────────────────────────────────
+   COLLECTION TRAY — MONOLITHIC CURATORIAL ARTIFACT
+   A physical object, not a UI tray.
+   Constructed, not designed.
+   ───────────────────────────────────────── */
 .vault-tray {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: clamp(24px, 3.5vw, 48px);
+  bottom: calc(clamp(24px, 3.5vw, 48px) + 58px);
   z-index: 24;
-  height: clamp(148px, 23vh, 224px);
-  padding-top: 24px;
+
+  /* Controlled dimensions — monolithic proportion */
+  width: clamp(300px, 40vw, 560px);
+  max-height: clamp(180px, 30vh, 280px);
+
+  /* Monolithic form — near-invisible borders */
+  border-radius: 1px;
+  border: 1px solid rgba(232, 228, 220, 0.04);
+  border-top-color: rgba(220, 196, 148, 0.10);
+
+  /* Smoked graphite mineral surface — like polished obsidian slab.
+     Now with refined material layering: brass rail at top, ink line
+     at the bottom, patina substrate, smoked obsidian base. */
   background:
-    linear-gradient(180deg, rgba(12, 12, 14, 0.82), rgba(4, 4, 6, 0.96)),
-    var(--vault-panel-strong);
-  border-top: 1px solid var(--vault-line);
-  box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(26px);
-  -webkit-backdrop-filter: blur(26px);
-  transform: translateY(100%);
-  transition: transform 280ms var(--vault-ease);
+    /* Top brass rail — luminous hairline */
+    linear-gradient(180deg,
+      rgba(220, 196, 148, 0.06) 0%,
+      transparent 0.6%
+    ),
+    /* Inner top sheen — caught light on polished surface */
+    linear-gradient(180deg,
+      rgba(232, 220, 188, 0.025) 0%,
+      transparent 8%
+    ),
+    /* Internal depth gradient — suggests material thickness */
+    linear-gradient(180deg,
+      rgba(18, 18, 22, 0.18) 0%,
+      transparent 30%
+    ),
+    /* Bottom ink line — recessed shadow at floor */
+    linear-gradient(0deg,
+      rgba(0, 0, 0, 0.22) 0%,
+      transparent 8%
+    ),
+    /* Patina undertone — aged warmth */
+    var(--v-patina),
+    /* Base mineral surface */
+    linear-gradient(165deg,
+      rgba(12, 12, 16, 0.97) 0%,
+      rgba(7, 7, 10, 0.985) 40%,
+      rgba(5, 5, 8, 0.99) 100%
+    );
+  backdrop-filter: blur(24px) saturate(0.65);
+  -webkit-backdrop-filter: blur(24px) saturate(0.65);
+
+  /* Monolithic shadow mass — the object has colossal physical weight.
+     Refined with brass-tinted inset rim. */
+  box-shadow:
+    /* Inset top brass highlight — captured warm light */
+    inset 0 1px 0 rgba(220, 196, 148, 0.06),
+    inset 0 2px 0 rgba(232, 220, 188, 0.015),
+    /* Inset bottom shadow */
+    inset 0 -1px 0 rgba(0, 0, 0, 0.40),
+    /* Outer object mass — colossal physical weight */
+    0 -1px 0 rgba(232, 228, 220, 0.02),
+    0 2px 4px rgba(0, 0, 0, 0.40),
+    0 14px 44px rgba(0, 0, 0, 0.74),
+    0 36px 90px rgba(0, 0, 0, 0.56),
+    0 72px 160px rgba(0, 0, 0, 0.38);
+
+  /* Expansion-safe zone — generous padding for hover states */
+  padding: 36px 0 0;
+  /* CRITICAL: overflow-visible so thumbnails escape freely */
+  overflow: visible;
+  transform-origin: bottom left;
+
+  /* Sealed state — compressed, dimmed, deeper into floor */
+  transform: translateY(14px) scaleY(0.96);
+  opacity: 0;
+  filter: brightness(0.7) blur(2px);
+  pointer-events: none;
+  transition:
+    transform 1.6s var(--v-mechanical),
+    opacity 1.2s var(--v-curatorial),
+    filter 1.3s var(--v-curatorial);
 }
 
-.vault-tray.is-open {
-  transform: translateY(0);
-}
-
-.vault-tray__label {
+/* Brass corner detail — top-left aristocratic fitting */
+.vault-tray::before {
+  content: '';
   position: absolute;
-  top: 12px;
-  left: clamp(16px, 3vw, 38px);
-  color: rgba(240, 238, 232, 0.28);
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(220, 196, 148, 0.42) 0%,
+    rgba(220, 196, 148, 0.12) 60%,
+    transparent 100%
+  );
   pointer-events: none;
 }
 
+.vault-tray.is-open {
+  transform: translateY(0) scaleY(1);
+  opacity: 1;
+  filter: brightness(1) blur(0);
+  pointer-events: auto;
+}
+
+/* Dock ambient top-light — overhead museum spotlight bloom.
+   Only emerges when the dock is consecrated (open). */
+.vault-tray::after {
+  content: '';
+  position: absolute;
+  top: -56px;
+  left: 8%;
+  right: 8%;
+  height: 56px;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 100% at 50% 100%,
+    rgba(220, 200, 160, 0.018) 0%,
+    rgba(180, 160, 120, 0.008) 40%,
+    transparent 75%
+  );
+  opacity: 0;
+  transform: scaleX(0.6);
+  transform-origin: bottom center;
+  transition:
+    opacity 1.6s var(--v-ease),
+    transform 1.8s var(--v-ease);
+}
+
+.vault-tray.is-open::after {
+  opacity: 1;
+  transform: scaleX(1);
+  transition-delay: 0.4s;
+}
+
+/* Tray eyebrow label — institutional notation.
+   Curatorial archival mark — like an exhibition case label. */
+.vault-tray__label {
+  position: absolute;
+  top: 14px;
+  left: 22px;
+  font-family: var(--v-mono);
+  font-size: 6.5px;
+  font-weight: 400;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--v-ink);
+  pointer-events: none;
+  padding-bottom: 12px;
+
+  /* Subtle engraved feel — like an institutional stamp */
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.40),
+    0 0 6px rgba(220, 196, 148, 0.04);
+}
+
+/* Engraved label rule — brass-tinted institutional divider */
+.vault-tray__label::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: -22px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(220, 196, 148, 0.18) 0%,
+    rgba(220, 196, 148, 0.08) 30%,
+    transparent 100%
+  );
+}
+
+/* Curatorial diamond mark — tiny brass dot before the label */
+.vault-tray__label::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: -10px;
+  width: 3px;
+  height: 3px;
+  background: var(--v-brass-edge);
+  transform: rotate(45deg);
+  opacity: 0.65;
+}
+
+/* ─────────────────────────────────────────
+   THUMBNAIL TRACK — EXPANSION-SAFE CONTAINER
+   overflow-x scrolls, overflow-y escapes upward
+   ───────────────────────────────────────── */
 .vault-tray-track {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
   height: 100%;
-  padding: 18px clamp(16px, 3vw, 38px) 24px;
+  /* CRITICAL: generous top padding = expansion breathing room */
+  padding: 40px 20px 20px;
   overflow-x: auto;
   overflow-y: visible;
+  /* Clip only horizontal, let vertical escape */
+  clip-path: inset(-80px -4px -4px -4px);
   scrollbar-width: thin;
-  scrollbar-color: rgba(240, 238, 232, 0.18) transparent;
+  scrollbar-color: rgba(180, 158, 112, 0.10) transparent;
 }
 
-.vault-tray-track::-webkit-scrollbar {
-  height: 4px;
-}
+.vault-tray-track::-webkit-scrollbar       { height: 1px; }
+.vault-tray-track::-webkit-scrollbar-track { background: transparent; }
+.vault-tray-track::-webkit-scrollbar-thumb { background: rgba(180, 158, 112, 0.12); }
 
-.vault-tray-track::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ─────────────────────────────────────────
+   VAULT THUMBNAIL — ARCHIVAL SLIDE MOUNT
+   Each thumbnail feels like a curatorial slide
+   in an archival case. Bronze hairline frame,
+   inner shadow giving it physical depth.
 
-.vault-tray-track::-webkit-scrollbar-thumb {
-  background: rgba(240, 238, 232, 0.16);
-}
-
-.cc-vault-gallery__item,
-.cc-vault__cell {
+   .vault-thumb         — the slide mount
+   .vault-thumb__image  — the printed image
+   ───────────────────────────────────────── */
+.vault-thumb {
   position: relative;
   flex: 0 0 auto;
-  width: clamp(52px, 6.1vw, 82px);
+  width: clamp(46px, 5.2vw, 72px);
   aspect-ratio: 3 / 4;
   padding: 0;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.04);
+
+  /* Slide mount — paper warmth + slight brass tint */
+  background: var(--v-paper);
+
+  /* Material depth — slight inner recess like a real slide window */
+  box-shadow:
+    inset 0 0 0 1px rgba(232, 228, 220, 0.02),
+    inset 0 1px 0 rgba(232, 220, 188, 0.018);
+
   overflow: visible;
-  opacity: 0.72;
-  cursor: pointer;
-  transform: scale(1);
+  opacity: 0.32;
+  transform: scale(1) translateY(0);
   transform-origin: center bottom;
+  cursor: pointer;
   transition:
-    opacity 220ms var(--vault-ease),
-    transform 220ms var(--vault-ease),
-    border-color 220ms var(--vault-ease),
-    filter 220ms var(--vault-ease);
+    opacity       var(--v-ceremonial) var(--v-curatorial),
+    transform     var(--v-ceremonial) var(--v-curatorial),
+    border-color  var(--v-ceremonial) var(--v-curatorial),
+    filter        var(--v-ceremonial) var(--v-curatorial),
+    box-shadow    var(--v-ceremonial) var(--v-curatorial);
 }
 
-.cc-vault-gallery__item img,
-.cc-vault__cell img {
+/* Inner slide window — subtle bronze inner frame visible on hover */
+.vault-thumb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  border: 1px solid transparent;
+  transition: border-color var(--v-ceremonial) var(--v-curatorial);
+}
+
+.vault-thumb__image {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: saturate(0.42) brightness(0.62);
+  transition: filter var(--v-ceremonial) var(--v-curatorial);
+}
+
+/* Idle hover — slide warms slightly, image clarifies */
+.vault-thumb:hover {
+  opacity: 0.52;
+  border-color: rgba(232, 220, 188, 0.05);
+}
+
+.vault-thumb:hover::before {
+  border-color: rgba(220, 196, 148, 0.08);
+}
+
+.vault-thumb:hover .vault-thumb__image {
+  filter: saturate(0.65) brightness(0.78);
+}
+
+/* Active — currently consecrated as the main exhibit.
+   The slide has been selected and placed under examination light. */
+.vault-thumb.is-active {
+  opacity: 0.78;
+  border-color: rgba(220, 196, 148, 0.12);
+  background:
+    linear-gradient(180deg,
+      rgba(220, 196, 148, 0.04) 0%,
+      transparent 60%
+    ),
+    var(--v-paper);
+  box-shadow:
+    inset 0 0 0 1px rgba(220, 196, 148, 0.06),
+    inset 0 1px 0 rgba(232, 220, 188, 0.04),
+    0 0 0 1px rgba(220, 196, 148, 0.025),
+    0 1px 2px rgba(0, 0, 0, 0.30);
+}
+
+.vault-thumb.is-active::before {
+  border-color: rgba(220, 196, 148, 0.10);
+}
+
+.vault-thumb.is-active .vault-thumb__image {
+  filter: saturate(0.85) brightness(0.92);
+}
+
+/* Active indicator — small brass dot below the slide */
+.vault-thumb.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  background: var(--v-brass-edge);
+  transform: translateX(-50%);
+  border-radius: 0;
+  box-shadow: 0 0 6px rgba(220, 196, 148, 0.30);
+  opacity: 0.7;
+}
+
+/* Preview state — ceremonial activation system.
+   The selected thumbnail is consecrated.
+   Everything else retreats into archival silence. */
+.vault-tray-track.is-previewing .vault-thumb {
+  opacity: 0.04;
+  filter: brightness(0.32) saturate(0.28);
+  transform: scale(0.88) translateY(4px);
+}
+
+.vault-tray-track.is-previewing .vault-thumb.is-previewed {
+  z-index: 10;
   opacity: 1;
-  filter: saturate(0.82) brightness(0.9);
-  transition: filter 220ms var(--vault-ease);
+  filter: none;
+  transform: scale(1.75) translateY(-20px);
+  border-color: rgba(220, 196, 148, 0.16);
+
+  box-shadow:
+    /* Inner brass frame — like a museum slide carrier */
+    inset 0 0 0 1px rgba(220, 196, 148, 0.10),
+    inset 0 1px 0 rgba(232, 220, 188, 0.06),
+    /* Outer presentation shadows — colossal weight when consecrated */
+    0 0 0 1px rgba(220, 196, 148, 0.05),
+    0 8px 20px rgba(0, 0, 0, 0.60),
+    0 24px 56px rgba(0, 0, 0, 0.72),
+    0 48px 100px rgba(0, 0, 0, 0.48),
+    /* Brass aura — the slide emits curatorial presence */
+    0 0 40px rgba(220, 196, 148, 0.06);
 }
 
-.cc-vault-gallery__item .cc-overlay-premium,
-.cc-vault-gallery__item::after {
-  display: none !important;
+.vault-tray-track.is-previewing .vault-thumb.is-previewed::before {
+  border-color: rgba(220, 196, 148, 0.14);
 }
 
-.cc-vault-gallery__item.is-active {
-  opacity: 1;
-  border-color: var(--vault-accent);
+.vault-tray-track.is-previewing .vault-thumb.is-previewed .vault-thumb__image {
+  filter: saturate(1.02) brightness(1.02);
 }
 
-.vault-tray-track.is-previewing .cc-vault-gallery__item {
-  opacity: 0.12;
-  filter: brightness(0.7);
-  transform: scale(0.92) translateY(4px);
-}
-
-.vault-tray-track.is-previewing .cc-vault-gallery__item.is-previewed {
-  z-index: 5;
-  opacity: 1;
-  filter: brightness(1);
-  transform: scale(1.5) translateY(-12px);
-  border-color: rgba(219, 200, 158, 0.45);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.58);
-}
-
-.vault-tray-track.is-previewing .cc-vault-gallery__item.is-previewed img,
-.cc-vault-gallery__item.is-active img {
-  filter: saturate(1.02) brightness(1);
-}
-
+/* ─────────────────────────────────────────
+   INFO PANEL — MUSEUM EXHIBITION PLAQUE
+   Editorial + curatorial feel
+   ───────────────────────────────────────── */
 .vault-info-panel {
   position: fixed;
   top: 0;
   right: 0;
   z-index: 32;
-  width: min(390px, 88vw);
+  width: min(380px, 86vw);
   height: 100vh;
   height: 100svh;
-  padding: 34px;
-  color: var(--vault-text);
+  padding: 40px 36px;
+  color: var(--v-text);
+
+  /* Smoked obsidian panel — mineral density, polished slab */
   background:
-    linear-gradient(180deg, rgba(14, 13, 12, 0.98), rgba(5, 5, 7, 0.98)),
-    var(--vault-panel-strong);
-  border-left: 1px solid var(--vault-line);
-  box-shadow: -28px 0 80px rgba(0, 0, 0, 0.42);
-  transform: translateX(100%);
-  transition: transform 280ms var(--vault-ease);
+    /* Top edge highlight — like light hitting polished stone */
+    linear-gradient(180deg,
+      rgba(20, 18, 24, 0.20) 0%,
+      transparent 25%
+    ),
+    /* Inner left luminance — reflected light from chamber */
+    linear-gradient(90deg,
+      rgba(180, 160, 120, 0.012) 0%,
+      transparent 8%
+    ),
+    /* Base mineral surface */
+    linear-gradient(165deg,
+      rgba(11, 11, 15, 0.995) 0%,
+      rgba(7, 7, 10, 0.998) 45%,
+      rgba(5, 5, 8, 0.998) 100%
+    );
+  border-left: 1px solid rgba(232, 228, 220, 0.035);
+  backdrop-filter: blur(20px) saturate(0.7);
+  -webkit-backdrop-filter: blur(20px) saturate(0.7);
+
+  /* Monumental atmospheric side shadow — colossal weight */
+  box-shadow:
+    -1px 0 0 rgba(232, 228, 220, 0.02),
+    -2px 0 6px rgba(0, 0, 0, 0.50),
+    -16px 0 48px rgba(0, 0, 0, 0.65),
+    -48px 0 120px rgba(0, 0, 0, 0.45),
+    -96px 0 200px rgba(0, 0, 0, 0.28),
+    inset 1px 0 0 rgba(255, 255, 255, 0.015);
+
+  /* Sealed state — sunken, dimmed */
+  transform: translateX(102%);
+  filter: brightness(0.85);
+  transition:
+    transform 1.5s cubic-bezier(0.22, 1, 0.32, 1),
+    filter 1.4s var(--v-ease);
 }
 
 .vault-info-panel.is-open {
   transform: translateX(0);
+  filter: brightness(1);
+}
+
+/* Vertical accent stripe — architectural detail */
+.vault-info-panel::before {
+  content: '';
+  position: absolute;
+  top: 72px;
+  left: 0;
+  width: 1px;
+  height: 100px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(180, 158, 112, 0.14) 35%,
+    rgba(180, 158, 112, 0.14) 65%,
+    transparent 100%
+  );
 }
 
 .vault-info__close {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   min-height: 36px;
-  padding: 0 12px;
+  padding: 0 15px;
   margin-left: auto;
-  display: block;
 }
 
+/* Close glyph — minimal × constructed via flex-aligned brass strokes */
+.vault-info__close::after {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  /* Two diagonal brass strokes — a discreet × mark */
+  background:
+    linear-gradient(45deg,
+      transparent 44%,
+      var(--v-brass-edge) 44%,
+      var(--v-brass-edge) 56%,
+      transparent 56%
+    ),
+    linear-gradient(-45deg,
+      transparent 44%,
+      var(--v-brass-edge) 44%,
+      var(--v-brass-edge) 56%,
+      transparent 56%
+    );
+  opacity: 0.7;
+  transition:
+    opacity var(--v-ceremonial) var(--v-curatorial),
+    transform var(--v-monumental) var(--v-mechanical);
+}
+
+.vault-info__close:hover::after {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+/* Editorial cascade — content emerges sequentially when panel opens.
+   Uses animations so freshly-rendered children also play. */
+@keyframes vault-info-emerge {
+  0%   { opacity: 0; transform: translateX(24px); filter: blur(2px); }
+  100% { opacity: 1; transform: translateX(0); filter: blur(0); }
+}
+
+.vault-info-panel.is-open > * {
+  opacity: 0;
+  animation: vault-info-emerge 1.1s var(--v-ease) forwards;
+}
+
+.vault-info-panel.is-open .vault-info__close   { animation-delay: 0.45s; }
+.vault-info-panel.is-open .vault-info__eyebrow { animation-delay: 0.55s; }
+.vault-info-panel.is-open .vault-info__title   { animation-delay: 0.70s; }
+.vault-info-panel.is-open .vault-info__body    { animation-delay: 0.85s; }
+.vault-info-panel.is-open .vault-info__rows    { animation-delay: 1.00s; }
+
 .vault-info__eyebrow {
-  margin-top: 52px;
-  color: var(--vault-faint);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 64px;
+  font-family: var(--v-mono);
+  font-size: 6.5px;
+  font-weight: 400;
+  letter-spacing: 0.44em;
+  text-transform: uppercase;
+  color: var(--v-ink);
+
+  /* Engraved institutional mark */
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 0 6px rgba(220, 196, 148, 0.04);
+}
+
+/* Brass diamond before eyebrow — museum case marker */
+.vault-info__eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  background: var(--v-brass-edge);
+  transform: rotate(45deg);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* Brass rule after eyebrow — institutional divider */
+.vault-info__eyebrow::after {
+  content: '';
+  display: block;
+  flex: 1;
+  height: 1px;
+  margin-left: 14px;
+  margin-top: 1px;
+  background: linear-gradient(90deg,
+    rgba(220, 196, 148, 0.22) 0%,
+    rgba(220, 196, 148, 0.06) 60%,
+    transparent 100%
+  );
 }
 
 .vault-info__title {
-  margin: 18px 0 18px;
-  font-size: clamp(28px, 4vw, 42px);
+  margin: 28px 0 30px;
+  font-family: var(--v-display);
+  font-size: clamp(28px, 3.8vw, 42px);
   font-weight: 300;
-  line-height: 1.02;
-  letter-spacing: 0;
+  font-style: italic;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--v-text);
+
+  /* Editorial weight — slight ink depth */
+  text-shadow:
+    0 1px 1px var(--v-engraved),
+    0 0 18px rgba(220, 196, 148, 0.025);
 }
 
 .vault-info__body {
-  margin: 0 0 30px;
-  color: var(--vault-muted);
-  font-size: 15px;
-  line-height: 1.7;
+  margin: 0 0 44px;
+  font-family: var(--v-display);
+  font-size: 14.5px;
+  font-weight: 300;
+  line-height: 1.90;
+  color: var(--v-muted);
+  letter-spacing: 0.018em;
 }
 
+/* Brass-tinted column rules — institutional table */
 .vault-info__rows {
   display: grid;
   gap: 0;
-  border-top: 1px solid var(--vault-line);
+  border-top: 1px solid rgba(220, 196, 148, 0.08);
 }
 
 .vault-info__row {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--vault-line);
+  align-items: baseline;
+  gap: 24px;
+  padding: 17px 0;
+  border-bottom: 1px solid rgba(220, 196, 148, 0.04);
+  transition: background var(--v-ceremonial) var(--v-curatorial);
+}
+
+.vault-info__row:hover {
+  background: linear-gradient(90deg,
+    rgba(220, 196, 148, 0.022) 0%,
+    transparent 70%
+  );
 }
 
 .vault-info__key {
-  color: var(--vault-faint);
+  font-family: var(--v-mono);
+  font-size: 6.5px;
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--v-ink);
+  flex-shrink: 0;
+
+  /* Engraved key — like a museum case label */
+  text-shadow: 0 1px 0 var(--v-engraved);
 }
 
 .vault-info__value {
-  color: var(--vault-muted);
+  font-family: var(--v-display);
+  font-size: 13.5px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--v-muted);
   text-align: right;
+  letter-spacing: 0.02em;
+
+  text-shadow: 0 1px 0 var(--v-engraved);
 }
 
+/* ─────────────────────────────────────────
+   STATUS OVERLAY
+   ───────────────────────────────────────── */
 .vault-status {
   position: fixed;
   inset: 0;
   z-index: 40;
   display: grid;
   place-items: center;
-  color: var(--vault-faint);
-  background: var(--vault-bg);
-  font-family: var(--vault-mono);
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  color: var(--v-faint);
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 50%,
+      rgba(20, 18, 24, 0.4) 0%,
+      transparent 70%
+    ),
+    var(--v-void);
+  font-family: var(--v-mono);
+  font-size: 7.5px;
+  font-weight: 400;
+  letter-spacing: 0.48em;
   text-transform: uppercase;
-  transition: opacity 240ms ease;
+
+  /* Engraved institutional notation */
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 0 8px rgba(220, 196, 148, 0.05);
+
+  transition: opacity 1.4s var(--v-ease), filter 1.4s var(--v-ease);
+}
+
+.vault-status > span {
+  animation: vault-status-breath 4.5s ease-in-out infinite;
+}
+
+/* Breathing dot indicator */
+.vault-status span::after {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--v-bronze-dim);
+  margin-left: 12px;
+  vertical-align: middle;
+  animation: vault-pulse 3.6s ease-in-out infinite;
+}
+
+@keyframes vault-pulse {
+  0%, 100% { opacity: 0.15; transform: scale(0.9); }
+  50%       { opacity: 0.55; transform: scale(1.1); }
 }
 
 .vault-status.is-hidden {
   opacity: 0;
+  filter: blur(8px);
   pointer-events: none;
 }
 
+/* ─────────────────────────────────────────
+   LIVING ATMOSPHERE KEYFRAMES
+   The chamber breathes. Light drifts. Shadows sigh.
+   ───────────────────────────────────────── */
+
+/* Consecrated lighting respiration — 22s cycle */
+@keyframes vault-light-breathing {
+  0%, 100% {
+    opacity: 0.92;
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.012) translateY(-2px);
+  }
+}
+
+/* Ghost architecture sigh — 38s cycle (offset from light) */
+@keyframes vault-architecture-sigh {
+  0%, 100% {
+    opacity: 0.96;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.005);
+  }
+}
+
+/* Image volumetric halo emerge */
+@keyframes vault-halo-emerge {
+  0%   { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Image dematerialization — outgoing artwork retreats into shadow */
+@keyframes vault-dematerialize {
+  0% {
+    opacity: 1;
+    filter: saturate(1) brightness(1) blur(0);
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    filter: saturate(0.4) brightness(0.6) blur(2px);
+    transform: scale(0.992) translateY(-3px);
+  }
+}
+
+/* Image emergence — incoming artwork rises from penumbra */
+@keyframes vault-emerge {
+  0% {
+    opacity: 0;
+    filter: saturate(0.6) brightness(0.7) blur(3px);
+    transform: scale(1.008) translateY(2px);
+  }
+  60% {
+    filter: saturate(0.92) brightness(0.95) blur(0.4px);
+  }
+  100% {
+    opacity: 1;
+    filter: saturate(1) brightness(1) blur(0);
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Tray bloom emerge — overhead lighting consolidating */
+@keyframes vault-tray-bloom {
+  0%   { opacity: 0; transform: scaleX(0.7); }
+  100% { opacity: 1; transform: scaleX(1); }
+}
+
+/* Status text breathing */
+@keyframes vault-status-breath {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* Columns sway — opacity-only to coexist with parallax transform */
+@keyframes vault-columns-sway {
+  0%, 100% { opacity: 0.96; }
+  50%      { opacity: 1; }
+}
+
+/* Floor shimmer — polished stone reflection breathing */
+@keyframes vault-floor-shimmer {
+  0%, 100% { opacity: 0.96; }
+  50%      { opacity: 1.04; }
+}
+
+/* Bloom drift — atmospheric warm air shifting (uses filter not transform) */
+@keyframes vault-bloom-drift {
+  0%, 100% {
+    opacity: 0.92;
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: hue-rotate(-2deg) brightness(1.08);
+  }
+}
+
+/* Dust drift — particles drift slowly across the chamber.
+   Uses background-position so transform stays free. */
+@keyframes vault-dust-drift {
+  0%   { background-position: 0 0; }
+  100% { background-position: -600px 600px; }
+}
+
+/* Aura breath — artwork ambient presence */
+@keyframes vault-aura-breath {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1.1; }
+}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+   ───────────────────────────────────────── */
 @media (max-width: 760px) {
+  /* Reduce atmosphere complexity on mobile for performance */
+  .vault-atmosphere__dust {
+    display: none;
+  }
+
+  .vault-atmosphere__columns,
+  .vault-atmosphere__ceiling,
+  .vault-atmosphere__floor {
+    animation: none;
+    will-change: auto;
+  }
+
+  .vault-image-container {
+    padding:
+      clamp(56px, 7vh, 80px)
+      clamp(20px, 4vw, 36px)
+      clamp(90px, 13vh, 130px)
+      clamp(20px, 4vw, 36px);
+  }
+
+  .vault-image-container::before {
+    inset: 12% 6%;
+  }
+
+  .vault-image-container::after {
+    width: 90vw;
+    height: 50vh;
+    height: 50svh;
+  }
+
+  .vault-image {
+    max-width: 92vw;
+    max-height: 64vh;
+    max-height: 64svh;
+  }
+
   .vault-overlay-ui {
     gap: 12px;
-    padding: 16px;
+    padding: 18px;
   }
 
   .vault-meta__title {
-    max-width: 50vw;
+    max-width: 48vw;
+    font-size: 13px;
   }
 
-  .vault-actions {
-    gap: 6px;
-  }
+  .vault-actions { gap: 5px; }
 
   .vault-action {
-    min-height: 36px;
-    padding: 0 11px;
-    font-size: 9px;
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 7px;
   }
 
-  .vault-click-zone {
-    width: 28vw;
-  }
+  .vault-click-zone { width: 30vw; }
 
   .vault-tray {
-    height: clamp(158px, 25vh, 240px);
+    left: 14px;
+    right: 14px;
+    width: auto;
+    bottom: calc(clamp(14px, 3vw, 24px) + 60px);
+    max-height: clamp(180px, 34vh, 280px);
+  }
+
+  .vault-tray-track {
+    clip-path: inset(-60px -2px -2px -2px);
+    padding: 32px 14px 14px;
+  }
+
+  .vault-tray-track.is-previewing .vault-thumb.is-previewed {
+    transform: scale(1.55) translateY(-14px);
   }
 
   .vault-info-panel {
     width: 100vw;
-    padding: 26px;
+    padding: 28px 22px;
   }
 }
 
+/* ─────────────────────────────────────────
+   REDUCED MOTION
+   ───────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -490,5 +1920,21 @@ button {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  /* Stabilize architectural layers — no breathing for sensitive users */
+  .vault-page::before,
+  .vault-page::after,
+  .vault-image-container::before,
+  .vault-image-container::after,
+  .vault-atmosphere > * {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Image still transitions but instantly */
+  .vault-image {
+    filter: saturate(1) brightness(1) blur(0) !important;
   }
 }
