@@ -9,9 +9,48 @@
  * hacía una segunda verificación que fallaba si el token ya venía validado.
  */
 
-const userRepository   = require('../repository/UserRepository');
-const serviceRepository = require('../repository/ServiceRepository');
-const userServices      = require('../services/UserServices');
+const userRepository           = require('../repository/UserRepository');
+const serviceRepository        = require('../repository/ServiceRepository');
+const serviceRequestRepository = require('../repository/ServiceRequestRepository');
+const userServices             = require('../services/UserServices');
+
+// Mapea el estado interno de un serviceRequest al status que ve el frontend
+// en la lista de "mis servicios". Mantiene el vocabulario existente
+// (active/pending/...) para no romper el render legacy.
+function mapOneshotStatus(status) {
+  switch (status) {
+    case 'approved':  return 'active';
+    case 'completed': return 'completed';
+    case 'pending':   return 'pending';
+    case 'rejected':  return 'rejected';
+    case 'cancelled': return 'cancelled';
+    default:          return status || 'unknown';
+  }
+}
+
+function oneshotToServiceShape(req) {
+  const snap = req.serviceSnapshot || {};
+  const price = (snap.price !== undefined && snap.price !== null)
+    ? `${snap.price}${snap.currency ? ' ' + snap.currency : ''}`
+    : '';
+  return {
+    id:        req.id,
+    name:      snap.name || 'Servicio',
+    type:      'Oneshot',
+    status:    mapOneshotStatus(req.status),
+    price,
+    startDate: req.decidedAt || req.requestedAt || null,
+    endDate:   req.completedAt || null,
+    events:    null,
+    // Campos extra (no rompen al cliente legacy, sólo enriquecen)
+    kind:        'oneshot',
+    requestId:   req.id,
+    requestedAt: req.requestedAt || null,
+    decidedAt:   req.decidedAt || null,
+    rawStatus:   req.status,
+    notes:       req.notes || '',
+  };
+}
 
 // ══════════════════════════════════════════════════════════════════
 //  GET /api/user/services
@@ -20,10 +59,26 @@ async function getServices(req, res) {
   console.log('[UserController] getServices → userId:', req.user.id);
 
   try {
-    // ServiceRepository.getServicesForUser espera el userId directamente
-    const services = await serviceRepository.getServicesForUser(req.user.id);
+    // 1. Servicios LEGACY de la colección `services` (formato y comportamiento
+    //    intactos para no romper el frontend actual).
+    const legacy = await serviceRepository.getServicesForUser(req.user.id);
+    const legacyMarked = legacy.map((s) => ({ ...s, kind: s.kind || 'legacy' }));
 
-    console.log('[UserController] getServices → servicios encontrados:', services.length);
+    // 2. Servicios ONESHOT del usuario desde `serviceRequests`. Cualquier
+    //    estado se incluye — los expirados/rechazados también, como histórico.
+    let oneshots = [];
+    try {
+      const reqs = await serviceRequestRepository.findAllForUser(req.user.id);
+      oneshots = reqs.map(oneshotToServiceShape);
+    } catch (err) {
+      // No queremos que un fallo en la nueva colección rompa el endpoint
+      // legacy. Logueamos y seguimos con los servicios clásicos.
+      console.error('[UserController] getServices → oneshots ERROR:', err.message);
+    }
+
+    const services = [...legacyMarked, ...oneshots];
+    console.log('[UserController] getServices →',
+      `legacy=${legacyMarked.length} oneshots=${oneshots.length} total=${services.length}`);
 
     return res.json({ services });
 

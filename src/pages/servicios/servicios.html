@@ -25,29 +25,35 @@
         <span class="tele-dot"></span><span class="tele-dot"></span>
       </div>
     </div>
+
     <div class="hero__grid-lines" aria-hidden="true">
       <span></span><span></span><span></span><span></span><span></span>
     </div>
+
     <div class="hero__content">
       <div class="hero__label reveal">
         <span class="label-dot"></span>
         <span>Servicios — 2024 Season</span>
       </div>
+
       <h1 class="hero__title reveal">
         <span class="hero__title-line">DONDE</span>
         <span class="hero__title-line hero__title-line--accent">LA VELOCIDAD</span>
         <span class="hero__title-line">ENCUENTRA</span>
         <span class="hero__title-line hero__title-line--outline">LA IMAGEN.</span>
       </h1>
+
       <p class="hero__sub reveal">
         Branding, contenido visual y estrategia de comunicación
         para equipos y pilotos de motorsport.
       </p>
+
       <div class="hero__actions reveal">
         <a href="#paquetes" class="btn btn--primary">Ver Paquetes</a>
         <a href="#servicios" class="btn btn--ghost">Servicios Sueltos</a>
       </div>
     </div>
+
     <div class="hero__stat-strip" aria-hidden="true">
       <div class="stat-strip__item">
         <span class="stat-num">120+</span>
@@ -69,6 +75,7 @@
         <span class="stat-label">Años de trayectoria</span>
       </div>
     </div>
+
     <div class="hero__scroll-hint" aria-hidden="true">
       <span class="scroll-line"></span>
       <span class="scroll-label">scroll</span>
@@ -80,25 +87,36 @@
     <div class="packs__header reveal">
       <span class="section-label">01 — Paquetes Principales</span>
       <h2 class="packs__title">Diseñados <em>para competir.</em></h2>
-      <p class="packs__desc">Tres niveles de cobertura. De la identidad visual al ecosistema de comunicación completo.</p>
+      <p class="packs__desc">
+        Tres niveles de cobertura. De la identidad visual al ecosistema de comunicación completo.
+      </p>
     </div>
 
-    <!-- PACK 01 BRANDING -->
-    <div class="pack-block pack-block--branding reveal" id="pack-branding">
+    <div class="plan-banner" id="plan-banner" hidden>
+      <span class="plan-banner__dot" aria-hidden="true"></span>
+      <span class="plan-banner__msg"></span>
+    </div>
+
+    <!-- PACK 01 -->
+    <div class="pack-block pack-block--branding reveal" id="pack-branding" data-plan-code="starter">
       <div class="pack-block__index" aria-hidden="true">01</div>
+
       <div class="pack-block__body">
         <div class="pack-block__top">
           <div class="pack-block__meta">
             <span class="pack-tag">Branding</span>
             <span class="pack-duration">3–4 semanas</span>
           </div>
+
           <div class="pack-block__price">
             <span class="price-from">Desde</span>
             <span class="price-amount">€1.800</span>
           </div>
         </div>
+
         <h3 class="pack-block__name">PACK BRANDING</h3>
         <p class="pack-block__pitch">Para equipos que necesitan identidad visual profesional.</p>
+
         <div class="pack-block__features">
           <div class="feature-group">
             <span class="feature-group__title">Identidad Visual Completa</span>
@@ -108,12 +126,14 @@
               <li>Manual de Marca PDF 20 páginas</li>
             </ul>
           </div>
+
           <div class="feature-group">
             <span class="feature-group__title">Plantillas Redes Sociales</span>
             <ul class="feature-list">
               <li>15 stories / 10 posts / 5 carruseles</li>
             </ul>
           </div>
+
           <div class="feature-group">
             <span class="feature-group__title">Creatividades Carrera</span>
             <ul class="feature-list">
@@ -122,10 +142,12 @@
             </ul>
           </div>
         </div>
-        <button class="btn btn--accent pack-cta" onclick="openModal('branding-modal')">Solicitar servicio →</button>
+
+        <button class="btn btn--accent pack-cta" data-pack-cta="starter" data-modal-target="branding-modal">
+          Solicitar servicio →
+        </button>
       </div>
 
-      <!-- VISUAL 01: BLUEPRINT CAR SCHEMATIC -->
       <div class="pack-block__visual" aria-hidden="true">
         <svg class="vis-blueprint" viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg" fill="none">
           <defs>
@@ -134,36 +156,22 @@
             </pattern>
           </defs>
           <rect width="280" height="200" fill="url(#dot-grid)" class="bp-dots"/>
-          <!-- Corner brackets -->
           <path d="M14,14 L14,28 M14,14 L28,14" class="bp-bracket" stroke-width="1.5"/>
           <path d="M266,14 L266,28 M266,14 L252,14" class="bp-bracket" stroke-width="1.5"/>
           <path d="M14,186 L14,172 M14,186 L28,186" class="bp-bracket" stroke-width="1.5"/>
           <path d="M266,186 L266,172 M266,186 L252,186" class="bp-bracket" stroke-width="1.5"/>
-          <!-- Chassis body -->
           <path class="bp-car bp-car--1" d="M96,78 L184,78 Q196,78 196,90 L196,122 Q196,134 184,134 L96,134 Q84,134 84,122 L84,90 Q84,78 96,78 Z" stroke-width="1.2"/>
-          <!-- Front nose cone -->
           <path class="bp-car bp-car--2" d="M134,63 L146,63 L150,78 L130,78 Z" stroke-width="1"/>
-          <!-- Front wing -->
           <path class="bp-car bp-car--3" d="M108,59 L172,59 L172,64 L108,64 Z" stroke-width="1"/>
-          <!-- Left sidepod -->
           <path class="bp-car bp-car--4" d="M84,88 L70,91 L68,120 L84,124" stroke-width="1"/>
-          <!-- Right sidepod -->
           <path class="bp-car bp-car--5" d="M196,88 L210,91 L212,120 L196,124" stroke-width="1"/>
-          <!-- Rear diffuser -->
           <path class="bp-car bp-car--6" d="M104,134 L100,148 L180,148 L176,134" stroke-width="1"/>
-          <!-- Rear wing -->
           <path class="bp-car bp-car--7" d="M104,152 L176,152 L176,157 L104,157 Z" stroke-width="1"/>
-          <!-- Cockpit -->
           <ellipse class="bp-car bp-car--8" cx="140" cy="104" rx="10" ry="14" stroke-width="1"/>
-          <!-- Front left wheel -->
           <rect class="bp-car bp-car--9" x="62" y="80" width="12" height="22" rx="2" stroke-width="1"/>
-          <!-- Front right wheel -->
           <rect class="bp-car bp-car--9" x="206" y="80" width="12" height="22" rx="2" stroke-width="1"/>
-          <!-- Rear left wheel -->
           <rect class="bp-car bp-car--9" x="58" y="108" width="14" height="25" rx="2" stroke-width="1"/>
-          <!-- Rear right wheel -->
           <rect class="bp-car bp-car--9" x="208" y="108" width="14" height="25" rx="2" stroke-width="1"/>
-          <!-- Dimension lines -->
           <line class="bp-dim" x1="62" y1="172" x2="222" y2="172" stroke-width="0.6"/>
           <line class="bp-dim" x1="62" y1="168" x2="62" y2="176" stroke-width="0.6"/>
           <line class="bp-dim" x1="222" y1="168" x2="222" y2="176" stroke-width="0.6"/>
@@ -172,7 +180,6 @@
           <line class="bp-dim" x1="40" y1="78" x2="48" y2="78" stroke-width="0.6"/>
           <line class="bp-dim" x1="40" y1="157" x2="48" y2="157" stroke-width="0.6"/>
           <text class="bp-text" x="32" y="122" text-anchor="middle" font-size="7" transform="rotate(-90,32,122)">2000 mm</text>
-          <!-- Crosshair -->
           <circle class="bp-center-dot" cx="140" cy="104" r="3" stroke-width="1"/>
           <line class="bp-dim" x1="128" y1="104" x2="152" y2="104" stroke-width="0.5" opacity="0.45"/>
           <line class="bp-dim" x1="140" y1="92" x2="140" y2="116" stroke-width="0.5" opacity="0.45"/>
@@ -180,23 +187,27 @@
       </div>
     </div>
 
-    <!-- PACK 02 TEMPORADA -->
-    <div class="pack-block pack-block--season reveal" id="pack-season">
+    <!-- PACK 02 -->
+    <div class="pack-block pack-block--season reveal" id="pack-season" data-plan-code="studio">
       <div class="pack-block__index" aria-hidden="true">02</div>
+
       <div class="pack-block__body">
         <div class="pack-block__top">
           <div class="pack-block__meta">
             <span class="pack-tag pack-tag--featured">Más Popular</span>
             <span class="pack-duration">Temporada completa</span>
           </div>
+
           <div class="pack-block__price">
             <span class="price-from">Desde</span>
             <span class="price-amount">€8.500</span>
             <span class="price-period">/ temporada</span>
           </div>
         </div>
+
         <h3 class="pack-block__name">PACK TEMPORADA</h3>
         <p class="pack-block__pitch">Todo PACK BRANDING más cobertura completa en circuito.</p>
+
         <div class="pack-block__features">
           <div class="feature-group">
             <span class="feature-group__title">Cobertura Eventos</span>
@@ -207,6 +218,7 @@
               <li>3 reels por evento</li>
             </ul>
           </div>
+
           <div class="feature-group">
             <span class="feature-group__title">Contenido Premium</span>
             <ul class="feature-list">
@@ -216,13 +228,16 @@
             </ul>
           </div>
         </div>
+
         <div class="pack-includes-badge">
           <span>Incluye todo el Pack Branding</span>
         </div>
-        <button class="btn btn--accent pack-cta" onclick="openModal('season-modal')">Solicitar servicio →</button>
+
+        <button class="btn btn--accent pack-cta" data-pack-cta="studio" data-modal-target="season-modal">
+          Solicitar servicio →
+        </button>
       </div>
 
-      <!-- VISUAL 02: RACE CALENDAR LOOP -->
       <div class="pack-block__visual" aria-hidden="true">
         <svg class="vis-season" viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg" fill="none">
           <defs>
@@ -235,78 +250,42 @@
             </filter>
           </defs>
           <rect width="280" height="200" fill="url(#grid-s)" class="season-grid-bg"/>
-          <!-- Track base path -->
-          <path class="season-track-path"
-            d="M44,72 H230 Q250,72 250,92 L250,116 Q250,136 230,136 H44 Q24,136 24,116 L24,92 Q24,72 44,72 Z"
-            stroke-width="2.5" stroke-linecap="round" pathLength="1400"/>
-          <!-- Progress fill -->
-          <path class="season-progress-path"
-            d="M44,72 H230 Q250,72 250,92 L250,116 Q250,136 230,136 H44 Q24,136 24,116 L24,92 Q24,72 44,72 Z"
-            stroke-width="3.5" stroke-linecap="round" pathLength="1400" filter="url(#glow-r)"/>
-          <!-- Top row nodes R01–R05 -->
-          <g class="race-node-group" style="--nd:0">
-            <circle cx="52" cy="72" r="9" class="race-node-pulse"/>
-            <circle cx="52" cy="72" r="4.5" class="race-node-dot"/>
-            <text x="52" y="58" class="race-node-label" text-anchor="middle">R01</text>
-          </g>
-          <g class="race-node-group" style="--nd:1">
-            <circle cx="98" cy="72" r="9" class="race-node-pulse"/>
-            <circle cx="98" cy="72" r="4.5" class="race-node-dot"/>
-            <text x="98" y="58" class="race-node-label" text-anchor="middle">R02</text>
-          </g>
-          <g class="race-node-group" style="--nd:2">
-            <circle cx="144" cy="72" r="9" class="race-node-pulse"/>
-            <circle cx="144" cy="72" r="4.5" class="race-node-dot"/>
-            <text x="144" y="58" class="race-node-label" text-anchor="middle">R03</text>
-          </g>
-          <g class="race-node-group" style="--nd:3">
-            <circle cx="190" cy="72" r="9" class="race-node-pulse"/>
-            <circle cx="190" cy="72" r="4.5" class="race-node-dot"/>
-            <text x="190" y="58" class="race-node-label" text-anchor="middle">R04</text>
-          </g>
-          <g class="race-node-group" style="--nd:4">
-            <circle cx="236" cy="72" r="9" class="race-node-pulse"/>
-            <circle cx="236" cy="72" r="4.5" class="race-node-dot"/>
-            <text x="236" y="58" class="race-node-label" text-anchor="middle">R05</text>
-          </g>
-          <!-- Bottom row R06–R08 right-to-left -->
-          <g class="race-node-group" style="--nd:5">
-            <circle cx="236" cy="136" r="9" class="race-node-pulse"/>
-            <circle cx="236" cy="136" r="4.5" class="race-node-dot"/>
-            <text x="236" y="156" class="race-node-label" text-anchor="middle">R06</text>
-          </g>
-          <g class="race-node-group" style="--nd:6">
-            <circle cx="160" cy="136" r="9" class="race-node-pulse"/>
-            <circle cx="160" cy="136" r="4.5" class="race-node-dot"/>
-            <text x="160" y="156" class="race-node-label" text-anchor="middle">R07</text>
-          </g>
-          <g class="race-node-group" style="--nd:7">
-            <circle cx="80" cy="136" r="9" class="race-node-pulse"/>
-            <circle cx="80" cy="136" r="4.5" class="race-node-dot"/>
-            <text x="80" y="156" class="race-node-label" text-anchor="middle">R08</text>
-          </g>
+          <path class="season-track-path" d="M44,72 H230 Q250,72 250,92 L250,116 Q250,136 230,136 H44 Q24,136 24,116 L24,92 Q24,72 44,72 Z" stroke-width="2.5" stroke-linecap="round" pathLength="1400"/>
+          <path class="season-progress-path" d="M44,72 H230 Q250,72 250,92 L250,116 Q250,136 230,136 H44 Q24,136 24,116 L24,92 Q24,72 44,72 Z" stroke-width="3.5" stroke-linecap="round" pathLength="1400" filter="url(#glow-r)"/>
+          <g class="race-node-group" style="--nd:0"><circle cx="52" cy="72" r="9" class="race-node-pulse"/><circle cx="52" cy="72" r="4.5" class="race-node-dot"/><text x="52" y="58" class="race-node-label" text-anchor="middle">R01</text></g>
+          <g class="race-node-group" style="--nd:1"><circle cx="98" cy="72" r="9" class="race-node-pulse"/><circle cx="98" cy="72" r="4.5" class="race-node-dot"/><text x="98" y="58" class="race-node-label" text-anchor="middle">R02</text></g>
+          <g class="race-node-group" style="--nd:2"><circle cx="144" cy="72" r="9" class="race-node-pulse"/><circle cx="144" cy="72" r="4.5" class="race-node-dot"/><text x="144" y="58" class="race-node-label" text-anchor="middle">R03</text></g>
+          <g class="race-node-group" style="--nd:3"><circle cx="190" cy="72" r="9" class="race-node-pulse"/><circle cx="190" cy="72" r="4.5" class="race-node-dot"/><text x="190" y="58" class="race-node-label" text-anchor="middle">R04</text></g>
+          <g class="race-node-group" style="--nd:4"><circle cx="236" cy="72" r="9" class="race-node-pulse"/><circle cx="236" cy="72" r="4.5" class="race-node-dot"/><text x="236" y="58" class="race-node-label" text-anchor="middle">R05</text></g>
+          <g class="race-node-group" style="--nd:5"><circle cx="236" cy="136" r="9" class="race-node-pulse"/><circle cx="236" cy="136" r="4.5" class="race-node-dot"/><text x="236" y="156" class="race-node-label" text-anchor="middle">R06</text></g>
+          <g class="race-node-group" style="--nd:6"><circle cx="160" cy="136" r="9" class="race-node-pulse"/><circle cx="160" cy="136" r="4.5" class="race-node-dot"/><text x="160" y="156" class="race-node-label" text-anchor="middle">R07</text></g>
+          <g class="race-node-group" style="--nd:7"><circle cx="80" cy="136" r="9" class="race-node-pulse"/><circle cx="80" cy="136" r="4.5" class="race-node-dot"/><text x="80" y="156" class="race-node-label" text-anchor="middle">R08</text></g>
           <text x="140" y="108" class="season-progress-label" text-anchor="middle">5 / 8 EVENTS</text>
         </svg>
       </div>
     </div>
 
-    <!-- PACK 03 MARCA COMPLETA -->
-    <div class="pack-block pack-block--full reveal" id="pack-full">
+    <!-- PACK 03 -->
+    <div class="pack-block pack-block--full reveal" id="pack-full" data-plan-code="atelier">
       <div class="pack-block__index" aria-hidden="true">03</div>
+
       <div class="pack-block__body">
         <div class="pack-block__top">
           <div class="pack-block__meta">
             <span class="pack-tag pack-tag--premium">Premium</span>
             <span class="pack-duration">Soporte 365 días</span>
           </div>
+
           <div class="pack-block__price">
             <span class="price-from">Desde</span>
             <span class="price-amount">€15.000</span>
             <span class="price-period">/ año</span>
           </div>
         </div>
+
         <h3 class="pack-block__name">PACK MARCA COMPLETA</h3>
         <p class="pack-block__pitch">Externaliza toda tu comunicación. Nosotros nos encargamos de todo.</p>
+
         <div class="pack-block__features">
           <div class="feature-group">
             <span class="feature-group__title">Web Completa</span>
@@ -315,6 +294,7 @@
               <li>Galería · Contacto</li>
             </ul>
           </div>
+
           <div class="feature-group">
             <span class="feature-group__title">Gestión Estratégica</span>
             <ul class="feature-list">
@@ -324,13 +304,16 @@
             </ul>
           </div>
         </div>
+
         <div class="pack-includes-badge pack-includes-badge--gold">
           <span>Incluye Packs 01 + 02 completos</span>
         </div>
-        <button class="btn btn--accent pack-cta" onclick="openModal('full-modal')">Solicitar servicio →</button>
+
+        <button class="btn btn--accent pack-cta" data-pack-cta="atelier" data-modal-target="full-modal">
+          Solicitar servicio →
+        </button>
       </div>
 
-      <!-- VISUAL 03: BRAND NETWORK ECOSYSTEM -->
       <div class="pack-block__visual" aria-hidden="true">
         <svg class="vis-network" viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg" fill="none">
           <defs>
@@ -340,7 +323,6 @@
             </radialGradient>
           </defs>
           <rect width="280" height="200" fill="url(#net-glow)"/>
-          <!-- Lines center→satellites -->
           <line class="net-line" style="--li:0" x1="140" y1="100" x2="140" y2="36"/>
           <line class="net-line" style="--li:1" x1="140" y1="100" x2="214" y2="60"/>
           <line class="net-line" style="--li:2" x1="140" y1="100" x2="224" y2="130"/>
@@ -348,17 +330,14 @@
           <line class="net-line" style="--li:4" x1="140" y1="100" x2="58" y2="136"/>
           <line class="net-line" style="--li:5" x1="140" y1="100" x2="66" y2="62"/>
           <line class="net-line" style="--li:6" x1="140" y1="100" x2="230" y2="100"/>
-          <!-- Cross-connections -->
           <line class="net-cross" x1="140" y1="36" x2="214" y2="60"/>
           <line class="net-cross" x1="214" y1="60" x2="224" y2="130"/>
           <line class="net-cross" x1="66" y1="62" x2="140" y2="36"/>
           <line class="net-cross" x1="58" y1="136" x2="140" y2="166"/>
           <line class="net-cross" x1="66" y1="62" x2="58" y2="136"/>
-          <!-- Center hex -->
           <polygon class="net-center-hex" points="140,80 158,90 158,110 140,120 122,110 122,90" stroke-width="1.5"/>
           <circle class="net-center-ring" cx="140" cy="100" r="26" stroke-width="0.8" stroke-dasharray="4 3"/>
           <text x="140" y="105" class="net-center-label" text-anchor="middle">GS</text>
-          <!-- Satellite nodes -->
           <g class="net-node" style="--ngi:0"><circle cx="140" cy="36" r="14" class="net-node-bg" stroke-width="1"/><text x="140" y="40" class="net-node-label" text-anchor="middle">ID</text></g>
           <g class="net-node" style="--ngi:1"><circle cx="214" cy="60" r="14" class="net-node-bg" stroke-width="1"/><text x="214" y="64" class="net-node-label" text-anchor="middle">WEB</text></g>
           <g class="net-node" style="--ngi:2"><circle cx="224" cy="130" r="14" class="net-node-bg" stroke-width="1"/><text x="224" y="134" class="net-node-label" text-anchor="middle">FOTO</text></g>
@@ -377,8 +356,9 @@
       <span class="section-label">02 — Servicios Puntuales</span>
       <h2 class="services__title">Cuando necesitas <em>exactamente</em> lo que necesitas.</h2>
     </div>
+
     <div class="services__grid">
-      <div class="service-card reveal" data-category="carrera">
+      <div class="service-card reveal" data-category="carrera" data-service-code="photo-session" data-service-label="Fin de Semana Carrera">
         <div class="service-card__cat">Fin de Semana Carrera</div>
         <div class="service-card__items">
           <div class="service-item"><span class="service-item__name">Solo fotografía</span><span class="service-item__price">€650</span></div>
@@ -386,10 +366,18 @@
           <div class="service-item"><span class="service-item__name">Foto + vídeo premium</span><span class="service-item__price">€1.500</span></div>
           <div class="service-item service-item--small"><span class="service-item__name">Resultados día</span><span class="service-item__price">€180</span></div>
         </div>
-        <button class="service-card__btn" onclick="openModal('contact-modal')">Solicitar →</button>
+        <button
+          class="service-card__btn"
+          data-service-cta="photo-session"
+          data-service-label="Fin de Semana Carrera"
+          data-request-mode="service"
+        >
+          Solicitar →
+        </button>
         <div class="service-card__accent" aria-hidden="true"></div>
       </div>
-      <div class="service-card reveal" data-category="design">
+
+      <div class="service-card reveal" data-category="design" data-service-code="logo-design" data-service-label="Diseño Rápido">
         <div class="service-card__cat">Diseño Rápido</div>
         <div class="service-card__items">
           <div class="service-item"><span class="service-item__name">Post redes</span><span class="service-item__price">€80</span></div>
@@ -398,10 +386,18 @@
           <div class="service-item"><span class="service-item__name">Banner sponsor</span><span class="service-item__price">€150</span></div>
           <div class="service-item service-item--small"><span class="service-item__name">Dorsal personalizado</span><span class="service-item__price">€200</span></div>
         </div>
-        <button class="service-card__btn" onclick="openModal('contact-modal')">Solicitar →</button>
+        <button
+          class="service-card__btn"
+          data-service-cta="logo-design"
+          data-service-label="Diseño Rápido"
+          data-request-mode="service"
+        >
+          Solicitar →
+        </button>
         <div class="service-card__accent" aria-hidden="true"></div>
       </div>
-      <div class="service-card service-card--wide reveal" data-category="shoots">
+
+      <div class="service-card service-card--wide reveal" data-category="shoots" data-service-code="special-shoot" data-service-label="Shoots Especiales">
         <div class="service-card__cat">Shoots Especiales</div>
         <div class="service-card__items service-card__items--grid">
           <div class="service-item"><span class="service-item__name">Media Day</span><span class="service-item__price">€450</span></div>
@@ -409,36 +405,63 @@
           <div class="service-item"><span class="service-item__name">Retrato piloto</span><span class="service-item__price">€350</span></div>
           <div class="service-item"><span class="service-item__name">Shooting coche</span><span class="service-item__price">€600</span></div>
         </div>
-        <button class="service-card__btn" onclick="openModal('contact-modal')">Solicitar →</button>
+        <button
+          class="service-card__btn"
+          data-service-cta="special-shoot"
+          data-service-label="Shoots Especiales"
+          data-request-mode="service"
+        >
+          Solicitar →
+        </button>
         <div class="service-card__accent" aria-hidden="true"></div>
       </div>
-      <div class="service-card service-card--dark reveal" data-category="digital">
+
+      <div class="service-card service-card--dark reveal" data-category="digital" data-service-code="web-landing" data-service-label="Digital / Web">
         <div class="service-card__cat">Digital</div>
         <div class="service-card__items">
           <div class="service-item"><span class="service-item__name">Landing sponsor</span><span class="service-item__price">€800</span></div>
           <div class="service-item"><span class="service-item__name">Web equipo básica</span><span class="service-item__price">€1.800</span></div>
           <div class="service-item"><span class="service-item__name">E-commerce prints</span><span class="service-item__price">€2.200</span></div>
         </div>
-        <button class="service-card__btn" onclick="openModal('contact-modal')">Solicitar →</button>
+        <button
+          class="service-card__btn"
+          data-service-cta="web-landing"
+          data-service-label="Digital / Web"
+          data-request-mode="service"
+        >
+          Solicitar →
+        </button>
         <div class="service-card__accent" aria-hidden="true"></div>
       </div>
     </div>
   </section>
 
-  <!-- A MEDIDA -->
+  <!-- SERVICIOS A MEDIDA -->
   <section class="custom" id="medida">
     <div class="custom__bg" aria-hidden="true">
       <div class="custom__bg-line custom__bg-line--1"></div>
       <div class="custom__bg-line custom__bg-line--2"></div>
       <div class="custom__bg-cross"></div>
     </div>
+
     <div class="custom__content">
       <div class="custom__left reveal">
         <span class="section-label">03 — Servicios a Medida</span>
         <h2 class="custom__title">Si no está en la lista, <em>lo creamos.</em></h2>
-        <p class="custom__text">Cada proyecto de motorsport tiene sus propias exigencias. Trabajamos proyectos únicos con presupuestos y plazos personalizados.</p>
-        <button class="btn btn--primary" onclick="openModal('contact-modal')">Cuéntanos tu proyecto</button>
+        <p class="custom__text">
+          Cada proyecto de motorsport tiene sus propias exigencias. Trabajamos proyectos únicos
+          con presupuestos y plazos personalizados.
+        </p>
+        <button
+          class="btn btn--primary"
+          data-service-cta="creative-consult"
+          data-service-label="Proyecto a medida"
+          data-request-mode="custom"
+        >
+          Cuéntanos tu proyecto
+        </button>
       </div>
+
       <div class="custom__right reveal">
         <div class="custom-item"><span class="custom-item__num">—</span><span class="custom-item__name">Campañas especiales sponsors</span></div>
         <div class="custom-item"><span class="custom-item__num">—</span><span class="custom-item__name">Presentación coche nuevo</span></div>
@@ -456,10 +479,16 @@
         <span>GRID STUDIO</span><span>MOTORSPORT</span><span>BRANDING</span><span>FOTOGRAFÍA</span><span>VÍDEO</span><span>ESTRATEGIA</span>
       </div>
     </div>
+
     <div class="cta-final__content reveal">
       <h2 class="cta-final__title">READY<br>TO <span class="cta-title-accent">RACE</span><br>YOUR BRAND?</h2>
       <p class="cta-final__sub">Cuéntanos tu proyecto. Respondemos en menos de 24h.</p>
-      <button class="btn btn--cta-xl" onclick="openModal('contact-modal')">
+      <button
+        class="btn btn--cta-xl"
+        data-service-cta="creative-consult"
+        data-service-label="Iniciar proyecto"
+        data-request-mode="custom"
+      >
         <span>Iniciar proyecto</span>
         <span class="btn-arrow">↗</span>
       </button>
@@ -474,80 +503,179 @@
         <span class="footer__logo">GS</span>
         <span class="footer__tagline">Grid Studio — Motorsport Creative</span>
       </div>
+
       <div class="footer__meta">
         <span>© 2024 Grid Studio</span>
         <span class="footer__sep">·</span>
-        <a href="/cdn-cgi/l/email-protection#8ee6e1e2efcee9fce7eafdfafbeae7e1a0ebfd" class="footer__link"><span class="__cf_email__" data-cfemail="3850575459785f4a515c4b4c4d5c5157165d4b">[email&#160;protected]</span></a>
+        <a href="/cdn-cgi/l/email-protection#8ee6e1e2efcee9fce7eafdfafbeae7e1a0ebfd" class="footer__link">
+          <span class="__cf_email__" data-cfemail="3850575459785f4a515c4b4c4d5c5157165d4b">[email&#160;protected]</span>
+        </a>
       </div>
     </div>
   </footer>
 
-  <!-- MODALES -->
-  <div class="modal-overlay" id="contact-modal" onclick="closeModal(this)">
+  <!-- MODAL ONESHOT -->
+  <div class="modal-overlay" id="contact-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-contact">
-      <button class="modal__close" onclick="closeModal(document.getElementById('contact-modal'))" aria-label="Cerrar">✕</button>
-      <div class="modal__label">Contacto</div>
-      <h3 class="modal__title" id="modal-title-contact">Cuéntanos<br>tu proyecto.</h3>
-      <form class="modal-form" id="contact-form" onsubmit="handleFormSubmit(event)">
-        <div class="form-row">
-          <div class="form-group"><label class="form-label" for="cf-name">Nombre / Equipo</label><input class="form-input" type="text" id="cf-name" name="name" placeholder="Tu nombre o equipo" required></div>
-          <div class="form-group"><label class="form-label" for="cf-email">Email</label><input class="form-input" type="email" id="cf-email" name="email" placeholder="hola@equipo.com" required></div>
+      <button type="button" class="modal__close" data-close-modal aria-label="Cerrar">✕</button>
+      <div class="modal__label" data-modal-label>Servicio puntual</div>
+      <h3 class="modal__title" id="modal-title-contact" data-modal-title>Solicita tu servicio.</h3>
+      <p class="modal__desc" data-modal-desc>Rellena los detalles. Confirmamos disponibilidad en 24h.</p>
+
+      <form class="modal-form" id="oneshot-form" data-form-kind="oneshot" novalidate>
+        <div class="form-group" data-field-group="service">
+          <label class="form-label" for="os-service">Servicio puntual</label>
+          <select class="form-input form-select" id="os-service" name="serviceCode">
+            <option value="">Selecciona un servicio puntual</option>
+            <option value="photo-session">Fin de Semana Carrera</option>
+            <option value="logo-design">Diseño Rápido</option>
+            <option value="special-shoot">Shoots Especiales</option>
+            <option value="web-landing">Digital / Web</option>
+          </select>
+          <div class="form-note" id="os-service-lock-note" hidden></div>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="cf-service">Servicio de interés</label>
-          <select class="form-input form-select" id="cf-service" name="service">
-            <option value="">Selecciona un servicio</option>
-            <option>Pack Branding</option><option>Pack Temporada Completa</option><option>Pack Marca Completa</option>
-            <option>Fin de Semana Carrera</option><option>Diseño Rápido</option><option>Shoot Especial</option>
-            <option>Digital / Web</option><option>A Medida</option>
+
+        <div class="form-group" data-field-group="projectType" hidden>
+          <label class="form-label" for="os-project-type">Proyecto a medida</label>
+          <select class="form-input form-select" id="os-project-type" name="projectType">
+            <option value="">Selecciona un tipo de proyecto</option>
+            <option value="Campaña especial sponsors">Campaña especial sponsors</option>
+            <option value="Presentación coche nuevo">Presentación coche nuevo</option>
+            <option value="Documental de temporada">Documental de temporada</option>
+            <option value="Diseño de merchandising">Diseño de merchandising</option>
+            <option value="Otro proyecto a medida">Otro proyecto a medida</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label" for="cf-message">Mensaje</label><textarea class="form-input form-textarea" id="cf-message" name="message" placeholder="Cuéntanos qué necesitas..."></textarea></div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="os-date-from">Fecha (o inicio del rango)</label>
+            <input class="form-input" type="date" id="os-date-from" name="dateFrom" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="os-date-to">Fin del rango (opcional)</label>
+            <input class="form-input" type="date" id="os-date-to" name="dateTo">
+          </div>
+        </div>
+
+        <div class="form-group" data-field-group="budget" hidden>
+          <label class="form-label" for="os-budget">Presupuesto orientativo (opcional)</label>
+          <select class="form-input form-select" id="os-budget" name="budgetRange">
+            <option value="">Prefiero comentarlo</option>
+            <option value="< €500">Menos de €500</option>
+            <option value="€500 – €1.000">€500 – €1.000</option>
+            <option value="€1.000 – €2.500">€1.000 – €2.500</option>
+            <option value="€2.500 – €5.000">€2.500 – €5.000</option>
+            <option value="> €5.000">Más de €5.000</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="os-notes">Observaciones</label>
+          <textarea
+            class="form-input form-textarea"
+            id="os-notes"
+            name="notes"
+            placeholder="Cuéntanos los detalles del encargo..."
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-group" data-field-group="paymentRef">
+          <label class="form-label" for="os-payref">Referencia de pago (opcional, sin datos sensibles)</label>
+          <input
+            class="form-input"
+            type="text"
+            id="os-payref"
+            name="paymentRef"
+            placeholder="Ej. transferencia REF-2024-08-A"
+            maxlength="80"
+          >
+        </div>
+
+        <label class="form-check">
+          <input type="checkbox" id="os-accept" name="acceptCharge" required>
+          <span data-accept-text>
+            Acepto que esta solicitud puede generar un cargo según la tarifa del servicio seleccionado.
+          </span>
+        </label>
+
+        <div class="form-error" data-form-error hidden></div>
         <button type="submit" class="btn btn--accent form-submit">Enviar solicitud →</button>
       </form>
     </div>
   </div>
 
-  <div class="modal-overlay" id="branding-modal" onclick="closeModal(this)">
+  <!-- MODAL PACK 01 -->
+  <div class="modal-overlay" id="branding-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-branding">
-      <button class="modal__close" onclick="closeModal(document.getElementById('branding-modal'))" aria-label="Cerrar">✕</button>
+      <button type="button" class="modal__close" data-close-modal aria-label="Cerrar">✕</button>
       <div class="modal__label">Pack 01</div>
       <h3 class="modal__title" id="modal-title-branding">Pack Branding</h3>
       <p class="modal__desc">Identidad visual profesional para tu equipo o piloto. Desde €1.800 · 3–4 semanas.</p>
-      <form class="modal-form" onsubmit="handleFormSubmit(event)">
-        <div class="form-group"><label class="form-label" for="bb-name">Nombre / Equipo</label><input class="form-input" type="text" id="bb-name" placeholder="Tu nombre o equipo" required></div>
-        <div class="form-group"><label class="form-label" for="bb-email">Email</label><input class="form-input" type="email" id="bb-email" placeholder="hola@equipo.com" required></div>
-        <div class="form-group"><label class="form-label" for="bb-msg">Cuéntanos más</label><textarea class="form-input form-textarea" id="bb-msg" placeholder="Campeonato, categoría, colores..."></textarea></div>
+
+      <form class="modal-form" data-form-kind="plan" data-plan-code="starter" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="bb-msg">Cuéntanos más (campeonato, colores, plazos...)</label>
+          <textarea class="form-input form-textarea" id="bb-msg" name="notes" placeholder="Detalles relevantes para la propuesta..."></textarea>
+        </div>
+
+        <label class="form-check">
+          <input type="checkbox" name="acceptCharge" required>
+          <span>Acepto que esta solicitud puede generar un cargo según la tarifa del plan.</span>
+        </label>
+
+        <div class="form-error" data-form-error hidden></div>
         <button type="submit" class="btn btn--accent form-submit">Solicitar Pack Branding →</button>
       </form>
     </div>
   </div>
 
-  <div class="modal-overlay" id="season-modal" onclick="closeModal(this)">
+  <!-- MODAL PACK 02 -->
+  <div class="modal-overlay" id="season-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-season">
-      <button class="modal__close" onclick="closeModal(document.getElementById('season-modal'))" aria-label="Cerrar">✕</button>
+      <button type="button" class="modal__close" data-close-modal aria-label="Cerrar">✕</button>
       <div class="modal__label">Pack 02</div>
       <h3 class="modal__title" id="modal-title-season">Pack Temporada</h3>
       <p class="modal__desc">Cobertura completa durante toda tu temporada. Desde €8.500 / temporada.</p>
-      <form class="modal-form" onsubmit="handleFormSubmit(event)">
-        <div class="form-group"><label class="form-label" for="ps-name">Nombre / Equipo</label><input class="form-input" type="text" id="ps-name" placeholder="Tu nombre o equipo" required></div>
-        <div class="form-group"><label class="form-label" for="ps-email">Email</label><input class="form-input" type="email" id="ps-email" placeholder="hola@equipo.com" required></div>
-        <div class="form-group"><label class="form-label" for="ps-champ">Campeonato y categoría</label><input class="form-input" type="text" id="ps-champ" placeholder="Ej. RFEDA, F4 Spain..."></div>
+
+      <form class="modal-form" data-form-kind="plan" data-plan-code="studio" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="ps-msg">Campeonato, categoría, eventos previstos</label>
+          <textarea class="form-input form-textarea" id="ps-msg" name="notes" placeholder="Ej. RFEDA F4 Spain, 8 fechas, equipo X..."></textarea>
+        </div>
+
+        <label class="form-check">
+          <input type="checkbox" name="acceptCharge" required>
+          <span>Acepto que esta solicitud puede generar un cargo según la tarifa del plan.</span>
+        </label>
+
+        <div class="form-error" data-form-error hidden></div>
         <button type="submit" class="btn btn--accent form-submit">Solicitar Pack Temporada →</button>
       </form>
     </div>
   </div>
 
-  <div class="modal-overlay" id="full-modal" onclick="closeModal(this)">
+  <!-- MODAL PACK 03 -->
+  <div class="modal-overlay" id="full-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-full">
-      <button class="modal__close" onclick="closeModal(document.getElementById('full-modal'))" aria-label="Cerrar">✕</button>
+      <button type="button" class="modal__close" data-close-modal aria-label="Cerrar">✕</button>
       <div class="modal__label">Pack 03</div>
       <h3 class="modal__title" id="modal-title-full">Pack Marca Completa</h3>
       <p class="modal__desc">Tu comunicación, externalizada al 100%. Desde €15.000 / año · Soporte 365 días.</p>
-      <form class="modal-form" onsubmit="handleFormSubmit(event)">
-        <div class="form-group"><label class="form-label" for="pf-name">Nombre / Equipo</label><input class="form-input" type="text" id="pf-name" placeholder="Tu nombre o equipo" required></div>
-        <div class="form-group"><label class="form-label" for="pf-email">Email</label><input class="form-input" type="email" id="pf-email" placeholder="hola@equipo.com" required></div>
-        <div class="form-group"><label class="form-label" for="pf-msg">Situación actual de tu marca</label><textarea class="form-input form-textarea" id="pf-msg" placeholder="Categoría, número de eventos, qué tienes hoy..."></textarea></div>
+
+      <form class="modal-form" data-form-kind="plan" data-plan-code="atelier" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="pf-msg">Situación actual de tu marca</label>
+          <textarea class="form-input form-textarea" id="pf-msg" name="notes" placeholder="Categoría, número de eventos, qué tienes hoy..."></textarea>
+        </div>
+
+        <label class="form-check">
+          <input type="checkbox" name="acceptCharge" required>
+          <span>Acepto que esta solicitud puede generar un cargo según la tarifa del plan.</span>
+        </label>
+
+        <div class="form-error" data-form-error hidden></div>
         <button type="submit" class="btn btn--accent form-submit">Solicitar Pack Completo →</button>
       </form>
     </div>

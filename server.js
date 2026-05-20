@@ -1,5 +1,7 @@
 'use strict';
 
+console.log('[BOOT] SERVER REAL:', __filename);
+
 /**
  * server.js
  *
@@ -15,16 +17,18 @@
  */
 
 const express = require('express');
-const cors    = require('cors');
+const cors = require('cors');
 require('dotenv').config();
 
-const { connectDB } = require('./src/persistence/mongoClient'); // ← AÑADIDO
+const { connectDB } = require('./src/persistence/mongoClient');
 
-const authRoutes    = require('./src/routes/AuthRoutes');
+const authRoutes = require('./src/routes/AuthRoutes');
 const messageRoutes = require('./src/routes/messageRoutes');
-const userRoutes    = require('./src/routes/userRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const planRoutes = require('./src/routes/planRoutes');
+const serviceRoutes = require('./src/routes/serviceRoutes');
 
-const app  = express();
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
@@ -41,9 +45,9 @@ app.use(cors({
     console.warn('[CORS] Origen bloqueado:', origin);
     callback(new Error(`Origen no permitido por CORS: ${origin}`));
   },
-  methods:        ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials:    true,
+  credentials: true,
 }));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
@@ -57,9 +61,12 @@ app.use((req, _res, next) => {
 });
 
 // ── Rutas ─────────────────────────────────────────────────────────────────────
+console.log('[BOOT] Montando rutas /api');
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', messageRoutes);
+app.use('/api', planRoutes);
+app.use('/api', serviceRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) =>
@@ -70,14 +77,13 @@ app.get('/api/health', (_req, res) =>
 app.use((err, req, res, _next) => {
   console.error('[GlobalError]', req.method, req.path, '→', err.message);
   res.status(err.status || 500).json({
-    error:  err.message || 'Error interno del servidor',
-    path:   req.path,
+    error: err.message || 'Error interno del servidor',
+    path: req.path,
     method: req.method,
   });
 });
 
-// ── Arranque — esperar conexión Mongo ANTES de escuchar ───────────────────────
-// BUG CORREGIDO: conectar la BD antes de aceptar peticiones
+// ── Arranque — esperar conexión Mongo ANTES de escuchar ──────────────────────
 async function start() {
   try {
     await connectDB();
