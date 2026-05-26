@@ -727,6 +727,23 @@
 .menu-footer__social:hover { opacity: 1; }
 
 /* ========================================
+   SITE FOOTER — wrapper reutilizable a nivel de página
+   Envuelve el mismo .menu-footer para usarlo fuera del overlay
+   ======================================== */
+.site-footer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 40px 32px;
+  box-sizing: border-box;
+  font-family: var(--nav-font);
+}
+
+@media (max-width: 768px) {
+  .site-footer { padding: 20px 20px 28px; }
+}
+
+/* ========================================
    EXCEPCIÓN: Portfolio expandido
    ======================================== */
 body.ag-is-expanded .topbar {

@@ -33,17 +33,44 @@ class UserRepository {
 
   /**
    * Inserta un nuevo usuario y lo devuelve con el _id asignado por Mongo.
-   * @param {{ username?: string, name?: string, email: string, password: string, role?: string }} data
+   *
+   * Backward-compatible: las llamadas existentes (register local) pasan
+   * `{ name, email, password }` y obtienen `provider='local'` por defecto.
+   * Las llamadas OAuth pasan `{ provider: 'google', googleId, avatar }`
+   * y omiten `password` (puede quedar como `null`).
+   *
+   * @param {{
+   *   username?: string,
+   *   name?: string,
+   *   email: string,
+   *   password?: string | null,
+   *   role?: string,
+   *   provider?: 'local' | 'google',
+   *   googleId?: string | null,
+   *   avatar?: string | null,
+   * }} data
    * @returns {Promise<User>}
    */
-  async save({ username, name, email, password, role = 'user' }) {
+  async save({
+    username,
+    name,
+    email,
+    password = null,
+    role     = 'client',
+    provider = 'local',
+    googleId = null,
+    avatar   = null,
+  }) {
     const col = await this._col();
 
     const doc = {
       username:     username || name || '',
       email:        email.toLowerCase(),
-      password,
+      password,                       // null para OAuth — User domain lo soporta
       role,
+      provider,
+      googleId,
+      avatar,
       isSubscribed: false,
       createdAt:    new Date().toISOString(),
     };
@@ -143,11 +170,16 @@ class UserRepository {
 
   /**
    * Activa la suscripción y guarda billingInfo.
-   * SEGURIDAD: billingInfo se guarda completo en Mongo pero NUNCA
-   * se devuelve cardNumber ni cvv en toPublicProfile().
+   *
+   * SEGURIDAD (defensa en profundidad):
+   *   - Este método FILTRA campos sensibles (cardNumber/cvv/cvc/pan/etc.)
+   *     antes de persistir. La fuente legítima de datos de tarjeta es
+   *     `PaymentService` + `PaymentRepository`, que solo guardan
+   *     `{brand, last4, expMonth, expYear, holder}`.
+   *   - Aunque el caller pase un objeto con PAN/CVV, NO se persistirá.
    *
    * @param {string} id
-   * @param {{ cardHolder, cardNumber, expiryDate, cvv, billingAddress }} billingInfo
+   * @param {Object} billingInfo — solo campos permitidos quedan persistidos.
    * @returns {Promise<User | null>}
    */
   async updateSubscription(id, billingInfo) {
@@ -155,9 +187,11 @@ class UserRepository {
     let oid;
     try { oid = new ObjectId(String(id)); } catch { return null; }
 
+    const safe = _sanitizeBillingInfo(billingInfo);
+
     await col.updateOne(
       { _id: oid },
-      { $set: { isSubscribed: true, billingInfo } }
+      { $set: { isSubscribed: true, billingInfo: safe } }
     );
 
     return this.findById(id);
@@ -233,16 +267,25 @@ class UserRepository {
 
   /**
    * Suscribe al usuario: activa isSubscribed y guarda billingInfo + fechas.
+   * Acepta metadatos seguros del pago (paymentRef + cardBrand + cardLast4),
+   * generados por PaymentService a partir de un Payment confirmado.
+   *
+   * NUNCA acepta cardNumber/cvv aunque vengan en `options`: `updateSubscription`
+   * los filtra defensivamente.
+   *
    * @param {string} id
-   * @param {{ plan?: string }} options
+   * @param {{ plan?: string, paymentRef?: string, cardBrand?: string, cardLast4?: string }} options
    * @returns {Promise<User | null>}
    */
   async subscribeUser(id, options = {}) {
     const now = new Date().toISOString();
     const billingInfo = {
-      plan:    options.plan    || "Collector's Club · 15€/mes",
-      since:   now,
-      renewal: this._addOneYear(now),
+      plan:       options.plan       || "Collector's Club · 15€/mes",
+      since:      now,
+      renewal:    this._addOneYear(now),
+      paymentRef: options.paymentRef || null,
+      cardBrand:  options.cardBrand  || null,
+      cardLast4:  options.cardLast4  || null,
     };
     return this.updateSubscription(id, billingInfo);
   }
@@ -262,6 +305,24 @@ class UserRepository {
     date.setFullYear(date.getFullYear() + 1);
     return date.toISOString();
   }
+}
+
+/**
+ * Whitelist de campos permitidos en `users.billingInfo`.
+ * Cualquier otro campo (cardNumber, cvv, cvc, pan, ...) se descarta.
+ */
+const BILLING_ALLOWED = [
+  'plan', 'since', 'renewal',
+  'paymentRef', 'cardBrand', 'cardLast4',
+];
+
+function _sanitizeBillingInfo(billingInfo) {
+  if (!billingInfo || typeof billingInfo !== 'object') return null;
+  const out = {};
+  for (const key of BILLING_ALLOWED) {
+    if (billingInfo[key] !== undefined) out[key] = billingInfo[key];
+  }
+  return out;
 }
 
 module.exports = new UserRepository();

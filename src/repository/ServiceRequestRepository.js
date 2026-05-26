@@ -35,7 +35,7 @@ class ServiceRequestRepository {
     return db.collection('serviceRequests');
   }
 
-  async create({ userId, serviceId, serviceCode, serviceSnapshot, notes }) {
+  async create({ userId, serviceId, serviceCode, serviceSnapshot, notes, paymentId, paymentSnapshot }) {
     const col = await this._col();
     const now = new Date().toISOString();
 
@@ -46,10 +46,15 @@ class ServiceRequestRepository {
       serviceSnapshot: serviceSnapshot || null,
       status:          'pending',
       notes:           notes || '',
+      adminNotes:      '',
+      assignees:       [],         // ← reservado para asignación futura (no usado hoy)
+      paymentId:       paymentId ? new ObjectId(String(paymentId)) : null,
+      paymentSnapshot: paymentSnapshot || null,
       requestedAt:     now,
       decidedAt:       null,
       decidedBy:       null,
       completedAt:     null,
+      updatedAt:       now,
     };
 
     const result = await col.insertOne(doc);
@@ -86,27 +91,28 @@ class ServiceRequestRepository {
     return docs.map((d) => this._toPublic(d));
   }
 
-  async approve(id, { adminId } = {}) {
+  async approve(id, { adminId, adminNotes } = {}) {
     let oid;
     try { oid = new ObjectId(String(id)); } catch { return null; }
     const col = await this._col();
     const now = new Date().toISOString();
+    const update = {
+      status:    'approved',
+      decidedAt: now,
+      decidedBy: adminId ? new ObjectId(String(adminId)) : null,
+      updatedAt: now,
+    };
+    if (typeof adminNotes === 'string') update.adminNotes = adminNotes;
     const result = await col.findOneAndUpdate(
       { _id: oid },
-      {
-        $set: {
-          status:    'approved',
-          decidedAt: now,
-          decidedBy: adminId ? new ObjectId(String(adminId)) : null,
-        },
-      },
+      { $set: update },
       { returnDocument: 'after' }
     );
     const doc = result && (result.value || result);
     return doc && doc._id ? this._toPublic(doc) : null;
   }
 
-  async reject(id, { adminId, reason } = {}) {
+  async reject(id, { adminId, reason, adminNotes } = {}) {
     let oid;
     try { oid = new ObjectId(String(id)); } catch { return null; }
     const col = await this._col();
@@ -115,8 +121,31 @@ class ServiceRequestRepository {
       status:    'rejected',
       decidedAt: now,
       decidedBy: adminId ? new ObjectId(String(adminId)) : null,
+      updatedAt: now,
     };
     if (reason) update.notes = reason;
+    if (typeof adminNotes === 'string') update.adminNotes = adminNotes;
+    const result = await col.findOneAndUpdate(
+      { _id: oid },
+      { $set: update },
+      { returnDocument: 'after' }
+    );
+    const doc = result && (result.value || result);
+    return doc && doc._id ? this._toPublic(doc) : null;
+  }
+
+  async complete(id, { adminId, adminNotes } = {}) {
+    let oid;
+    try { oid = new ObjectId(String(id)); } catch { return null; }
+    const col = await this._col();
+    const now = new Date().toISOString();
+    const update = {
+      status:      'completed',
+      completedAt: now,
+      updatedAt:   now,
+    };
+    if (adminId) update.decidedBy = new ObjectId(String(adminId));
+    if (typeof adminNotes === 'string') update.adminNotes = adminNotes;
     const result = await col.findOneAndUpdate(
       { _id: oid },
       { $set: update },
@@ -135,10 +164,15 @@ class ServiceRequestRepository {
       serviceSnapshot: doc.serviceSnapshot || null,
       status:          doc.status,
       notes:           doc.notes || '',
+      adminNotes:      doc.adminNotes || '',
+      assignees:       Array.isArray(doc.assignees) ? doc.assignees.map(String) : [],
+      paymentId:       doc.paymentId ? String(doc.paymentId) : null,
+      paymentSnapshot: doc.paymentSnapshot || null,
       requestedAt:     doc.requestedAt || null,
       decidedAt:       doc.decidedAt || null,
       decidedBy:       doc.decidedBy ? String(doc.decidedBy) : null,
       completedAt:     doc.completedAt || null,
+      updatedAt:       doc.updatedAt || doc.requestedAt || null,
     };
   }
 }

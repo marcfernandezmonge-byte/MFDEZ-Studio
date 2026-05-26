@@ -1,0 +1,120 @@
+/* ================================================================
+   MFDEZ STUDIO — hardening.css
+   Pasada FINAL de polish global. NO redefine identidad visual.
+   Cubre: protección de imágenes, overflow, inputs, transitions.
+   Última carga en cada página: sus reglas ganan al CSS específico
+   solo donde es estrictamente necesario para release.
+================================================================ */
+
+/* ─── 1. PROTECCIÓN DE IMÁGENES ────────────────────────────────
+   Evita ghost-drag y "guardar imagen" sin overlays agresivos.
+   No rompe sliders/galerías porque los handlers de éstos
+   funcionan en otros eventos (mousedown, pointerdown, etc.).
+─────────────────────────────────────────────────────────────── */
+img,
+picture,
+video {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+img {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  /* Evita micro-overflows: imágenes nunca exceden contenedor */
+  max-width: 100%;
+}
+
+/* ─── 2. SCROLL HORIZONTAL ──────────────────────────────────────
+   Seguro de borde anti scroll-X accidental.
+   Aplicado SOLO a body para no romper position:sticky
+   (que requiere un scroll context viable en html).
+─────────────────────────────────────────────────────────────── */
+body {
+  overflow-x: clip;
+}
+
+/* Fallback para navegadores sin `clip` */
+@supports not (overflow-x: clip) {
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* ─── 3. FORMS / INPUTS / TEXTAREAS ─────────────────────────────
+   - resize:none en todos los textarea (release polish)
+   - 16px mínimo en mobile para evitar zoom de iOS
+   - Sin outlines feos: respetamos focus-visible existente
+─────────────────────────────────────────────────────────────── */
+textarea {
+  resize: none;
+}
+
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+}
+
+/* iOS Safari hace zoom si font-size < 16px en focus.
+   Solo aplica si la página no define su propio tamaño explícito. */
+@media (max-width: 600px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* ─── 4. PERFORMANCE / RENDER QUALITY ────────────────────────── */
+img,
+video {
+  /* Mejora antialias en transforms; coste nulo si no hay scale */
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* ─── 5. RESPETO REDUCED-MOTION ─────────────────────────────────
+   Reduce el coste de paint en usuarios que lo piden,
+   sin afectar al efecto premium del hero (es opt-in del SO).
+─────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── 6. SCROLLBAR cosmético consistente ───────────────────────
+   No rompe ningún CSS específico que ya defina scrollbar.
+─────────────────────────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+}
+
+/* ─── 7. SELECCIÓN DE TEXTO ──────────────────────────────────── */
+::selection {
+  background: rgba(0, 143, 245, 0.28);
+  color: #fff;
+}
+
+/* ─── 8. FOCUS ACCESIBLE pero discreto ─────────────────────────
+   Solo dispara con teclado (focus-visible).
+─────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline-offset: 2px;
+}
+
+/* ─── 9. ANTI-FLASH de fondo blanco en navegación ─────────────
+   Algunos navegadores muestran un flash blanco entre páginas;
+   este background-color de root absorbe el flash.
+─────────────────────────────────────────────────────────────── */
+html {
+  background-color: #0B0E12;
+}

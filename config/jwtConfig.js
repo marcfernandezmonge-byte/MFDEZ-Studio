@@ -24,7 +24,7 @@ const jwtConfig = {
    * Tiempo de expiración del token.
    * Formato compatible con la librería `jsonwebtoken`: '1h', '7d', etc.
    */
-  expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+  expiresIn: process.env.JWT_EXPIRES_IN || '7d',
 
   /**
    * Algoritmo a usar cuando se integre jsonwebtoken.

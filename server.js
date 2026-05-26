@@ -1,5 +1,8 @@
 'use strict';
 
+const dns = require('node:dns');
+dns.setServers(['1.1.1.1', '8.8.8.8']);
+
 console.log('[BOOT] SERVER REAL:', __filename);
 
 /**
@@ -27,6 +30,8 @@ const messageRoutes = require('./src/routes/messageRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const planRoutes = require('./src/routes/planRoutes');
 const serviceRoutes = require('./src/routes/serviceRoutes');
+const entitlementRoutes = require('./src/routes/entitlementRoutes');
+const paymentRoutes = require('./src/routes/paymentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -67,6 +72,8 @@ app.use('/api', userRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', planRoutes);
 app.use('/api', serviceRoutes);
+app.use('/api', entitlementRoutes);
+app.use('/api', paymentRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) =>

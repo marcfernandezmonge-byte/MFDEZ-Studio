@@ -133,13 +133,20 @@
     const confirmCloseBtn = document.getElementById('confirmClose');
     if (!overlay) return;
 
-    function openModal() {
+    // Guardamos el elemento que abrió el modal para devolverle el foco al
+    // cerrar — sin esto, focus queda atrapado dentro de un overlay oculto
+    // y el navegador emite "Blocked aria-hidden on an element because its
+    // descendant retained focus".
+    let lastFocusedTrigger = null;
+
+    function openModal(evt) {
       if (document.documentElement.dataset.ccSubscriptionState === 'subscriber') return;
 
+      lastFocusedTrigger = (evt && evt.currentTarget) || document.activeElement;
+      overlay.inert = false;
       overlay.classList.add('is-open');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-      // Focus first input — delayed for gravitational entrance
       setTimeout(() => {
         const first = overlay.querySelector('input, button');
         if (first) first.focus();
@@ -147,14 +154,25 @@
     }
 
     function closeModal() {
+      // 1) Mover el foco FUERA del modal ANTES de ocultarlo / marcarlo inert
+      const active = document.activeElement;
+      if (active && overlay.contains(active) && typeof active.blur === 'function') {
+        active.blur();
+      }
+      // 2) inert hace al modal inalcanzable para AT y teclado de forma correcta
+      overlay.inert = true;
       overlay.classList.remove('is-open');
       overlay.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      // 3) Devolver el foco al trigger original
+      if (lastFocusedTrigger && typeof lastFocusedTrigger.focus === 'function') {
+        try { lastFocusedTrigger.focus(); } catch {}
+      }
     }
 
-    // All CTAs open modal
+    // All CTAs open modal — pasamos el event para capturar el trigger origen
     document.querySelectorAll('[data-modal="open"]').forEach(btn => {
-      btn.addEventListener('click', openModal);
+      btn.addEventListener('click', (e) => openModal(e));
     });
 
     // Close triggers
@@ -171,27 +189,209 @@
       if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeModal();
     });
 
-    // Form submit → show confirmation
+    // Form submit → POST real a la pasarela simulada del backend.
+    // No hay setTimeout: la confirmación visual solo se muestra tras la
+    // respuesta del servidor. La activación del rol Collector's Club ocurre
+    // en el mismo endpoint (purpose='club_subscription').
     if (form) {
-      form.addEventListener('submit', e => {
+      form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const submitBtn = document.getElementById('submitBtn');
-        if (submitBtn) {
-          submitBtn.textContent = 'Procesando...';
-          submitBtn.disabled    = true;
-        }
-        // Simulate processing — ceremonial delay
-        setTimeout(() => {
-          if (step1) step1.classList.add('cc-modal__step--hidden');
-          if (step2) step2.classList.remove('cc-modal__step--hidden');
-          // Update slots
-          const sl   = document.getElementById('slotsLeft');
-          const sb   = document.getElementById('slotCount');
-          const slots = 47;
-          if (sl)  sl.textContent  = slots - 1;
-          if (sb)  sb.textContent  = '54';
-        }, 1800);
+        handleClubCheckout({ form, step1, step2 });
       });
+    }
+  }
+
+  // === Helpers Collector's Club checkout =========================
+  const API_BASE_CC = 'http://localhost:3000/api';
+
+  function showCcError(msg) {
+    const el = document.getElementById('ccFormError');
+    if (!el) { window.alert(msg); return; }
+    el.textContent = msg;
+    el.removeAttribute('hidden');
+  }
+  function clearCcError() {
+    const el = document.getElementById('ccFormError');
+    if (el) { el.setAttribute('hidden', ''); el.textContent = ''; }
+  }
+
+  /**
+   * Normaliza el input de tarjeta: descarta zero-width / NBSP / tabs / Unicode
+   * raros que pueden llegar al pegar desde un gestor de contraseñas. Sin esto,
+   * una tarjeta visualmente correcta puede fallar Luhn por un U+200B invisible.
+   */
+  function normalizeCardDigits(numStr) {
+    return String(numStr || '')
+      .normalize('NFKD')
+      .replace(/[ -- ​-‏﻿]/g, '')
+      .replace(/\D+/g, '');
+  }
+
+  /** Algoritmo de Luhn — sin red. Devuelve { ok, digits, length }. */
+  function luhnFront(numStr) {
+    const d = normalizeCardDigits(numStr);
+    if (d.length < 13 || d.length > 19) {
+      return { ok: false, digits: d, length: d.length, reason: 'length' };
+    }
+    let sum = 0, alt = false;
+    for (let i = d.length - 1; i >= 0; i--) {
+      let n = parseInt(d.charAt(i), 10);
+      if (alt) { n *= 2; if (n > 9) n -= 9; }
+      sum += n; alt = !alt;
+    }
+    const ok = sum % 10 === 0;
+    return { ok, digits: d, length: d.length, reason: ok ? null : 'luhn' };
+  }
+
+  function parseExpiryMmYy(s) {
+    const m = String(s || '').match(/^(\d{2})\s*\/\s*(\d{2,4})$/);
+    if (!m) return null;
+    const month = parseInt(m[1], 10);
+    let year   = parseInt(m[2], 10);
+    if (year < 100) year += 2000;
+    if (month < 1 || month > 12) return null;
+    return { month, year };
+  }
+
+  async function handleClubCheckout({ form, step1, step2 }) {
+    clearCcError();
+    const submitBtn = document.getElementById('submitBtn');
+    const originalTxt = submitBtn ? submitBtn.textContent : '';
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showCcError('Inicia sesión para suscribirte al Collector’s Club.');
+      return;
+    }
+
+    const email  = (document.getElementById('emailInput')?.value || '').trim();
+    const holder = (document.getElementById('holderInput')?.value || '').trim();
+    const rawCard= (document.getElementById('cardInput')?.value || '');
+    const number = normalizeCardDigits(rawCard);
+    const expRaw = (document.getElementById('expInput')?.value || '').trim();
+    const cvc    = (document.getElementById('cvvInput')?.value || '').trim().replace(/\D/g, '');
+
+    // ── DEBUG: traza el input REAL que va a validarse ──────────────────────
+    console.groupCollapsed('[CollectorsClub] checkout payload');
+    console.log('token presente :', Boolean(token));
+    console.log('email          :', email);
+    console.log('holder         :', holder);
+    console.log('card raw       :', JSON.stringify(rawCard));
+    console.log('card digits    :', number, '(length=' + number.length + ')');
+    console.log('expiry raw     :', expRaw);
+    console.log('cvc len        :', cvc.length);
+    console.groupEnd();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showCcError('Email inválido.'); return;
+    }
+    if (holder.length < 2) {
+      showCcError('Indica el nombre del titular.'); return;
+    }
+    const luhn = luhnFront(number);
+    if (!luhn.ok) {
+      const why = luhn.reason === 'length'
+        ? `longitud ${luhn.length} dígitos (mín 12 / máx 19)`
+        : 'no pasa Luhn';
+      showCcError(`Número de tarjeta inválido — ${why}. Prueba 4242 4242 4242 4242.`);
+      return;
+    }
+    const exp = parseExpiryMmYy(expRaw);
+    if (!exp) {
+      showCcError('Caducidad inválida (formato MM/AA).'); return;
+    }
+    if (!/^\d{3,4}$/.test(cvc)) {
+      showCcError('CVC inválido.'); return;
+    }
+
+    if (submitBtn) { submitBtn.textContent = 'Procesando…'; submitBtn.disabled = true; }
+
+    try {
+      const res = await fetch(`${API_BASE_CC}/payments/simulate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization:  `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          purpose: 'club_subscription',
+          card: { number, expMonth: exp.month, expYear: exp.year, cvc, holder },
+          meta: { email },
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        // Token expirado o ausente → limpia y obliga re-login para que la
+        // siguiente carga no se quede atascada con un token muerto.
+        if (res.status === 401) {
+          try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch {}
+          throw new Error('Tu sesión ha caducado. Inicia sesión otra vez para suscribirte.');
+        }
+        const detail = Array.isArray(data.fields) && data.fields.length
+          ? ` (${data.fields.join(', ')})`
+          : '';
+        throw new Error((data.error || `HTTP ${res.status}`) + detail);
+      }
+
+      if (!data.payment || data.payment.status !== 'confirmed') {
+        throw new Error('El pago no se confirmó.');
+      }
+
+      // Persiste el JWT rotado (con isSubscribed=true) y refresca el cache
+      // local de usuario. Sin esto, otras páginas (Vault, dashboard) seguirían
+      // viendo el estado anterior tras un refresh.
+      if (data.token) {
+        try { localStorage.setItem('token', data.token); } catch {}
+      }
+      try {
+        const cached = JSON.parse(localStorage.getItem('user') || 'null');
+        if (cached && typeof cached === 'object') {
+          cached.isSubscribed = true;
+          localStorage.setItem('user', JSON.stringify(cached));
+        }
+      } catch {}
+
+      // Confirmación REAL con datos del backend
+      const sub = document.getElementById('ccConfirmSub');
+      const note = document.getElementById('ccConfirmNote');
+      const brand = (data.payment.card?.brand || '').toUpperCase();
+      const last4 = data.payment.card?.last4 || '????';
+      if (sub) {
+        sub.textContent = data.subscription
+          ? 'Tu membresía Collector’s Club está activa.'
+          : (data.subscriptionWarn || 'Pago registrado.');
+      }
+      if (note) {
+        note.textContent = `Pago simulado · ${brand || 'TARJETA'} •••• ${last4}. ` +
+          (data.subscription
+            ? 'Tu rol Collector’s Club se ha activado automáticamente.'
+            : 'Tu rol Collector’s Club ya estaba activo, no se ha duplicado.');
+      }
+
+      if (step1) step1.classList.add('cc-modal__step--hidden');
+      if (step2) step2.classList.remove('cc-modal__step--hidden');
+
+      // Disparo del unlock en sitio: ya no hace falta refrescar la página.
+      // window.ccVaultAPI lo expone la 3ª IIFE de este mismo archivo.
+      try {
+        if (window.ccVaultAPI && typeof window.ccVaultAPI.refresh === 'function') {
+          console.log('[CollectorsClub] checkout OK → ccVaultAPI.refresh("subscriber")');
+          await window.ccVaultAPI.refresh('subscriber');
+        } else {
+          // Fallback defensivo: si por orden de carga la API aún no existe,
+          // al menos marca el dataset para que el observer de Vault reaccione.
+          document.documentElement.dataset.ccSubscriptionState = 'subscriber';
+        }
+      } catch (e) {
+        console.warn('[CollectorsClub] refresh post-checkout falló:', e);
+        document.documentElement.dataset.ccSubscriptionState = 'subscriber';
+      }
+    } catch (err) {
+      console.error('[CollectorsClub] checkout error:', err);
+      showCcError(err.message || 'No se pudo completar el pago simulado.');
+      if (submitBtn) { submitBtn.textContent = originalTxt || 'Confirmar Acceso — 15€/mes'; submitBtn.disabled = false; }
     }
   }
 
@@ -200,7 +400,8 @@
     const cardInput = document.getElementById('cardInput');
     if (!cardInput) return;
     cardInput.addEventListener('input', e => {
-      let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+      // Permite hasta 19 dígitos: cubre JCB/UnionPay además de Visa/MC/Amex.
+      let v = e.target.value.replace(/\D/g, '').slice(0, 19);
       e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
     });
 
@@ -281,6 +482,11 @@
       const res = await fetch(`${API_BASE}/user/subscription`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401) {
+        // Token muerto: purga para que el resto de la página opere como GUEST.
+        try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch {}
+        return false;
+      }
       if (!res.ok) return false;
       const data = await res.json();
       return Boolean(data.subscription?.active);
@@ -543,6 +749,12 @@
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (res.status === 401) {
+          // Token caducado o invalidado → purga y trata como GUEST para que el
+          // modal pida re-login en vez de quedar bloqueado en LOCKED para siempre.
+          try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch {}
+          return SUBSCRIPTION_STATES.GUEST;
+        }
         if (!res.ok) return SUBSCRIPTION_STATES.LOCKED;
 
         const data = await res.json();
@@ -604,7 +816,7 @@
         node.addEventListener('click', (event) => {
           if (this.currentState === SUBSCRIPTION_STATES.SUBSCRIBER) return;
           event.preventDefault();
-          this.open(this.currentState);
+          this.open(this.currentState, event.currentTarget);
         });
       });
 
@@ -622,13 +834,14 @@
         overlay.addEventListener('keydown', (event) => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
-          this.open(this.currentState);
+          this.open(this.currentState, event.currentTarget);
         });
       });
     },
 
-    open(state) {
+    open(state, triggerEl) {
       if (!this.overlay) this.init();
+      this._lastTrigger = triggerEl || document.activeElement;
 
       const iconEl = this.overlay.querySelector('#ccAuthIcon');
       const titleEl = this.overlay.querySelector('#ccAuthTitle');
@@ -656,6 +869,7 @@
         }));
       }
 
+      this.overlay.inert = false;
       this.overlay.setAttribute('aria-hidden', 'false');
       this.overlay.classList.add('is-open');
       document.body.style.overflow = 'hidden';
@@ -663,9 +877,18 @@
 
     close() {
       if (!this.overlay) return;
+      // Misma estrategia que el checkout: blur primero, inert después.
+      const active = document.activeElement;
+      if (active && this.overlay.contains(active) && typeof active.blur === 'function') {
+        active.blur();
+      }
+      this.overlay.inert = true;
       this.overlay.classList.remove('is-open');
       this.overlay.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      if (this._lastTrigger && typeof this._lastTrigger.focus === 'function') {
+        try { this._lastTrigger.focus(); } catch {}
+      }
     },
 
     actionButton(label, variant, onClick) {
@@ -786,12 +1009,24 @@
     });
   }
 
-  async function initPremiumImageSystem() {
-    collectorsClubModalAccess.init();
-    collectorsClubImageManager.attachImageLifecycle();
-    collectorsClubSubscriptionAccess.applyState(SUBSCRIPTION_STATES.CHECKING);
+  // ── Re-render del sistema premium SIN reload ────────────────────────────
+  // Aplica TODAS las transformaciones que `initPremiumImageSystem` ejecuta
+  // en el load inicial: classes locked/subscriber, overlays, CTAs, vault
+  // renderer. Llamarlo tras el checkout para que las imágenes se desbloqueen
+  // en sitio, sin que el usuario tenga que refrescar.
+  let __ccCurrentState = SUBSCRIPTION_STATES.CHECKING;
 
-    const state = await collectorsClubSubscriptionAccess.resolveState();
+  // Promesa que resuelve cuando la PRIMERA resolución contra el backend acaba.
+  // Sin esto, `getSubscriptionState()` devolvía 'checking' antes de que el
+  // fetch a /api/user/subscription terminase → vault.js leía 'checking',
+  // `'checking' !== 'subscriber'` → redirect loop a /collectorsClub.
+  let __ccResolveInit;
+  const __ccInitReady = new Promise((res) => { __ccResolveInit = res; });
+  let __ccInitDone = false;
+
+  function applyAllForState(state) {
+    __ccCurrentState = state;
+    console.log('[CollectorsClub] applyAllForState →', state);
     collectorsClubSubscriptionAccess.applyState(state);
     applySubscriberCTAs(state);
     hideSubscriberPremiumOverlays(state);
@@ -799,11 +1034,67 @@
     hideSubscriberPremiumOverlays(state);
     collectorsClubModalAccess.bindPremiumTriggers(state);
     hideSubscriberPremiumOverlays(state);
-
     if (state === SUBSCRIPTION_STATES.SUBSCRIBER) {
       collectorsClubImageManager.preloadPremiumImages();
     }
   }
+
+  async function initPremiumImageSystem() {
+    collectorsClubModalAccess.init();
+    collectorsClubImageManager.attachImageLifecycle();
+    collectorsClubSubscriptionAccess.applyState(SUBSCRIPTION_STATES.CHECKING);
+
+    const state = await collectorsClubSubscriptionAccess.resolveState();
+    applyAllForState(state);
+    __ccInitDone = true;
+    __ccResolveInit(state);
+  }
+
+  // ── API pública usada por vault.js y por el checkout ────────────────────
+  // vault.js consulta `getSubscriptionState()` antes de renderizar; el
+  // checkout llama a `refresh('subscriber')` tras un pago OK.
+  //
+  // CONTRATO IMPORTANTE: `getSubscriptionState()` puede devolver una Promesa
+  // si la resolución inicial aún no ha terminado. vault.js hace
+  // `resolve(window.ccVaultAPI.getSubscriptionState())`, y `Promise.resolve(p)`
+  // sigue las promesas: el caller recibirá el valor final, no 'checking'.
+  window.ccVaultAPI = {
+    getSubscriptionState() {
+      if (__ccInitDone) return __ccCurrentState;
+      // Aún resolviendo → devuelve promesa que el caller puede await/chain.
+      return __ccInitReady.then(() => __ccCurrentState);
+    },
+    // API explícita por si algún caller quiere ser explícito sobre el async.
+    waitForInit() {
+      return __ccInitDone
+        ? Promise.resolve(__ccCurrentState)
+        : __ccInitReady.then(() => __ccCurrentState);
+    },
+    getVaultImages() {
+      return CLUB_IMAGES.filter((img) => img.role === 'vault-full').map((img) => ({
+        src: img.src,
+        fileName: img.src,
+        edition: img.edition,
+        title: img.edition,
+        alt: img.alt,
+      }));
+    },
+    /**
+     * Reaplica todo el sistema premium en sitio. Si se pasa un estado
+     * explícito, lo usa; si no, re-resuelve contra el backend (útil si el
+     * caller acaba de rotar el token y quiere revalidar).
+     */
+    async refresh(forcedState) {
+      const state = forcedState
+        || await collectorsClubSubscriptionAccess.resolveState();
+      applyAllForState(state);
+      if (!__ccInitDone) {
+        __ccInitDone = true;
+        __ccResolveInit(state);
+      }
+      return state;
+    },
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initPremiumImageSystem);

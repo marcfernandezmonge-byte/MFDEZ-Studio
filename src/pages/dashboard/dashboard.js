@@ -39,7 +39,7 @@ const API_BASE = 'http://localhost:3000/api';
 /* ══════════════════════════════════════════════════════
    2. USUARIO — carga, render y detección de rol
 ══════════════════════════════════════════════════════ */
-let currentUser = { id: '', name: 'Usuario', email: '', role: 'user' };
+let currentUser = { id: '', name: 'Usuario', email: '', role: 'client', isSubscribed: false };
 const adminOverviewState = {
   users: [],
   members: [],
@@ -49,27 +49,77 @@ const adminOverviewState = {
   selectedMessageId: null,
 };
 
-(function loadUser() {
+/**
+ * Carga la identidad autenticada desde el backend (/api/me).
+ * Esta es la ÚNICA fuente de verdad para `role` en el frontend.
+ *
+ * Seguridad: si la llamada falla por red, se usa el cache local SOLO para
+ * mostrar nombre/email — el rol NUNCA se restaura desde localStorage,
+ * siempre cae a 'client'. Así no es posible escalar a admin editando
+ * localStorage.
+ */
+async function loadUser() {
+  const token = localStorage.getItem('token');
+
+  // Pre-render con cache local (solo identidad visual, NUNCA rol elevado).
   try {
     const raw = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
-        const resolvedRole = resolveUserRole(parsed, token);
         currentUser = {
-          id:    parsed.id    || '',
-          name:  parsed.name  || 'Usuario',
-          email: parsed.email || '',
-          role:  resolvedRole,
+          id:           parsed.id    || '',
+          name:         parsed.name  || 'Usuario',
+          email:        parsed.email || '',
+          role:         'client',       // ← nunca admin desde cache
+          isSubscribed: false,
         };
       }
     }
-  } catch { /* JSON malformado — usar fallback */ }
+  } catch { /* JSON malformado — fallback silencioso */ }
+
+  // Fuente autoritativa: /api/me.
+  try {
+    const res = await fetch(`${API_BASE}/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.status === 401) {
+      // Token inválido o expirado → forzar login.
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.replace(ROUTE_LOGIN);
+      return;
+    }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+    const u    = data && data.user ? data.user : {};
+
+    currentUser = {
+      id:           u.id    || '',
+      name:         u.name  || 'Usuario',
+      email:        u.email || '',
+      role:         u.role === 'admin' ? 'admin' : 'client',
+      isSubscribed: Boolean(u.isSubscribed),
+    };
+
+    // Refrescar cache local (sin rol — se ignora al recargar).
+    try {
+      localStorage.setItem('user', JSON.stringify({
+        id: currentUser.id, name: currentUser.name, email: currentUser.email,
+      }));
+    } catch { /* quota / privacy — no es bloqueante */ }
+
+  } catch (err) {
+    console.warn('[dashboard] loadUser → /api/me falló, modo degradado client:', err.message);
+    // Mantener currentUser tal como quedó del pre-render (rol forzado a 'client').
+  }
 
   renderUser();
   applyRoleVisibility();
-})();
+}
 
 function renderUser() {
   const { name, email, role } = currentUser;
@@ -107,16 +157,31 @@ function applyRoleVisibility() {
     isAdmin ? adminNav.removeAttribute('hidden') : adminNav.setAttribute('hidden', '');
   }
 
+  /* Ocultar / mostrar nav items y secciones por rol vía data-role-hide */
+  document.querySelectorAll('[data-role-hide]').forEach((el) => {
+    const hideFor = el.getAttribute('data-role-hide');
+    if (hideFor === currentUser.role) {
+      el.setAttribute('hidden', '');
+    } else {
+      el.removeAttribute('hidden');
+    }
+  });
+
   if (adminOverviewShell) {
-    adminOverviewShell.classList.toggle('is-admin-layout', true);
+    /* Admin → grid 3fr/2fr (panel principal + detalle).
+       Cliente → layout integrado: lista + hilo apilados, sin grid agresivo. */
+    adminOverviewShell.classList.toggle('is-admin-layout', isAdmin);
+    adminOverviewShell.classList.toggle('is-client-layout', !isAdmin);
     adminOverviewShell.style.cssText = '';
   }
 
-  if (adminUsersPanel) {
-    adminUsersPanel.removeAttribute('hidden');
-  }
+  /* Admin: panel de usuarios + panel de detalle separado.
+     Cliente: SOLO panel de mensajes con expansión inline.
+     El panel de detalle inferior se elimina por completo para cliente —
+     evita duplicación de jerarquía y feel de "ticket SaaS". */
+  if (adminUsersPanel) adminUsersPanel.removeAttribute('hidden');
   if (adminSidePanel) {
-    adminSidePanel.removeAttribute('hidden');
+    isAdmin ? adminSidePanel.removeAttribute('hidden') : adminSidePanel.setAttribute('hidden', '');
   }
 
   renderOverviewTableHead();
@@ -146,52 +211,6 @@ function setText(id, value) {
   if (el) el.textContent = value;
 }
 
-function resolveUserRole(user, token) {
-  const directRole = normalizeRole(user?.role || user?.rol || user?.userRole);
-  if (directRole) return directRole;
-
-  if (user?.isAdmin === true) return 'admin';
-
-  const tokenPayload = parseJwtPayload(token);
-  const tokenRole = normalizeRole(tokenPayload?.role || tokenPayload?.rol || tokenPayload?.userRole);
-  if (tokenRole) return tokenRole;
-
-  if (tokenPayload?.isAdmin === true) return 'admin';
-
-  const email = String(user?.email || tokenPayload?.email || '').trim().toLowerCase();
-  const name = String(user?.name || tokenPayload?.name || '').trim().toLowerCase();
-  if (email === 'admin@admin.admin' || (email.startsWith('admin@') && name === 'admin')) {
-    return 'admin';
-  }
-
-  return 'user';
-}
-
-function normalizeRole(role) {
-  if (typeof role !== 'string') return '';
-
-  const normalized = role.trim().toLowerCase();
-  if (normalized === 'admin' || normalized === 'administrator') return 'admin';
-  if (normalized === 'user' || normalized === 'member' || normalized === 'miembro') return 'user';
-  return normalized || '';
-}
-
-function parseJwtPayload(token) {
-  if (!token || typeof token !== 'string') return null;
-
-  const parts = token.split('.');
-  if (parts.length < 2) return null;
-
-  try {
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-    return JSON.parse(atob(padded));
-  } catch {
-    return null;
-  }
-}
-
-
 /* ══════════════════════════════════════════════════════
    3. LOGOUT
 ══════════════════════════════════════════════════════ */
@@ -219,26 +238,50 @@ function performLogout() {
    Si el backend no responde o no hay servicios reales,
    cae al mock de demo para desarrollo.
 ══════════════════════════════════════════════════════ */
+
+/* ── Estado operacional del usuario — única fuente de verdad ─────────
+   Devuelve true si el dashboard debe renderizar como "con actividad".
+   Tiene en cuenta:
+     • rol admin            → siempre operacional
+     • entitlements         → cualquier estado distinto de cancelled
+     • services (legacy + oneshot requests pending/approved/active/...)
+   Llamado por renderServicesList Y renderEntitlements para
+   garantizar coherencia entre ambas secciones. */
+function hasOperationalServiceState(services, entitlements) {
+  if (currentUser && currentUser.role === 'admin') return true;
+
+  const hasServices = Array.isArray(services)
+    && services.some((s) => s && s.status !== 'rejected' && s.status !== 'cancelled');
+
+  const hasEntitlements = Array.isArray(entitlements)
+    && entitlements.some((e) => e && e.status !== 'cancelled');
+
+  return hasServices || hasEntitlements;
+}
+
 async function loadServices() {
   let services = [];
-   const token = localStorage.getItem('token');
+  let entitlements = [];
+  const token = localStorage.getItem('token');
 
   try {
-    const res = await fetch(`${API_BASE}/user/services`, { //-- la ruta falla
+    const res = await fetch(`${API_BASE}/user/services`, {
       headers: {  Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
       const data = await res.json();
       services = Array.isArray(data.services) ? data.services : [];
+      entitlements = Array.isArray(data.entitlements) ? data.entitlements : [];
     } else {
-      services = getMockServices(); // fallback a demo durante desarrollo
+      services = getMockServices();
     }
   } catch {
-    services = getMockServices(); // sin backend aún
+    services = getMockServices();
   }
 
   renderServicesOverview(services);
-  renderServicesList(services);
+  renderServicesList(services, entitlements);
+  renderEntitlements(entitlements, services);
 }
 
 /* ── Datos de demo (se eliminarán cuando el backend esté listo) ── */
@@ -274,6 +317,138 @@ function getMockServices() {
   ];
 }
 
+/* ══════════════════════════════════════════════════════
+   CANONICAL FRONTEND PRICE MAP  (presentación únicamente)
+   ──────────────────────────────────────────────────────
+   El dashboard se comporta como una capa de PRESENTACIÓN — los precios
+   mostrados aquí se alinean SIEMPRE con la página /servicios, sin importar
+   qué valor histórico guarde el snapshot en MongoDB.
+
+   Reglas:
+     · NUNCA modifica la API, los snapshots ni el monto persistido en
+       `payments` — sólo lo que se ve en pantalla.
+     · Cuando se introduce un plan o servicio nuevo en /servicios, AÑADIR
+       su entrada aquí. Este mapa es el equivalente UI de los seeds del
+       backend.
+
+   Lookup:
+     1. `resolveCanonicalPrice(code, fallback)` — uso recomendado cuando el
+        código está disponible (tablas admin: r.planCode, r.serviceCode).
+     2. Si sólo se dispone del nombre (p. ej. "Mis Servicios" no recibe
+        `code` en el payload), `resolveCanonicalPrice(nombre, fallback)`
+        intenta primero el código y luego un alias por nombre, cubriendo
+        snapshots históricos ("Starter", "Sesión Fotográfica", etc.).
+══════════════════════════════════════════════════════ */
+
+const CANONICAL_SERVICE_PRICES = {
+  starter:            '€1.800',
+  studio:             '€8.500 / temporada',
+  atelier:            '€15.000 / año',
+
+  'photo-session':    'Desde €650',
+  'logo-design':      'Desde €80',
+  'special-shoot':    'Desde €350',
+  'web-landing':      'Desde €800',
+  'creative-consult': 'Presupuesto personalizado',
+};
+
+// Alias por nombre — incluye tanto los nombres canónicos actuales como los
+// nombres HISTÓRICOS que pudieron quedar en snapshots antes de corregir el
+// catálogo. Permite que requests viejas también muestren el precio actual.
+const CANONICAL_NAME_TO_CODE = {
+  // Plans — históricos + canónicos
+  'Starter':               'starter',
+  'Pack Branding':         'starter',
+  'PACK BRANDING':         'starter',
+  'Studio':                'studio',
+  'Pack Temporada':        'studio',
+  'PACK TEMPORADA':        'studio',
+  'Atelier':               'atelier',
+  'Pack Marca Completa':   'atelier',
+  'PACK MARCA COMPLETA':   'atelier',
+
+  // Services — históricos + canónicos
+  'Sesión Fotográfica':    'photo-session',
+  'Fin de Semana Carrera': 'photo-session',
+  'Diseño de Logo':        'logo-design',
+  'Diseño Rápido':         'logo-design',
+  'Shoots Especiales':     'special-shoot',
+  'Landing Page':          'web-landing',
+  'Digital / Web':         'web-landing',
+  'Digital':               'web-landing',
+  'Consultoría Creativa':  'creative-consult',
+  'Proyecto a medida':     'creative-consult',
+};
+
+/**
+ * Devuelve el precio canónico para `codeOrName`.
+ * Acepta indistintamente el `code` (recomendado) o el `name` del snapshot.
+ * Si nada coincide, devuelve `fallback` (string formateado del snapshot).
+ */
+function resolveCanonicalPrice(codeOrName, fallback) {
+  if (codeOrName == null) return fallback || '';
+  const key = String(codeOrName).trim();
+  if (!key) return fallback || '';
+
+  // 1) Lookup directo por código.
+  if (CANONICAL_SERVICE_PRICES[key]) return CANONICAL_SERVICE_PRICES[key];
+
+  // 2) Lookup por nombre → código → precio (cubre snapshots históricos).
+  const aliasCode = CANONICAL_NAME_TO_CODE[key];
+  if (aliasCode && CANONICAL_SERVICE_PRICES[aliasCode]) {
+    return CANONICAL_SERVICE_PRICES[aliasCode];
+  }
+
+  return fallback || '';
+}
+
+/* ══════════════════════════════════════════════════════
+   CANONICAL FRONTEND NAME MAP  (presentación únicamente)
+   ──────────────────────────────────────────────────────
+   Equivalente "name" del mapa de precios. Garantiza que la etiqueta
+   mostrada en el dashboard coincida SIEMPRE con la página /servicios,
+   incluso para snapshots históricos que persistieron nombres antiguos
+   (p. ej. "Starter", "Sesión Fotográfica", "Diseño de Logo").
+   No toca BD, snapshots ni API — sólo el string visible.
+══════════════════════════════════════════════════════ */
+
+const CANONICAL_SERVICE_NAMES = {
+  starter:            'Pack Branding',
+  studio:             'Pack Temporada',
+  atelier:            'Pack Marca Completa',
+
+  'photo-session':    'Fin de Semana Carrera',
+  'logo-design':      'Diseño Rápido',
+  'special-shoot':    'Shoots Especiales',
+  'web-landing':      'Digital / Web',
+  'creative-consult': 'Proyecto a medida',
+};
+
+/**
+ * Devuelve el nombre canónico para `codeOrName`.
+ * Estrategia idéntica al resolver de precios:
+ *   1. Si recibimos un código conocido, devolvemos su nombre canónico.
+ *   2. Si recibimos un nombre, lo mapeamos a su código vía
+ *      CANONICAL_NAME_TO_CODE y devolvemos el nombre canónico de ese código.
+ *   3. Fallback: snapshot original (no rompe nada si aparece algo nuevo).
+ */
+function resolveCanonicalName(codeOrName, fallback) {
+  if (codeOrName == null) return fallback || '';
+  const key = String(codeOrName).trim();
+  if (!key) return fallback || '';
+
+  // 1) Lookup directo por código.
+  if (CANONICAL_SERVICE_NAMES[key]) return CANONICAL_SERVICE_NAMES[key];
+
+  // 2) Lookup por nombre → código → nombre canónico.
+  const aliasCode = CANONICAL_NAME_TO_CODE[key];
+  if (aliasCode && CANONICAL_SERVICE_NAMES[aliasCode]) {
+    return CANONICAL_SERVICE_NAMES[aliasCode];
+  }
+
+  return fallback || '';
+}
+
 /* ── Render: tarjetas de resumen en el overview ── */
 function renderServicesOverview(services) {
   const active    = services.filter(s => s.status === 'active').length;
@@ -289,27 +464,35 @@ function renderServicesOverview(services) {
   if (navCount) navCount.textContent = String(total);
 }
 
-/* ── Render: lista completa de servicios ── */
-function renderServicesList(services) {
+/* ── Render: lista completa de servicios ──
+   Empty state solo si NO hay servicios contratados, NI entitlements,
+   NI solicitudes (las requests ya vienen embebidas en `services` como
+   oneshots desde /api/user/services con cualquier estado). */
+function renderServicesList(services, entitlements) {
   const emptyEl = document.getElementById('servicesEmpty');
   const listEl  = document.getElementById('servicesList');
   if (!emptyEl || !listEl) return;
 
-  if (!services.length) {
+  const list = Array.isArray(services) ? services : [];
+  const isOperational = hasOperationalServiceState(services, entitlements);
+
+  if (!isOperational) {
     emptyEl.removeAttribute('hidden');
     listEl.setAttribute('hidden', '');
+    listEl.innerHTML = '';
     return;
   }
 
   emptyEl.setAttribute('hidden', '');
   listEl.removeAttribute('hidden');
-  listEl.innerHTML = services.map(buildServiceItemHTML).join('');
+  listEl.innerHTML = list.map(buildServiceItemHTML).join('');
 }
 
 function buildServiceItemHTML(svc) {
   const statusMap = {
     active:    { label: 'Activo',     cls: 'service-status--active'    },
     progress:  { label: 'En curso',   cls: 'service-status--progress'  },
+    pending:   { label: 'Pendiente',  cls: 'service-status--progress'  },
     completed: { label: 'Completado', cls: 'service-status--completed' },
   };
   const st = statusMap[svc.status] || statusMap['progress'];
@@ -331,11 +514,17 @@ function buildServiceItemHTML(svc) {
       </div>`;
   }
 
+  // Precio + nombre canónicos (capa de presentación). El payload de
+  // /api/user/services no incluye `code`, así que resolvemos por nombre con
+  // fallback al snapshot histórico — los nombres antiguos se reescriben.
+  const displayPrice = resolveCanonicalPrice(svc.code || svc.name, svc.price);
+  const displayName  = resolveCanonicalName (svc.code || svc.name, svc.name);
+
   return `
     <div class="service-item">
       <div class="service-item-left">
         <span class="service-item-type">${escapeHTML(svc.type)}</span>
-        <span class="service-item-name">${escapeHTML(svc.name)}</span>
+        <span class="service-item-name">${escapeHTML(displayName)}</span>
         <div class="service-item-meta">
           <span class="service-meta-chip">
             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -356,7 +545,7 @@ function buildServiceItemHTML(svc) {
       </div>
       <div class="service-item-right">
         <span class="service-status ${st.cls}">${st.label}</span>
-        <span class="service-price">${escapeHTML(svc.price || '')}</span>
+        <span class="service-price">${escapeHTML(displayPrice)}</span>
       </div>
     </div>`;
 }
@@ -456,8 +645,11 @@ async function loadAdminData() {
     loadAdminUsers(),
     loadAdminClubMembers(),
     loadInbox(),           // ← chat inbox replaces old contact-form inbox
+    loadAdminPlanRequests(),
+    loadAdminServiceRequests(),
   ]);
   initChatListeners();     // ← chat input / send / close listeners
+  initAdminRequestsListeners();
 }
 
 async function loadUserOverviewData() {
@@ -472,9 +664,9 @@ async function loadUserOverviewData() {
     const data = await res.json();
     adminOverviewState.userMessages = Array.isArray(data.messages) ? data.messages : [];
 
-    if (!adminOverviewState.selectedMessageId && adminOverviewState.userMessages.length) {
-      adminOverviewState.selectedMessageId = String(adminOverviewState.userMessages[0].id || '');
-    }
+    /* Cliente: por defecto NADA expandido — feel calmado.
+       El usuario decide qué hilo abrir pulsando. */
+    adminOverviewState.selectedMessageId = null;
 
     renderAdminOverviewUsers();
   } catch (err) {
@@ -502,7 +694,7 @@ async function loadAdminUsers() {
           <tr>
             <td>${escapeHTML(u.name || '—')}</td>
             <td>${escapeHTML(u.email || '—')}</td>
-            <td><span class="admin-badge admin-badge--${u.role === 'admin' ? 'admin' : 'user'}">${u.role || 'user'}</span></td>
+            <td><span class="admin-badge admin-badge--${u.role === 'admin' ? 'admin' : 'user'}">${u.role || 'client'}</span></td>
             <td>${formatDate(u.createdAt)}</td>
             <td><span class="admin-badge admin-badge--${u.active !== false ? 'active' : 'inactive'}">${u.active !== false ? 'Activo' : 'Inactivo'}</span></td>
           </tr>`).join('')
@@ -591,6 +783,637 @@ async function toggleMemberStatus(btn) {
     btn.disabled    = false;
     btn.textContent = isActive ? 'Desactivar' : 'Activar';
   }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   6.5 ENTITLEMENTS (roles de servicio)
+   ──────────────────────────────────────────────────────
+   Capa separada: NO mezcla User.role ni Collectors Club.
+   Consume data.entitlements de GET /api/user/services.
+   Admin: GET/PATCH bajo /api/admin/entitlements.
+══════════════════════════════════════════════════════ */
+
+const ENT_STATUS_MAP = {
+  active:    { label: 'Activo',     cls: 'service-status--active'    },
+  expired:   { label: 'Expirado',   cls: 'service-status--progress'  },
+  completed: { label: 'Completado', cls: 'service-status--completed' },
+  cancelled: { label: 'Cancelado',  cls: 'service-status--progress'  },
+};
+
+function entStatusBadge(status) {
+  const s = ENT_STATUS_MAP[status] || { label: status || '—', cls: 'service-status--progress' };
+  return `<span class="service-status ${s.cls}">${escapeHTML(s.label)}</span>`;
+}
+
+function entValidityText(e) {
+  if (!e.validUntil) return 'Sin caducidad';
+  const d = new Date(e.validUntil);
+  if (Number.isNaN(d.getTime())) return '—';
+  return `Hasta ${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+}
+
+/* ── Usuario: bloque "Mis roles activos" en Overview ── */
+function renderEntitlements(entitlements, services) {
+  const block  = document.getElementById('entitlementsBlock');
+  const grid   = document.getElementById('entitlementsGrid');
+  const empty  = document.getElementById('entitlementsEmpty');
+  if (!block || !grid || !empty) return;
+
+  /* Admin no tiene roles personales → bloque entero oculto.
+     Consistente con el resolver: para admin nunca se muestra
+     estado vacío de cliente. */
+  if (currentUser && currentUser.role === 'admin') {
+    block.setAttribute('hidden', '');
+    return;
+  }
+  block.removeAttribute('hidden');
+
+  /* Filtrar a los visibles para usuario: nunca mostrar 'cancelled' */
+  const visible = (entitlements || []).filter(e => e.status !== 'cancelled');
+  const isOperational = hasOperationalServiceState(services, entitlements);
+
+  /* Empty del bloque sólo si NO hay nada operativo. Si el usuario tiene
+     servicios pero aún no entitlements (p.ej. solicitud pendiente),
+     ocultamos ambos sub-elementos para evitar mensaje falso. */
+  if (!visible.length) {
+    grid.setAttribute('hidden', '');
+    grid.innerHTML = '';
+    if (isOperational) {
+      empty.setAttribute('hidden', '');
+    } else {
+      empty.removeAttribute('hidden');
+    }
+    return;
+  }
+
+  empty.setAttribute('hidden', '');
+  grid.removeAttribute('hidden');
+  grid.innerHTML = visible.map(buildEntitlementCardHTML).join('');
+}
+
+function buildEntitlementCardHTML(e) {
+  const snap = e.serviceSnapshot || {};
+  // Nombre canónico vía mapa frontend (serviceCode siempre disponible en
+  // entitlements). Fallback: snapshot.name → serviceCode → entitlementKey.
+  const rawName = snap.name || e.serviceCode || e.entitlementKey || 'Servicio';
+  const name    = resolveCanonicalName(e.serviceCode || snap.name, rawName);
+  const granted = e.grantedAt
+    ? new Date(e.grantedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+  return `
+    <div class="entitlement-card dash-card">
+      <div class="entitlement-card-header">
+        <span class="entitlement-key">${escapeHTML(e.entitlementKey || '')}</span>
+        ${entStatusBadge(e.status)}
+      </div>
+      <p class="entitlement-name">${escapeHTML(name)}</p>
+      <div class="entitlement-meta">
+        <span class="entitlement-meta-row"><span class="entitlement-meta-label">Vigencia:</span> ${escapeHTML(entValidityText(e))}</span>
+        <span class="entitlement-meta-row"><span class="entitlement-meta-label">Concedido:</span> ${escapeHTML(granted)}</span>
+      </div>
+    </div>`;
+}
+
+/* ── Admin: sección "Roles de servicio" ── */
+let adminEntitlementsState = { items: [], loading: false };
+
+async function loadAdminEntitlements() {
+  if (currentUser.role !== 'admin') return;
+
+  const tbody = document.getElementById('entitlementsTableBody');
+  if (!tbody) return;
+
+  const statusSel   = document.getElementById('entFilterStatus');
+  const categorySel = document.getElementById('entFilterCategory');
+  const q = new URLSearchParams();
+  if (statusSel && statusSel.value)     q.set('status',   statusSel.value);
+  if (categorySel && categorySel.value) q.set('category', categorySel.value);
+  const qs = q.toString();
+
+  adminEntitlementsState.loading = true;
+  tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="7">Cargando roles de servicio…</td></tr>';
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/entitlements${qs ? `?${qs}` : ''}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const items = Array.isArray(data.entitlements) ? data.entitlements : [];
+    adminEntitlementsState.items = items;
+    renderAdminEntitlementsStats(items);
+    renderAdminEntitlementsTable(items);
+  } catch (err) {
+    console.error('[adminEntitlements] error:', err);
+    tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="7">Error al cargar roles de servicio.</td></tr>';
+    setText('entStatActive',    '—');
+    setText('entStatExpired',   '—');
+    setText('entStatCompleted', '—');
+    setText('entStatCancelled', '—');
+  } finally {
+    adminEntitlementsState.loading = false;
+  }
+}
+
+function renderAdminEntitlementsStats(items) {
+  const count = (st) => items.filter(e => e.status === st).length;
+  setText('entStatActive',    String(count('active')));
+  setText('entStatExpired',   String(count('expired')));
+  setText('entStatCompleted', String(count('completed')));
+  setText('entStatCancelled', String(count('cancelled')));
+}
+
+function renderAdminEntitlementsTable(items) {
+  const tbody = document.getElementById('entitlementsTableBody');
+  if (!tbody) return;
+
+  if (!items.length) {
+    tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="7">No hay roles de servicio que coincidan con el filtro.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = items.map(e => {
+    const snap = e.serviceSnapshot || {};
+    const userLabel = e.user
+      ? `${escapeHTML(e.user.username || e.user.email || '—')}<br><span class="admin-cell-sub">${escapeHTML(e.user.email || '')}</span>`
+      : '<span class="admin-cell-sub">—</span>';
+    const grantedAt = formatDate(e.grantedAt);
+    const validity  = entValidityText(e);
+    const isTerminal = ['expired', 'completed', 'cancelled'].includes(e.status);
+    const actions = isTerminal
+      ? '<span class="admin-cell-sub">—</span>'
+      : `
+        <button class="btn-admin-toggle" data-ent-action="complete" data-ent-id="${escapeHTML(e.id)}">Completar</button>
+        <button class="btn-admin-toggle" data-ent-action="revoke"   data-ent-id="${escapeHTML(e.id)}">Revocar</button>
+      `;
+    return `
+      <tr>
+        <td>${userLabel}</td>
+        <td><span class="admin-badge admin-badge--user">${escapeHTML(e.entitlementKey || '')}</span></td>
+        <td>${escapeHTML(resolveCanonicalName(e.serviceCode || snap.name, snap.name || e.serviceCode || '—'))}<br><span class="admin-cell-sub">${escapeHTML(e.category || '')}</span></td>
+        <td>${entStatusBadge(e.status)}</td>
+        <td>${escapeHTML(validity)}</td>
+        <td>${escapeHTML(grantedAt)}</td>
+        <td class="admin-actions-cell">${actions}</td>
+      </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('[data-ent-action]').forEach(btn => {
+    btn.addEventListener('click', () => handleEntitlementAction(btn));
+  });
+}
+
+async function handleEntitlementAction(btn) {
+  const id     = btn.getAttribute('data-ent-id');
+  const action = btn.getAttribute('data-ent-action');
+  if (!id || !action) return;
+
+  let url, body = null;
+  if (action === 'revoke') {
+    const reason = window.prompt('Motivo de la revocación (opcional):', '') || '';
+    url = `${API_BASE}/admin/entitlements/${encodeURIComponent(id)}/revoke`;
+    body = JSON.stringify({ reason });
+  } else if (action === 'complete') {
+    if (!window.confirm('¿Marcar este rol como completado?')) return;
+    url = `${API_BASE}/admin/entitlements/${encodeURIComponent(id)}/complete`;
+  } else {
+    return;
+  }
+
+  btn.disabled = true;
+  try {
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization:  `Bearer ${localStorage.getItem('token')}`,
+      },
+      body,
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || `HTTP ${res.status}`);
+    }
+    await loadAdminEntitlements();
+  } catch (err) {
+    console.error('[adminEntitlements] action error:', err);
+    window.alert(`No se pudo ${action === 'revoke' ? 'revocar' : 'completar'}: ${err.message}`);
+    btn.disabled = false;
+  }
+}
+
+function initAdminEntitlementsListeners() {
+  document.getElementById('btnRefreshEntitlements')?.addEventListener('click', () => loadAdminEntitlements());
+  document.getElementById('entFilterStatus')?.addEventListener('change',       () => loadAdminEntitlements());
+  document.getElementById('entFilterCategory')?.addEventListener('change',     () => loadAdminEntitlements());
+}
+
+
+/* ══════════════════════════════════════════════════════
+   6.6 ADMIN — SOLICITUDES (PLAN + SERVICIOS)
+   ──────────────────────────────────────────────────────
+   Visibilidad y ciclo de vida de las requests recibidas.
+   Endpoints:
+     GET   /api/admin/plans
+     PATCH /api/admin/plans/:id/{approve|reject|complete}
+     GET   /api/admin/service-requests
+     PATCH /api/admin/service-requests/:id/{approve|reject|complete}
+   Sólo se ejecuta si currentUser.role === 'admin'.
+══════════════════════════════════════════════════════ */
+
+const PLAN_REQ_STATUS_MAP = {
+  pending:   { label: 'Pendiente',  cls: 'service-status--progress'  },
+  active:    { label: 'Aprobada',   cls: 'service-status--active'    },
+  completed: { label: 'Completada', cls: 'service-status--completed' },
+  rejected:  { label: 'Rechazada',  cls: 'service-status--progress'  },
+  cancelled: { label: 'Cancelada',  cls: 'service-status--progress'  },
+  expired:   { label: 'Expirada',   cls: 'service-status--progress'  },
+};
+
+const SVC_REQ_STATUS_MAP = {
+  pending:   { label: 'Pendiente',  cls: 'service-status--progress'  },
+  approved:  { label: 'Aprobada',   cls: 'service-status--active'    },
+  completed: { label: 'Completada', cls: 'service-status--completed' },
+  rejected:  { label: 'Rechazada',  cls: 'service-status--progress'  },
+  cancelled: { label: 'Cancelada',  cls: 'service-status--progress'  },
+};
+
+function _reqStatusBadge(status, map) {
+  const s = map[status] || { label: status || '—', cls: 'service-status--progress' };
+  return `<span class="service-status ${s.cls}">${escapeHTML(s.label)}</span>`;
+}
+
+function _reqUserCell(r) {
+  if (!r.user) return '<span class="admin-cell-sub">—</span>';
+  const main = escapeHTML(r.user.username || r.user.email || '—');
+  const sub  = r.user.email ? `<br><span class="admin-cell-sub">${escapeHTML(r.user.email)}</span>` : '';
+  return `${main}${sub}`;
+}
+
+/**
+ * Formato canónico de precio mostrado en tablas admin.
+ * IDÉNTICO al `formatCatalogPrice` del backend (UserController.js) para que
+ * el admin vea EXACTAMENTE el mismo string que el usuario en /servicios y en
+ * "Mis Servicios".  "€1.800", "€8.500 / temporada", "€15.000 / año".
+ */
+function _formatCatalogPrice(price, currency, interval) {
+  if (price === undefined || price === null || price === '') return '';
+  let numFmt;
+  try {
+    numFmt = new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: currency || 'EUR',
+      maximumFractionDigits: 0,
+    });
+  } catch { return `${price} ${currency || ''}`.trim(); }
+  const base = numFmt.format(price);
+  const INTERVAL_LABEL = { season: 'temporada', year: 'año', month: 'mes', project: null };
+  const label = interval
+    ? (INTERVAL_LABEL[interval] !== undefined ? INTERVAL_LABEL[interval] : interval)
+    : null;
+  return label ? `${base} / ${label}` : base;
+}
+
+/** Línea masked card · brand · holder. Vacía si no hay pago vinculado. */
+function _reqPaymentLine(r) {
+  const p = r.paymentSnapshot;
+  if (!p || !p.last4) return '';
+  const brand = String(p.brand || 'card').toUpperCase();
+  const last4 = String(p.last4).padStart(4, '•');
+  const holder = (p.holder || '').trim();
+  const holderTxt = holder ? ` · ${escapeHTML(holder)}` : '';
+  return `<br><span class="admin-cell-sub admin-cell-sub--pay">💳 ${escapeHTML(brand)} •••• ${escapeHTML(last4)}${holderTxt}</span>`;
+}
+
+function _reqNotesCell(r) {
+  const userNotes  = (r.notes || '').trim();
+  const adminNotes = (r.adminNotes || '').trim();
+  const parts = [];
+  if (userNotes)  parts.push(`<span class="admin-cell-sub">${escapeHTML(userNotes.slice(0, 140))}${userNotes.length > 140 ? '…' : ''}</span>`);
+  if (adminNotes) parts.push(`<span class="admin-cell-sub admin-cell-sub--admin">↳ ${escapeHTML(adminNotes.slice(0, 100))}${adminNotes.length > 100 ? '…' : ''}</span>`);
+  return parts.length ? parts.join('<br>') : '<span class="admin-cell-sub">—</span>';
+}
+
+/* ── State ── */
+const adminRequestsState = {
+  plans:    { items: [], loading: false },
+  services: { items: [], loading: false },
+};
+
+/* ────────────────────────────────────────────────────
+   PLAN REQUESTS
+──────────────────────────────────────────────────── */
+async function loadAdminPlanRequests() {
+  if (currentUser.role !== 'admin') return;
+
+  const tbody = document.getElementById('planRequestsTableBody');
+  if (!tbody) return;
+
+  const statusSel = document.getElementById('planReqFilterStatus');
+  const q = new URLSearchParams();
+  if (statusSel && statusSel.value) q.set('status', statusSel.value);
+  const qs = q.toString();
+
+  adminRequestsState.plans.loading = true;
+  tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="6">Cargando solicitudes de planes…</td></tr>';
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/plans${qs ? `?${qs}` : ''}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data  = await res.json();
+    const items = Array.isArray(data.requests) ? data.requests : [];
+    adminRequestsState.plans.items = items;
+    renderPlanRequestsStats(items);
+    renderPlanRequestsTable(items);
+    _updateNavRequestsBadges();
+  } catch (err) {
+    console.error('[adminPlanRequests] error:', err);
+    tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="6">Error al cargar solicitudes de planes.</td></tr>';
+    setText('planReqStatPending',   '—');
+    setText('planReqStatActive',    '—');
+    setText('planReqStatCompleted', '—');
+    setText('planReqStatRejected',  '—');
+  } finally {
+    adminRequestsState.plans.loading = false;
+  }
+}
+
+function renderPlanRequestsStats(items) {
+  const count = (st) => items.filter(r => r.status === st).length;
+  setText('planReqStatPending',   String(count('pending')));
+  setText('planReqStatActive',    String(count('active')));
+  setText('planReqStatCompleted', String(count('completed')));
+  setText('planReqStatRejected',  String(count('rejected')));
+}
+
+function renderPlanRequestsTable(items) {
+  const tbody = document.getElementById('planRequestsTableBody');
+  if (!tbody) return;
+
+  if (!items.length) {
+    tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="6">No hay solicitudes con este filtro.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = items.map((r) => {
+    const snap = r.planSnapshot || {};
+    // Nombre canónico vía mapa frontend (planCode siempre presente en admin).
+    // Fallback: snapshot.name o planCode literal.
+    const displayName = resolveCanonicalName(r.planCode || snap.name, snap.name || r.planCode || '—');
+    const planLabel   = escapeHTML(displayName);
+    // Precio canónico vía mapa frontend.
+    // Fallback: precio formateado desde el snapshot histórico.
+    const snapshotPrice = _formatCatalogPrice(snap.price, snap.currency, snap.interval);
+    const displayPrice  = resolveCanonicalPrice(r.planCode || snap.name, snapshotPrice);
+    const priceLine = displayPrice
+      ? `<br><span class="admin-cell-sub">${escapeHTML(displayPrice)}</span>`
+      : '';
+    const payLine   = _reqPaymentLine(r);
+    const requested = formatDate(r.requestedAt);
+    const actions   = _planRequestActions(r);
+
+    return `
+      <tr>
+        <td>${_reqUserCell(r)}</td>
+        <td>${planLabel}${priceLine}${payLine}</td>
+        <td>${escapeHTML(requested)}</td>
+        <td>${_reqNotesCell(r)}</td>
+        <td>${_reqStatusBadge(r.status, PLAN_REQ_STATUS_MAP)}</td>
+        <td class="admin-actions-cell">${actions}</td>
+      </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('[data-plan-req-action]').forEach((btn) => {
+    btn.addEventListener('click', () => handlePlanRequestAction(btn));
+  });
+}
+
+function _planRequestActions(r) {
+  if (r.status === 'pending') {
+    return `
+      <button class="btn-admin-toggle" data-plan-req-action="approve" data-plan-req-id="${escapeHTML(r.id)}">Aprobar</button>
+      <button class="btn-admin-toggle" data-plan-req-action="reject"  data-plan-req-id="${escapeHTML(r.id)}">Rechazar</button>
+    `;
+  }
+  if (r.status === 'active') {
+    return `<button class="btn-admin-toggle" data-plan-req-action="complete" data-plan-req-id="${escapeHTML(r.id)}">Marcar completada</button>`;
+  }
+  return '<span class="admin-cell-sub">—</span>';
+}
+
+async function handlePlanRequestAction(btn) {
+  const id     = btn.getAttribute('data-plan-req-id');
+  const action = btn.getAttribute('data-plan-req-action');
+  if (!id || !action) return;
+
+  let url, body = null, confirmMsg;
+  if (action === 'approve') {
+    confirmMsg = '¿Aprobar esta solicitud de plan?';
+    url = `${API_BASE}/admin/plans/${encodeURIComponent(id)}/approve`;
+  } else if (action === 'reject') {
+    const reason = window.prompt('Motivo del rechazo (opcional):', '') || '';
+    url  = `${API_BASE}/admin/plans/${encodeURIComponent(id)}/reject`;
+    body = JSON.stringify({ reason });
+  } else if (action === 'complete') {
+    confirmMsg = '¿Marcar esta solicitud como completada?';
+    url = `${API_BASE}/admin/plans/${encodeURIComponent(id)}/complete`;
+  } else {
+    return;
+  }
+
+  if (confirmMsg && !window.confirm(confirmMsg)) return;
+
+  btn.disabled = true;
+  try {
+    const res = await fetch(url, {
+      method:  'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization:  `Bearer ${localStorage.getItem('token')}`,
+      },
+      body,
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || `HTTP ${res.status}`);
+    }
+    await loadAdminPlanRequests();
+  } catch (err) {
+    console.error('[adminPlanRequests] action error:', err);
+    window.alert(`No se pudo completar la acción: ${err.message}`);
+    btn.disabled = false;
+  }
+}
+
+/* ────────────────────────────────────────────────────
+   SERVICE REQUESTS
+──────────────────────────────────────────────────── */
+async function loadAdminServiceRequests() {
+  if (currentUser.role !== 'admin') return;
+
+  const tbody = document.getElementById('serviceRequestsTableBody');
+  if (!tbody) return;
+
+  const statusSel = document.getElementById('svcReqFilterStatus');
+  const q = new URLSearchParams();
+  if (statusSel && statusSel.value) q.set('status', statusSel.value);
+  const qs = q.toString();
+
+  adminRequestsState.services.loading = true;
+  tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="6">Cargando solicitudes de servicios…</td></tr>';
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/service-requests${qs ? `?${qs}` : ''}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data  = await res.json();
+    const items = Array.isArray(data.requests) ? data.requests : [];
+    adminRequestsState.services.items = items;
+    renderServiceRequestsStats(items);
+    renderServiceRequestsTable(items);
+    _updateNavRequestsBadges();
+  } catch (err) {
+    console.error('[adminServiceRequests] error:', err);
+    tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="6">Error al cargar solicitudes de servicios.</td></tr>';
+    setText('svcReqStatPending',   '—');
+    setText('svcReqStatApproved',  '—');
+    setText('svcReqStatCompleted', '—');
+    setText('svcReqStatRejected',  '—');
+  } finally {
+    adminRequestsState.services.loading = false;
+  }
+}
+
+function renderServiceRequestsStats(items) {
+  const count = (st) => items.filter(r => r.status === st).length;
+  setText('svcReqStatPending',   String(count('pending')));
+  setText('svcReqStatApproved',  String(count('approved')));
+  setText('svcReqStatCompleted', String(count('completed')));
+  setText('svcReqStatRejected',  String(count('rejected')));
+}
+
+function renderServiceRequestsTable(items) {
+  const tbody = document.getElementById('serviceRequestsTableBody');
+  if (!tbody) return;
+
+  if (!items.length) {
+    tbody.innerHTML = '<tr class="admin-table-empty"><td colspan="6">No hay solicitudes con este filtro.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = items.map((r) => {
+    const snap = r.serviceSnapshot || {};
+    // Nombre canónico vía mapa frontend (serviceCode disponible en admin).
+    const displayName = resolveCanonicalName(r.serviceCode || snap.name, snap.name || r.serviceCode || '—');
+    const svcLabel    = escapeHTML(displayName);
+    // Precio canónico vía mapa frontend.
+    const snapshotPrice = _formatCatalogPrice(snap.price, snap.currency, null);
+    const displayPrice  = resolveCanonicalPrice(r.serviceCode || snap.name, snapshotPrice);
+    const subLine   = snap.category || displayPrice
+      ? `<br><span class="admin-cell-sub">${escapeHTML(snap.category || '')}${displayPrice ? ` · ${escapeHTML(displayPrice)}` : ''}</span>`
+      : '';
+    const payLine   = _reqPaymentLine(r);
+    const requested = formatDate(r.requestedAt);
+    const actions   = _serviceRequestActions(r);
+
+    return `
+      <tr>
+        <td>${_reqUserCell(r)}</td>
+        <td>${svcLabel}${subLine}${payLine}</td>
+        <td>${escapeHTML(requested)}</td>
+        <td>${_reqNotesCell(r)}</td>
+        <td>${_reqStatusBadge(r.status, SVC_REQ_STATUS_MAP)}</td>
+        <td class="admin-actions-cell">${actions}</td>
+      </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('[data-svc-req-action]').forEach((btn) => {
+    btn.addEventListener('click', () => handleServiceRequestAction(btn));
+  });
+}
+
+function _serviceRequestActions(r) {
+  if (r.status === 'pending') {
+    return `
+      <button class="btn-admin-toggle" data-svc-req-action="approve" data-svc-req-id="${escapeHTML(r.id)}">Aprobar</button>
+      <button class="btn-admin-toggle" data-svc-req-action="reject"  data-svc-req-id="${escapeHTML(r.id)}">Rechazar</button>
+    `;
+  }
+  if (r.status === 'approved') {
+    return `<button class="btn-admin-toggle" data-svc-req-action="complete" data-svc-req-id="${escapeHTML(r.id)}">Marcar completada</button>`;
+  }
+  return '<span class="admin-cell-sub">—</span>';
+}
+
+async function handleServiceRequestAction(btn) {
+  const id     = btn.getAttribute('data-svc-req-id');
+  const action = btn.getAttribute('data-svc-req-action');
+  if (!id || !action) return;
+
+  let url, body = null, confirmMsg;
+  if (action === 'approve') {
+    confirmMsg = '¿Aprobar esta solicitud? Se generará el rol de servicio asociado.';
+    url = `${API_BASE}/admin/service-requests/${encodeURIComponent(id)}/approve`;
+  } else if (action === 'reject') {
+    const reason = window.prompt('Motivo del rechazo (opcional):', '') || '';
+    url  = `${API_BASE}/admin/service-requests/${encodeURIComponent(id)}/reject`;
+    body = JSON.stringify({ reason });
+  } else if (action === 'complete') {
+    confirmMsg = '¿Marcar esta solicitud como completada?';
+    url = `${API_BASE}/admin/service-requests/${encodeURIComponent(id)}/complete`;
+  } else {
+    return;
+  }
+
+  if (confirmMsg && !window.confirm(confirmMsg)) return;
+
+  btn.disabled = true;
+  try {
+    const res = await fetch(url, {
+      method:  'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization:  `Bearer ${localStorage.getItem('token')}`,
+      },
+      body,
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || `HTTP ${res.status}`);
+    }
+    await loadAdminServiceRequests();
+    // Refrescar también entitlements porque approve crea uno nuevo.
+    if (action === 'approve') loadAdminEntitlements();
+  } catch (err) {
+    console.error('[adminServiceRequests] action error:', err);
+    window.alert(`No se pudo completar la acción: ${err.message}`);
+    btn.disabled = false;
+  }
+}
+
+/* ────────────────────────────────────────────────────
+   Badges del sidebar — solicitudes pendientes
+──────────────────────────────────────────────────── */
+function _updateNavRequestsBadges() {
+  const planPending = adminRequestsState.plans.items.filter(r => r.status === 'pending').length;
+  const svcPending  = adminRequestsState.services.items.filter(r => r.status === 'pending').length;
+
+  const planBadge = document.getElementById('navPlanRequestsCount');
+  if (planBadge) planBadge.textContent = String(planPending);
+
+  const svcBadge = document.getElementById('navServiceRequestsCount');
+  if (svcBadge) svcBadge.textContent = String(svcPending);
+}
+
+function initAdminRequestsListeners() {
+  document.getElementById('btnRefreshPlanRequests')?.addEventListener('click',    () => loadAdminPlanRequests());
+  document.getElementById('planReqFilterStatus')   ?.addEventListener('change',   () => loadAdminPlanRequests());
+  document.getElementById('btnRefreshServiceRequests')?.addEventListener('click', () => loadAdminServiceRequests());
+  document.getElementById('svcReqFilterStatus')    ?.addEventListener('change',   () => loadAdminServiceRequests());
 }
 
 
@@ -1061,17 +1884,18 @@ function _fmtFull(dateStr) {
 
 
 window.addEventListener('DOMContentLoaded', async () => {
-  /* Re-aplicar visibilidad de rol al estar el DOM completamente cargado */
-  applyRoleVisibility();
+  /* 1. Identidad autoritativa desde /api/me ANTES de cualquier render
+        dependiente de rol (admin nav, secciones admin, etc.). */
+  await loadUser();
 
-  /* Animación de entrada */
+  /* 2. Animación de entrada */
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       document.getElementById('dashRoot')?.classList.add('is-ready');
     });
   });
 
-  /* Cargar datos en paralelo */
+  /* 3. Cargar datos en paralelo (ahora con el rol ya resuelto en MongoDB) */
   await Promise.allSettled([
     loadServices(),
     loadMembership(),
@@ -1079,7 +1903,95 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadUserOverviewData(),
     loadSubscriptionActions(),
   ]);
+
+  /* 4. Form de cambio de contraseña — listener único */
+  initPasswordForm();
 });
+
+/* ══════════════════════════════════════════════════════
+   SEGURIDAD — Cambio de contraseña
+   PATCH /api/user/password  { currentPassword, newPassword }
+══════════════════════════════════════════════════════ */
+function initPasswordForm() {
+  const form = document.getElementById('passwordForm');
+  if (!form) return;
+
+  const inputCurrent = document.getElementById('pwdCurrent');
+  const inputNew     = document.getElementById('pwdNew');
+  const inputConfirm = document.getElementById('pwdConfirm');
+  const submitBtn    = document.getElementById('pwdSubmit');
+  const feedback     = document.getElementById('pwdFeedback');
+
+  function setFeedback(message, kind) {
+    if (!feedback) return;
+    if (!message) {
+      feedback.hidden = true;
+      feedback.textContent = '';
+      feedback.classList.remove('is-success', 'is-error');
+      return;
+    }
+    feedback.hidden = false;
+    feedback.textContent = message;
+    feedback.classList.toggle('is-success', kind === 'success');
+    feedback.classList.toggle('is-error',   kind === 'error');
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setFeedback('', null);
+
+    const currentPassword = (inputCurrent?.value || '').trim();
+    const newPassword     = (inputNew?.value     || '').trim();
+    const confirmPassword = (inputConfirm?.value || '').trim();
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setFeedback('Completa todos los campos.', 'error');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setFeedback('La nueva contraseña debe tener al menos 6 caracteres.', 'error');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setFeedback('La nueva contraseña y su confirmación no coinciden.', 'error');
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setFeedback('La nueva contraseña debe ser distinta de la actual.', 'error');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = 'Guardando…';
+    [inputCurrent, inputNew, inputConfirm].forEach((el) => { if (el) el.disabled = true; });
+
+    try {
+      const res = await fetch(`${API_BASE}/user/password`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setFeedback(data.error || `No se pudo actualizar la contraseña (HTTP ${res.status}).`, 'error');
+        return;
+      }
+
+      setFeedback(data.message || 'Contraseña actualizada correctamente.', 'success');
+      form.reset();
+    } catch (err) {
+      console.error('[security] changePassword error:', err);
+      setFeedback('Error de conexión. Inténtalo de nuevo.', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalLabel;
+      [inputCurrent, inputNew, inputConfirm].forEach((el) => { if (el) el.disabled = false; });
+    }
+  });
+}
 
 /* ── Utilidades ── */
 function escapeHTML(str) {
@@ -1186,7 +2098,7 @@ function renderAdminOverviewUsers(errorMessage = '') {
           </div>
         </td>
         <td>${escapeHTML(user.email || '—')}</td>
-        <td><span class="admin-overview-chip ${user.role === 'admin' ? 'admin-overview-chip--admin' : 'admin-overview-chip--user'}">${escapeHTML(user.role || 'user')}</span></td>
+        <td><span class="admin-overview-chip ${user.role === 'admin' ? 'admin-overview-chip--admin' : 'admin-overview-chip--user'}">${escapeHTML(user.role || 'client')}</span></td>
         <td>${messageState}</td>
       </tr>`;
   }).join('');
@@ -1232,7 +2144,7 @@ function renderAdminOverviewDetail() {
     <div class="admin-overview-detail__grid">
       <div class="admin-overview-detail__item">
         <span class="admin-overview-detail__label">Rol</span>
-        <span class="admin-overview-detail__value">${escapeHTML(user.role || 'user')}</span>
+        <span class="admin-overview-detail__value">${escapeHTML(user.role || 'client')}</span>
       </div>
       <div class="admin-overview-detail__item">
         <span class="admin-overview-detail__label">Mensajes pendientes</span>
@@ -1325,7 +2237,7 @@ function _buildUserItem(u) {
         <span class="inbox-item-avatar">${escapeHTML(initial)}</span>
         <div class="inbox-user-meta">
           <span class="inbox-user-email">${escapeHTML(u.userEmail || '—')}</span>
-          <span class="inbox-user-role">${escapeHTML(u.role || 'user')}</span>
+          <span class="inbox-user-role">${escapeHTML(u.role || 'client')}</span>
         </div>
       </div>
       <div class="inbox-user-right">
@@ -1719,7 +2631,7 @@ function renderAdminOverviewUsers(errorMessage = '') {
             </div>
           </td>
           <td>${escapeHTML(user.email || '—')}</td>
-          <td><span class="admin-overview-chip ${user.role === 'admin' ? 'admin-overview-chip--admin' : 'admin-overview-chip--user'}">${escapeHTML(user.role || 'user')}</span></td>
+          <td><span class="admin-overview-chip ${user.role === 'admin' ? 'admin-overview-chip--admin' : 'admin-overview-chip--user'}">${escapeHTML(user.role || 'client')}</span></td>
           <td>${messageState}</td>
         </tr>`;
     }).join('');
@@ -1736,7 +2648,14 @@ function renderAdminOverviewUsers(errorMessage = '') {
     return;
   }
 
+  /* ──────────────────────────────────────────────────────
+     Render cliente: inbox compacto con expansión INLINE.
+     Sin panel detalle aparte — la fila se abre dentro
+     de la propia tabla mostrando el hilo cacheado.
+     ────────────────────────────────────────────────────── */
   const messages = adminOverviewState.userMessages;
+  body.classList.add('is-client-inbox');
+
   if (errorMessage) {
     body.innerHTML = `<tr class="admin-overview-empty-row"><td colspan="3">${escapeHTML(errorMessage)}</td></tr>`;
     return;
@@ -1747,45 +2666,130 @@ function renderAdminOverviewUsers(errorMessage = '') {
     return;
   }
 
-  if (!adminOverviewState.selectedMessageId) {
-    adminOverviewState.selectedMessageId = String(messages[0].id || '');
-  }
+  // Por defecto NADA expandido — el usuario decide al pulsar.
+  const expandedId = String(adminOverviewState.selectedMessageId || '');
+  const anyExpanded = Boolean(expandedId);
 
   body.innerHTML = messages.map((item) => {
-    const messageId = String(item.id || '');
+    const messageId   = String(item.id || '');
+    const isExpanded  = messageId === expandedId;
+    const isDimmed    = anyExpanded && !isExpanded;
     const statusClass = item.responded ? 'admin-overview-chip--responded' : 'admin-overview-chip--pending';
     const statusLabel = item.responded ? 'Respondido' : 'Sin responder';
+    const hint        = item.responded ? 'Respuesta disponible · pulsa para abrir' : 'Pendiente de respuesta · pulsa para abrir';
+
+    const rowClasses = [
+      'admin-overview-row',
+      'client-inbox-row',
+      isExpanded ? 'is-expanded' : '',
+      isDimmed   ? 'is-dimmed'   : '',
+    ].filter(Boolean).join(' ');
 
     return `
-      <tr class="admin-overview-row ${adminOverviewState.selectedMessageId === messageId ? 'is-selected' : ''}" data-user-message-id="${escapeHTML(messageId)}">
+      <tr class="${rowClasses}" data-user-message-id="${escapeHTML(messageId)}">
         <td>
-          <div class="admin-overview-user admin-overview-user--message">
-            <div class="admin-overview-user__meta">
-              <span class="admin-overview-user__name">${escapeHTML(truncateText(item.preview || 'Mensaje sin contenido', 72))}</span>
-              <span class="admin-overview-user__hint">${item.responded ? 'Respuesta disponible' : 'Pendiente de respuesta'}</span>
-            </div>
+          <div class="client-inbox-row__msg">
+            <span class="client-inbox-row__preview">${escapeHTML(truncateText(item.preview || 'Mensaje sin contenido', 88))}</span>
+            <span class="client-inbox-row__hint">${escapeHTML(hint)}</span>
           </div>
         </td>
-        <td>${escapeHTML(formatDate(item.fecha))}</td>
+        <td class="client-inbox-row__date">${escapeHTML(formatDate(item.fecha))}</td>
         <td><span class="admin-overview-chip ${statusClass}">${statusLabel}</span></td>
+      </tr>
+      <tr class="client-inbox-thread-row ${isDimmed ? 'is-dimmed' : ''}" data-thread-for="${escapeHTML(messageId)}" ${isExpanded ? '' : 'hidden'}>
+        <td colspan="3">
+          <div class="client-inbox-thread" data-thread-content="${escapeHTML(messageId)}">
+            ${isExpanded ? '<div class="client-inbox-thread__loading">Cargando…</div>' : ''}
+          </div>
+        </td>
       </tr>`;
   }).join('');
 
   body.querySelectorAll('[data-user-message-id]').forEach((row) => {
-    row.addEventListener('click', () => {
-      adminOverviewState.selectedMessageId = row.dataset.userMessageId;
-      renderAdminOverviewUsers();
-      renderAdminOverviewDetail();
-    });
+    row.addEventListener('click', () => toggleClientInboxThread(row.dataset.userMessageId));
   });
 
-  renderAdminOverviewDetail();
+  // Si había uno expandido, cargar (o repintar desde cache) su contenido.
+  if (expandedId) loadClientInboxThread(expandedId);
+}
+
+/* ── Toggle expansión inline (cliente) ── */
+function toggleClientInboxThread(messageId) {
+  const id      = String(messageId || '');
+  const current = String(adminOverviewState.selectedMessageId || '');
+  adminOverviewState.selectedMessageId = (current === id) ? null : id;
+  renderAdminOverviewUsers();
+}
+
+/* ── Carga del hilo (con cache) y render dentro de la fila expandida ── */
+adminOverviewState.threadsCache = adminOverviewState.threadsCache || {};
+
+async function loadClientInboxThread(messageId) {
+  const target = document.querySelector(`[data-thread-content="${cssEscape(messageId)}"]`);
+  if (!target) return;
+
+  const cached = adminOverviewState.threadsCache[messageId];
+  if (cached) {
+    target.innerHTML = buildClientInboxThreadHTML(cached);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/messages/me/${messageId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const thread = data.thread || null;
+    if (!thread) throw new Error('empty');
+    adminOverviewState.threadsCache[messageId] = thread;
+    target.innerHTML = buildClientInboxThreadHTML(thread);
+  } catch (err) {
+    console.error('[clientInbox] thread load error:', err.message);
+    target.innerHTML = '<div class="client-inbox-thread__error">No se pudo cargar el mensaje.</div>';
+  }
+}
+
+function buildClientInboxThreadHTML(thread) {
+  const responses = Array.isArray(thread.responses) ? thread.responses : [];
+  const repliesHTML = responses.length
+    ? responses.map((r) => `
+        <div class="client-inbox-thread__reply">
+          <div class="client-inbox-thread__head">
+            <span class="client-inbox-thread__author">Respuesta del estudio</span>
+            <span class="client-inbox-thread__time">${escapeHTML(formatDate(r.fecha))}</span>
+          </div>
+          <p class="client-inbox-thread__body">${escapeHTML(r.mensaje || '—')}</p>
+        </div>`).join('')
+    : '<div class="client-inbox-thread__pending">Aún sin respuesta.</div>';
+
+  return `
+    <div class="client-inbox-thread__mine">
+      <div class="client-inbox-thread__head">
+        <span class="client-inbox-thread__author">Tu mensaje</span>
+        <span class="client-inbox-thread__time">${escapeHTML(formatDate(thread.fecha))}</span>
+      </div>
+      <p class="client-inbox-thread__body">${escapeHTML(thread.mensaje || '—')}</p>
+    </div>
+    ${repliesHTML}`;
+}
+
+/* Util: CSS.escape polyfill mínimo para IDs Mongo (a-z0-9). */
+function cssEscape(value) {
+  if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value);
+  return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
 }
 
 async function renderAdminOverviewDetail() {
   const emptyEl = document.getElementById('adminOverviewDetailEmpty');
   const detailEl = document.getElementById('adminOverviewDetail');
   if (!emptyEl || !detailEl) return;
+
+  /* Cliente: el panel inferior se ha eliminado a favor de la
+     expansión inline. No hay nada que renderizar aquí. */
+  if (currentUser.role !== 'admin') {
+    return;
+  }
 
   if (currentUser.role === 'admin') {
     const selectedId = String(adminOverviewState.selectedUserId || '');
@@ -1813,7 +2817,7 @@ async function renderAdminOverviewDetail() {
       <div class="admin-overview-detail__grid">
         <div class="admin-overview-detail__item">
           <span class="admin-overview-detail__label">Rol</span>
-          <span class="admin-overview-detail__value">${escapeHTML(user.role || 'user')}</span>
+          <span class="admin-overview-detail__value">${escapeHTML(user.role || 'client')}</span>
         </div>
         <div class="admin-overview-detail__item">
           <span class="admin-overview-detail__label">Mensajes pendientes</span>

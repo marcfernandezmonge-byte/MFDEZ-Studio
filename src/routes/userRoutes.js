@@ -18,6 +18,10 @@ const ctrl = require('../controller/UserController');
 
 const router = Router();
 
+// ── Identidad autenticada ────────────────────────────────────────
+// GET /api/me — fuente única de verdad para rol del usuario en el frontend.
+router.get('/me', requireAuth, ctrl.getMe);
+
 // ── Usuario autenticado ──────────────────────────────────────────
 // GET /api/user/services
 router.get('/user/services', requireAuth, ctrl.getServices);
@@ -37,6 +41,9 @@ router.post('/user/cancel-subscription', requireAuth, ctrl.cancelSubscription);
 
 // DELETE /api/user/delete-account
 router.delete('/user/delete-account', requireAuth, ctrl.deleteAccount);
+
+// PATCH /api/user/password — cambio de contraseña del usuario autenticado
+router.patch('/user/password', requireAuth, ctrl.changePassword);
 
 // ── Admin ────────────────────────────────────────────────────────
 // GET /api/admin/users

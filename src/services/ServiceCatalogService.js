@@ -13,6 +13,8 @@
 
 const serviceCatalogRepository = require('../repository/ServiceCatalogRepository');
 const serviceRequestRepository = require('../repository/ServiceRequestRepository');
+const entitlementService       = require('./EntitlementService');
+const paymentService           = require('./PaymentService');
 
 class ServiceCatalogService {
 
@@ -26,7 +28,7 @@ class ServiceCatalogService {
     return { requests };
   }
 
-  async requestService(userId, { serviceId, serviceCode, notes } = {}) {
+  async requestService(userId, { serviceId, serviceCode, notes, card } = {}) {
     if (!userId) throw new Error('Usuario no autenticado');
 
     let service = null;
@@ -37,6 +39,22 @@ class ServiceCatalogService {
       const err = new Error('Servicio no encontrado');
       err.status = 404;
       throw err;
+    }
+
+    // Paso de pago (SIMULADO). Si el frontend envía `card`, validamos y
+    // creamos un Payment confirmado ANTES de la request. Compatible con
+    // peticiones legacy sin card (queda paymentId=null).
+    let payment = null;
+    if (card && typeof card === 'object') {
+      const result = await paymentService.simulateCharge({
+        userId,
+        purpose: 'service_request',
+        card,
+        amount: Number.isFinite(service.price) ? Number(service.price) : 0,
+        currency: service.currency || 'EUR',
+        meta: { serviceCode: service.code, serviceId: service.id, intent: 'request' },
+      });
+      payment = result.payment;
     }
 
     const created = await serviceRequestRepository.create({
@@ -50,9 +68,11 @@ class ServiceCatalogService {
         category: service.category,
       },
       notes,
+      paymentId:       payment ? payment.id : null,
+      paymentSnapshot: payment ? { ...payment.card, status: payment.status, amount: payment.amount, currency: payment.currency } : null,
     });
 
-    return { request: created };
+    return { request: created, payment };
   }
 
   async listAllRequests({ status } = {}) {
@@ -60,7 +80,7 @@ class ServiceCatalogService {
     return { requests };
   }
 
-  async approveRequest(requestId, { adminId } = {}) {
+  async approveRequest(requestId, { adminId, adminNotes } = {}) {
     const existing = await serviceRequestRepository.findById(requestId);
     if (!existing) {
       const err = new Error('Solicitud no encontrada');
@@ -72,23 +92,53 @@ class ServiceCatalogService {
       err.status = 409;
       throw err;
     }
-    const updated = await serviceRequestRepository.approve(requestId, { adminId });
+    const updated = await serviceRequestRepository.approve(requestId, { adminId, adminNotes });
+
+    // Materializa el entitlement asociado. Si falla (BD intermitente, etc.),
+    // la aprobación NO se revierte — se expone el warning y queda disponible
+    // el endpoint de reintento admin (ver EntitlementController fase 2/3).
+    let entitlement     = null;
+    let entitlementWarn = null;
+    try {
+      entitlement = await entitlementService.grantFromRequest(updated, { adminId });
+    } catch (err) {
+      console.error('[ServiceCatalogService] grantFromRequest →', err.message);
+      entitlementWarn = err.message;
+    }
+
+    return { request: updated, entitlement, entitlementWarn };
+  }
+
+  async rejectRequest(requestId, { adminId, reason, adminNotes } = {}) {
+    const existing = await serviceRequestRepository.findById(requestId);
+    if (!existing) {
+      const err = new Error('Solicitud no encontrada');
+      err.status = 404;
+      throw err;
+    }
+    if (existing.status !== 'pending') {
+      const err = new Error(`La solicitud ya está en estado "${existing.status}"`);
+      err.status = 409;
+      throw err;
+    }
+    const updated = await serviceRequestRepository.reject(requestId, { adminId, reason, adminNotes });
     return { request: updated };
   }
 
-  async rejectRequest(requestId, { adminId, reason } = {}) {
+  /** Admin: marcar como completada (desde approved o pending). */
+  async completeRequest(requestId, { adminId, adminNotes } = {}) {
     const existing = await serviceRequestRepository.findById(requestId);
     if (!existing) {
       const err = new Error('Solicitud no encontrada');
       err.status = 404;
       throw err;
     }
-    if (existing.status !== 'pending') {
-      const err = new Error(`La solicitud ya está en estado "${existing.status}"`);
+    if (!['approved', 'pending'].includes(existing.status)) {
+      const err = new Error(`No se puede completar una solicitud en estado "${existing.status}"`);
       err.status = 409;
       throw err;
     }
-    const updated = await serviceRequestRepository.reject(requestId, { adminId, reason });
+    const updated = await serviceRequestRepository.complete(requestId, { adminId, adminNotes });
     return { request: updated };
   }
 }

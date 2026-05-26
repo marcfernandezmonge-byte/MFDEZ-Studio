@@ -336,6 +336,7 @@ ul { list-style: none; }
   align-items: stretch;
 }
 
+.dash-card[hidden] { display: none !important; }
 .dash-card {
   display: flex;
   flex-direction: column;
@@ -411,6 +412,32 @@ ul { list-style: none; }
   width: 100% !important;
 }
 
+/* ── Cliente: comunicación integrada en el overview ─────────────────
+   Apila lista de mensajes + hilo en columna; sin grid agresivo.
+   Hereda los estilos premium de admin-overview-panel pero respira
+   con el resto de la página. */
+.admin-overview-shell.is-client-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+.admin-overview-shell.is-client-layout .admin-overview-panel--users {
+  margin-top: 0;
+  min-height: 220px;
+}
+.admin-overview-shell.is-client-layout .admin-overview-panel--detail {
+  margin-top: 0;
+  position: static;       /* sin sticky cuando está apilado */
+  min-height: 0;
+}
+/* Cuando el cliente NO tiene un mensaje seleccionado, el detalle se
+   colapsa visualmente: el placeholder se muestra suave dentro del
+   propio panel sin pelearse por altura. */
+.admin-overview-shell.is-client-layout .admin-overview-panel--detail:has(#adminOverviewDetail[hidden]) {
+  min-height: 0;
+}
+
 .admin-overview-main {
   display: flex;
   flex-direction: column;
@@ -444,6 +471,9 @@ ul { list-style: none; }
   position: sticky;
   top: 0;
 }
+.admin-overview-panel[hidden],
+.admin-overview-panel--users[hidden],
+.admin-overview-panel--detail[hidden] { display: none !important; }
 
 .admin-overview-table-wrap {
   flex: 1;
@@ -451,6 +481,14 @@ ul { list-style: none; }
   overflow: auto;
   border: none;
   border-radius: 0;
+  background: transparent;
+}
+
+/* Separadores tabulares — SOLO admin.
+   El layout admin es un grid de gestión multi-columna y esas líneas
+   ayudan a leer las celdas. En cliente el overview es conversacional,
+   no tabular, así que esos divisores no deben aparecer nunca. */
+.is-admin-layout .admin-overview-table-wrap {
   background:
     linear-gradient(rgba(255,255,255,0.18), rgba(255,255,255,0.18)) top 36px left 0 / 100% 1px no-repeat,
     linear-gradient(rgba(255,255,255,0.18), rgba(255,255,255,0.18)) top 0 left 25% / 1px 100% no-repeat,
@@ -580,6 +618,146 @@ ul { list-style: none; }
   min-height: 0;
 }
 
+/* ══════════════════════════════════════════════════
+   CLIENT INBOX — overview integrado con expansión inline
+   ──────────────────────────────────────────────────
+   Reemplaza el panel de detalle inferior (eliminado para
+   clientes) por una expansión dentro de la propia fila.
+   Tono editorial — sin animación agresiva, sin "ticket SaaS".
+   ══════════════════════════════════════════════════ */
+
+/* Filas base del inbox cliente — más respiración que las admin */
+.client-inbox-row {
+  cursor: pointer;
+  transition:
+    background .22s var(--ease-smooth),
+    opacity    .22s var(--ease-smooth),
+    box-shadow .26s var(--ease-smooth);
+}
+
+.client-inbox-row > td { vertical-align: middle; padding-top: 14px; padding-bottom: 14px; }
+
+.client-inbox-row__msg {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.client-inbox-row__preview {
+  font-family: 'Syne', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.client-inbox-row__hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.client-inbox-row__date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Estado expandido: elevación sutil, surface algo más clara */
+.client-inbox-row.is-expanded {
+  background: linear-gradient(180deg, rgba(0,143,245,0.07) 0%, rgba(0,143,245,0.02) 100%);
+  box-shadow:
+    inset 2px 0 0 var(--color-accent),
+    0 1px 0 rgba(255,255,255,0.04);
+}
+.client-inbox-row.is-expanded .client-inbox-row__preview { color: #fff; }
+
+/* Otras filas atenuadas cuando una está abierta */
+.client-inbox-row.is-dimmed,
+.client-inbox-thread-row.is-dimmed { opacity: 0.42; }
+.client-inbox-row.is-dimmed:hover { opacity: 0.72; }
+
+/* Fila contenedora del hilo (sibling tr) — sin separador visual propio */
+.client-inbox-thread-row > td {
+  padding: 0;
+  background: rgba(0,143,245,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.client-inbox-thread-row[hidden] { display: none; }
+
+/* Caja del hilo — composición editorial, dos columnas conversacionales */
+.client-inbox-thread {
+  padding: 18px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: clientInboxFadeIn 220ms var(--ease-smooth) both;
+}
+@keyframes clientInboxFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.client-inbox-thread__mine,
+.client-inbox-thread__reply {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+  max-width: 640px;
+}
+.client-inbox-thread__mine {
+  align-self: flex-end;
+  background: rgba(0,143,245,0.06);
+  border-color: rgba(0,143,245,0.14);
+}
+.client-inbox-thread__reply {
+  align-self: flex-start;
+}
+
+.client-inbox-thread__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.client-inbox-thread__author {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.client-inbox-thread__time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.client-inbox-thread__body {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.client-inbox-thread__pending,
+.client-inbox-thread__loading,
+.client-inbox-thread__error {
+  align-self: flex-start;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 8px 4px;
+}
+.client-inbox-thread__error { color: var(--color-red, #f87272); }
+
 .admin-overview-detail-empty {
   display: flex;
   align-items: center;
@@ -706,6 +884,8 @@ ul { list-style: none; }
   display: flex; flex-direction: column; align-items: center;
   text-align: center; gap: 12px; padding: 60px 24px; max-width: 380px; margin: 0 auto;
 }
+.services-empty[hidden],
+.services-list[hidden] { display: none !important; }
 .empty-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); color: var(--text-muted); }
 .empty-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.03em; color: var(--text-primary); }
 .empty-desc { font-size: 13px; font-weight: 300; color: var(--text-secondary); line-height: 1.6; }
@@ -892,6 +1072,102 @@ ul { list-style: none; }
 .btn-admin-toggle:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.15); color: var(--text-primary); }
 
 /* ══════════════════════════════════════════════════
+   SEGURIDAD — Cambio de contraseña
+   ──────────────────────────────────────────────────
+   Panel privado mínimo. Glass coherente con el resto
+   del dashboard, sin decoración superflua.
+══════════════════════════════════════════════════ */
+.security-shell {
+  max-width: 480px;
+}
+
+.security-card {
+  display: flex; flex-direction: column; gap: 18px;
+  padding: 28px;
+  background: linear-gradient(148deg, rgba(255,255,255,0.050) 0%, rgba(255,255,255,0.016) 100%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 18px rgba(0,0,0,0.28);
+}
+
+.security-card-head {
+  display: flex; flex-direction: column; gap: 4px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 2px;
+}
+.security-card-eyebrow {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--color-accent);
+}
+.security-card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px; font-weight: 600; letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.security-card-desc {
+  font-size: 12.5px; font-weight: 300; color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.security-field {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.security-label {
+  font-size: 10.5px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.security-input {
+  width: 100%;
+  padding: 10px 13px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 9px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; letter-spacing: 0.02em;
+  outline: none;
+  transition: border-color .22s var(--ease-smooth), background .22s, box-shadow .22s;
+}
+.security-input::placeholder { color: var(--text-muted); }
+.security-input:hover { border-color: rgba(255,255,255,0.14); }
+.security-input:focus {
+  border-color: rgba(0,143,245,0.45);
+  background: rgba(0,143,245,0.04);
+  box-shadow: 0 0 0 3px rgba(0,143,245,0.16);
+}
+.security-input:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.security-feedback {
+  font-size: 12px; line-height: 1.5;
+  padding: 9px 12px; border-radius: 8px;
+  border: 1px solid transparent;
+}
+.security-feedback[hidden] { display: none !important; }
+.security-feedback.is-success {
+  color: var(--color-green);
+  background: var(--color-green-soft);
+  border-color: rgba(72,199,142,0.18);
+}
+.security-feedback.is-error {
+  color: #f87272;
+  background: rgba(244,92,92,0.08);
+  border-color: rgba(244,92,92,0.18);
+}
+
+.security-actions {
+  display: flex; justify-content: flex-end;
+  margin-top: 4px;
+}
+.security-actions .btn-primary-dash[disabled] {
+  opacity: 0.6; cursor: not-allowed; transform: none; filter: none;
+  box-shadow: 0 2px 8px rgba(0,143,245,0.18);
+}
+
+/* ══════════════════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════════════════ */
 @media (max-width: 900px) {
@@ -1057,10 +1333,11 @@ ul { list-style: none; }
 /* ── Layout: lista | detalle ── */
 .inbox-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 320px minmax(0, 1fr);   /* minmax(0,1fr) impide overflow horizontal */
   gap: 0;
   height: calc(100vh - var(--header-h, 58px) - 200px);
-  min-height: 400px;
+  min-height: 480px;
+  max-height: calc(100vh - 120px);
   background: linear-gradient(148deg, rgba(255,255,255,.046) 0%, rgba(255,255,255,.016) 100%);
   border: 1px solid rgba(255,255,255,.075);
   border-radius: 16px;
@@ -1073,6 +1350,7 @@ ul { list-style: none; }
 .inbox-list-panel {
   border-right: 1px solid rgba(255,255,255,.06);
   overflow-y: auto;
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,.06) transparent;
 }
@@ -1207,15 +1485,24 @@ ul { list-style: none; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;        /* permite que el chat-panel se contraiga dentro del grid */
+  min-width: 0;
 }
 
+/* Hidden real: vence a las reglas de display de la clase. Sin esto,
+   .inbox-detail-empty y .chat-panel se apilaban a la vez y el composer
+   quedaba empujado fuera del overflow. */
+.inbox-detail-empty[hidden],
+.chat-panel[hidden] { display: none !important; }
+
 .inbox-detail-empty {
+  flex: 1;              /* en vez de height:100% — comparte el panel sin imponerse */
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  height: 100%;
   color: var(--text-muted, rgba(255,255,255,.24));
   text-align: center;
   padding: 32px;
@@ -1475,11 +1762,15 @@ ul { list-style: none; }
   flex-shrink: 0;
 }
 
-/* ── Chat Panel ── */
+/* ── Chat Panel ──
+   Prioridad espacial: thread > composer > header.
+   Usa flex:1 + min-height:0 para que el thread sea quien escale
+   y el composer siempre quede anclado abajo. */
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   background: transparent;
   position: relative;
   animation: fadeInUp 200ms var(--ease-spring) both;
@@ -1548,9 +1839,12 @@ ul { list-style: none; }
   border-color: var(--glass-border-hover);
 }
 
-/* Chat Messages */
+/* Chat Messages
+   min-height: 0 es OBLIGATORIO en flex columns anidadas — sin esto,
+   el thread crece según el contenido y empuja al composer fuera. */
 .chat-messages {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: 18px 16px;
   display: flex;
@@ -1824,4 +2118,122 @@ ul { list-style: none; }
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════════════════
+   Entitlements (roles de servicio)
+   ────────────────────────────────────────────────────── */
+.entitlements-block {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.entitlements-header { margin-bottom: 14px; }
+.entitlements-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 6px 0 4px;
+}
+.entitlements-desc {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0;
+}
+.entitlements-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255,255,255,0.08);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.entitlements-empty[hidden],
+.entitlements-grid[hidden],
+.entitlements-block[hidden] { display: none !important; }
+.entitlements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.entitlement-card { padding: 16px; }
+.entitlement-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.entitlement-key {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.04);
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+.entitlement-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+.entitlement-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.entitlement-meta-label { opacity: 0.75; margin-right: 4px; }
+
+/* Admin: filtros y celdas de la tabla de entitlements */
+.admin-filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0 18px;
+}
+.admin-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.admin-filter-label {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+.admin-filter select {
+  background: rgba(255,255,255,0.04);
+  color: inherit;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.admin-cell-sub {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.75;
+}
+.admin-actions-cell { white-space: nowrap; }
+.admin-actions-cell .btn-admin-toggle + .btn-admin-toggle { margin-left: 6px; }
+.admin-cell-sub--admin {
+  color: var(--color-accent, #c9a84c);
+  opacity: 0.9;
+  font-style: italic;
+}
+.admin-cell-sub--pay {
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.85;
 }

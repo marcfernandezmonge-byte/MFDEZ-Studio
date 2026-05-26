@@ -13,6 +13,10 @@
   <link rel="stylesheet" href="../../components/navBar/NavBar.css">
 
   <link rel="stylesheet" href="collectorsClub.css">
+
+  <!-- Polish global de release (imagen, overflow, inputs) -->
+  <link rel="stylesheet" href="../../styles/hardening.css" />
+  <script src="../../styles/hardening.js" defer></script>
 </head>
 <body>
 
@@ -57,7 +61,7 @@
               <div class="cc-print-card__grain"></div>
             </div>
             <div class="cc-print-card__tag">
-              <span class="cc-badge cc-badge--mono">Print #07/100</span>
+              <span class="cc-badge cc-badge--mono">Print #01/100</span>
             </div>
           </div>
         </div>
@@ -91,8 +95,8 @@
       <div class="cc-teaser__inner">
 
         <div class="cc-teaser__left">
-          <div class="cc-section-label">Próxima Edición</div>
-          <h2 class="cc-teaser__title">Edición<br><em>#07</em></h2>
+          <div class="cc-section-label">Tiempo restante</div>
+          <h2 class="cc-teaser__title">Edición<br><em>#03</em></h2>
           <p class="cc-teaser__copy">
             Una fotografía reservada para el archivo privado.<br>
             Solo accesible para miembros del círculo.
@@ -173,7 +177,7 @@
               <span class="cc-benefit__icon" aria-hidden="true">◉</span>
               <div class="cc-benefit__body">
                 <strong>Backstage exclusivo</strong>
-                <p>Making-of, pit lane stories y acceso anticipado a cada edición.</p>
+                <p>Descubre la historia detrás de cada imagen.</p>
               </div>
               <span class="cc-benefit__reveal" aria-hidden="true"><s>15€</s></span>
             </li>
@@ -360,6 +364,10 @@
         <h3 class="cc-modal__title" id="modalTitle">Acceso al Archivo</h3>
         <p class="cc-modal__sub">15€/mes · Sin permanencia · Cancela cuando quieras</p>
 
+        <div class="cc-modal__sim-banner" role="note">
+          <strong>Modo simulación.</strong> Validamos formato (Luhn + caducidad + CVC) pero <em>no se efectúa ningún cargo real</em>. Tu PAN y CVC no se almacenan: solo guardamos marca y últimos 4 dígitos.
+        </div>
+
         <form class="cc-modal__form" id="checkoutForm" novalidate>
           <div class="cc-field">
             <label class="cc-field__label" for="emailInput">Email</label>
@@ -367,23 +375,29 @@
                    placeholder="tu@email.com" autocomplete="email" required>
           </div>
           <div class="cc-field">
+            <label class="cc-field__label" for="holderInput">Nombre del titular</label>
+            <input class="cc-field__input" id="holderInput" type="text"
+                   placeholder="Como aparece en la tarjeta" maxlength="60" autocomplete="cc-name" required>
+          </div>
+          <div class="cc-field">
             <label class="cc-field__label" for="cardInput">Número de tarjeta</label>
             <input class="cc-field__input" id="cardInput" type="text"
-                   placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="cc-number">
+                   placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="off" required>
           </div>
           <div class="cc-field-row">
             <div class="cc-field">
               <label class="cc-field__label" for="expInput">Caducidad</label>
               <input class="cc-field__input" id="expInput" type="text"
-                     placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="cc-exp">
+                     placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="off" required>
             </div>
             <div class="cc-field">
-              <label class="cc-field__label" for="cvvInput">CVV</label>
-              <input class="cc-field__input" id="cvvInput" type="text"
-                     placeholder="•••" maxlength="4" inputmode="numeric" autocomplete="cc-csc">
+              <label class="cc-field__label" for="cvvInput">CVC</label>
+              <input class="cc-field__input" id="cvvInput" type="password"
+                     placeholder="•••" maxlength="4" inputmode="numeric" autocomplete="off" required>
             </div>
           </div>
-            <button class="cc-btn cc-btn--red cc-btn--full cc-btn--lg" type="submit" id="submitBtn">
+          <div class="cc-modal__error" id="ccFormError" hidden></div>
+          <button class="cc-btn cc-btn--red cc-btn--full cc-btn--lg" type="submit" id="submitBtn">
             Confirmar Acceso — 15€/mes
           </button>
         </form>
@@ -393,7 +407,7 @@
             <rect x="1" y="5" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
             <path d="M3 5V4a3 3 0 016 0v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
           </svg>
-          Pago 100% seguro · SSL · Cancela en cualquier momento
+          Pasarela simulada · Sin cargos reales · Cancela cuando quieras
         </p>
       </div>
 
@@ -407,9 +421,9 @@
             </svg>
           </div>
           <h3 class="cc-modal__title">Acceso confirmado</h3>
-          <p class="cc-modal__sub">Tu edición llegará en 5 días.</p>
-          <p class="cc-modal__confirm-note">
-            Revisa tu email para acceder al archivo completo y los detalles de tu número de coleccionista.
+          <p class="cc-modal__sub" id="ccConfirmSub">Tu membresía Collector's Club está activa.</p>
+          <p class="cc-modal__confirm-note" id="ccConfirmNote">
+            Pago (simulado) registrado. Tu rol Collector's Club se ha activado automáticamente.
           </p>
           <button class="cc-btn cc-btn--outline cc-btn--full" id="confirmClose">
             Continuar

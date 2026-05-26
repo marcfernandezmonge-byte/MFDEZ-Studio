@@ -38,22 +38,29 @@ class PlanRequestRepository {
   }
 
   /** Inserta una nueva request. Devuelve el doc creado. */
-  async create({ userId, planId, planCode, planSnapshot, notes }) {
+  async create({ userId, planId, planCode, planSnapshot, notes, paymentId, paymentSnapshot }) {
     const col = await this._col();
     const now = new Date().toISOString();
 
     const doc = {
-      userId:       new ObjectId(String(userId)),
-      planId:       new ObjectId(String(planId)),
-      planCode:     planCode || null,
-      planSnapshot: planSnapshot || null,
-      status:       'pending',
-      notes:        notes || '',
-      requestedAt:  now,
-      decidedAt:    null,
-      decidedBy:    null,
-      startDate:    null,
-      endDate:      null,
+      userId:          new ObjectId(String(userId)),
+      planId:          new ObjectId(String(planId)),
+      planCode:        planCode || null,
+      planSnapshot:    planSnapshot || null,
+      status:          'pending',
+      notes:           notes || '',
+      adminNotes:      '',
+      assignees:       [],          // ← reservado para asignación futura (no usado hoy)
+      // Pago vinculado (opcional — null si la request se creó sin card).
+      paymentId:       paymentId ? new ObjectId(String(paymentId)) : null,
+      paymentSnapshot: paymentSnapshot || null,
+      requestedAt:     now,
+      decidedAt:       null,
+      decidedBy:       null,
+      startDate:       null,
+      endDate:         null,
+      completedAt:     null,
+      updatedAt:       now,
     };
 
     const result = await col.insertOne(doc);
@@ -104,7 +111,7 @@ class PlanRequestRepository {
   }
 
   /** Aprueba una request → status='active', startDate=now. */
-  async approve(id, { adminId, startDate, endDate } = {}) {
+  async approve(id, { adminId, startDate, endDate, adminNotes } = {}) {
     let oid;
     try { oid = new ObjectId(String(id)); } catch { return null; }
     const col = await this._col();
@@ -115,7 +122,9 @@ class PlanRequestRepository {
       decidedBy: adminId ? new ObjectId(String(adminId)) : null,
       startDate: startDate || now,
       endDate:   endDate || null,
+      updatedAt: now,
     };
+    if (typeof adminNotes === 'string') update.adminNotes = adminNotes;
     const result = await col.findOneAndUpdate(
       { _id: oid },
       { $set: update },
@@ -126,7 +135,7 @@ class PlanRequestRepository {
   }
 
   /** Rechaza una request → status='rejected'. */
-  async reject(id, { adminId, reason } = {}) {
+  async reject(id, { adminId, reason, adminNotes } = {}) {
     let oid;
     try { oid = new ObjectId(String(id)); } catch { return null; }
     const col = await this._col();
@@ -135,8 +144,32 @@ class PlanRequestRepository {
       status:    'rejected',
       decidedAt: now,
       decidedBy: adminId ? new ObjectId(String(adminId)) : null,
+      updatedAt: now,
     };
     if (reason) update.notes = reason;
+    if (typeof adminNotes === 'string') update.adminNotes = adminNotes;
+    const result = await col.findOneAndUpdate(
+      { _id: oid },
+      { $set: update },
+      { returnDocument: 'after' }
+    );
+    const doc = result && (result.value || result);
+    return doc && doc._id ? this._toPublic(doc) : null;
+  }
+
+  /** Marca una request como completada → status='completed'. */
+  async complete(id, { adminId, adminNotes } = {}) {
+    let oid;
+    try { oid = new ObjectId(String(id)); } catch { return null; }
+    const col = await this._col();
+    const now = new Date().toISOString();
+    const update = {
+      status:      'completed',
+      completedAt: now,
+      updatedAt:   now,
+    };
+    if (adminId) update.decidedBy = new ObjectId(String(adminId));
+    if (typeof adminNotes === 'string') update.adminNotes = adminNotes;
     const result = await col.findOneAndUpdate(
       { _id: oid },
       { $set: update },
@@ -154,18 +187,24 @@ class PlanRequestRepository {
 
   _toPublic(doc) {
     return {
-      id:           String(doc._id),
-      userId:       doc.userId ? String(doc.userId) : null,
-      planId:       doc.planId ? String(doc.planId) : null,
-      planCode:     doc.planCode || null,
-      planSnapshot: doc.planSnapshot || null,
-      status:       doc.status,
-      notes:        doc.notes || '',
-      requestedAt:  doc.requestedAt || null,
-      decidedAt:    doc.decidedAt || null,
-      decidedBy:    doc.decidedBy ? String(doc.decidedBy) : null,
-      startDate:    doc.startDate || null,
-      endDate:      doc.endDate || null,
+      id:              String(doc._id),
+      userId:          doc.userId ? String(doc.userId) : null,
+      planId:          doc.planId ? String(doc.planId) : null,
+      planCode:        doc.planCode || null,
+      planSnapshot:    doc.planSnapshot || null,
+      status:          doc.status,
+      notes:           doc.notes || '',
+      adminNotes:      doc.adminNotes || '',
+      assignees:       Array.isArray(doc.assignees) ? doc.assignees.map(String) : [],
+      paymentId:       doc.paymentId ? String(doc.paymentId) : null,
+      paymentSnapshot: doc.paymentSnapshot || null,
+      requestedAt:     doc.requestedAt || null,
+      decidedAt:       doc.decidedAt || null,
+      decidedBy:       doc.decidedBy ? String(doc.decidedBy) : null,
+      startDate:       doc.startDate || null,
+      endDate:         doc.endDate || null,
+      completedAt:     doc.completedAt || null,
+      updatedAt:       doc.updatedAt || doc.requestedAt || null,
     };
   }
 }

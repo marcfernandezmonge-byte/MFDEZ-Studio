@@ -415,3 +415,144 @@ document.addEventListener('touchend', (e) => {
   if (now - lastTouch < 300) e.preventDefault();
   lastTouch = now;
 }, { passive: false });
+
+
+/* ══════════════════════════════════════════════════════
+   6. GOOGLE SIGN-IN
+   ──────────────────────────────────────────────────────
+   Flujo:
+     1. Al cargar la página, pedimos GOOGLE_CLIENT_ID al backend
+        (endpoint público GET /api/auth/google/client-id).
+     2. Esperamos a que Google Identity Services (gsi/client) esté
+        disponible en window.google.
+     3. Inicializamos GIS con callback = handleGoogleCredential.
+     4. Click en "Continuar con Google" → google.accounts.id.prompt()
+        (popup nativo de Google).
+     5. Google devuelve { credential } → POST /api/auth/google.
+     6. Backend devuelve { token, user } con la MISMA forma que login.
+     7. Guardamos en localStorage IDÉNTICO al login normal y redirigimos.
+══════════════════════════════════════════════════════ */
+(function initGoogleSignIn() {
+  const API_BASE   = 'http://localhost:3000/api';
+  const googleBtn  = document.getElementById('googleSignInBtn');
+  if (!googleBtn) return;
+
+  let googleClientId = null;
+  let gisReady       = false;
+  let gisInitialized = false;
+
+  /* ── Espera a que la librería gsi/client esté cargada ── */
+  function waitForGoogle(timeoutMs = 6000) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      (function poll() {
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+          return resolve();
+        }
+        if (Date.now() - start > timeoutMs) {
+          return reject(new Error('Google Sign-In no disponible (timeout)'));
+        }
+        setTimeout(poll, 80);
+      })();
+    });
+  }
+
+  /* ── Pide el CLIENT_ID público al backend ── */
+  async function fetchClientId() {
+    if (googleClientId) return googleClientId;
+    const res = await fetch(`${API_BASE}/auth/google/client-id`);
+    if (!res.ok) throw new Error('No se pudo obtener configuración de Google');
+    const data = await res.json();
+    if (!data.clientId) {
+      throw new Error('Google Sign-In no configurado en el servidor');
+    }
+    googleClientId = data.clientId;
+    return googleClientId;
+  }
+
+  /* ── Inicializa GIS una sola vez ── */
+  async function ensureInitialized() {
+    if (gisInitialized) return;
+    await fetchClientId();
+    if (!gisReady) {
+      await waitForGoogle();
+      gisReady = true;
+    }
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback:  handleGoogleCredential,
+      ux_mode:   'popup',
+      auto_select: false,
+    });
+    gisInitialized = true;
+  }
+
+  /* ── Callback al recibir credential desde Google ── */
+  async function handleGoogleCredential(response) {
+    if (!response || !response.credential) {
+      handleLoginError('No se recibió respuesta de Google.');
+      restoreGoogleBtn();
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/google`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ credential: response.credential }),
+      });
+
+      let data = null;
+      try { data = await res.json(); } catch { data = null; }
+
+      if (!res.ok) {
+        throw new Error(data?.message || 'No se pudo iniciar sesión con Google');
+      }
+
+      // Mismo contrato que el login local — handleLoginSuccess ya redirige.
+      localStorage.setItem('token', data.token);
+      if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+      handleLoginSuccess();
+
+    } catch (err) {
+      console.error('[GoogleSignIn]', err);
+      handleLoginError(err.message || 'Error al iniciar sesión con Google.');
+      restoreGoogleBtn();
+    }
+  }
+
+  /* ── UI helpers ── */
+  function setGoogleBtnLoading(loading) {
+    googleBtn.disabled = loading;
+    googleBtn.dataset.loading = loading ? 'true' : '';
+    const label = googleBtn.querySelector('span');
+    if (label) {
+      if (loading) {
+        if (!googleBtn.dataset.originalLabel) {
+          googleBtn.dataset.originalLabel = label.textContent || '';
+        }
+        label.textContent = 'Abriendo Google…';
+      } else if (googleBtn.dataset.originalLabel) {
+        label.textContent = googleBtn.dataset.originalLabel;
+      }
+    }
+  }
+  function restoreGoogleBtn() { setGoogleBtnLoading(false); }
+
+  /* ── Click handler ── */
+  googleBtn.addEventListener('click', async () => {
+    setGoogleBtnLoading(true);
+    try {
+      await ensureInitialized();
+      // prompt() abre el popup nativo de Google. Si el usuario cierra el
+      // popup, GIS no llama callback — restauramos el botón pasados unos
+      // segundos como fallback.
+      window.google.accounts.id.prompt();
+      setTimeout(restoreGoogleBtn, 1500);
+    } catch (err) {
+      console.error('[GoogleSignIn] init error:', err);
+      handleLoginError(err.message || 'Google Sign-In no disponible.');
+      restoreGoogleBtn();
+    }
+  });
+})();

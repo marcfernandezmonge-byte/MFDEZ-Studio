@@ -31,5 +31,6 @@ router.post('/user/services/request', requireAuth, ctrl.requestService);
 router.get('/admin/service-requests',                requireAuth, requireAdmin, ctrl.adminListRequests);
 router.patch('/admin/service-requests/:id/approve',  requireAuth, requireAdmin, ctrl.adminApproveRequest);
 router.patch('/admin/service-requests/:id/reject',   requireAuth, requireAdmin, ctrl.adminRejectRequest);
+router.patch('/admin/service-requests/:id/complete', requireAuth, requireAdmin, ctrl.adminCompleteRequest);
 
 module.exports = router;

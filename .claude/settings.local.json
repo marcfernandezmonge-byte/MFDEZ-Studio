@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(powershell -NoProfile -Command \"\\(Get-CimInstance Win32_Process -Filter \\\\\"name='node.exe'\\\\\"\\).Count\")"
+    ]
+  }
+}

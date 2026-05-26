@@ -41,7 +41,7 @@ class MessageService {
       nombre:    nombre.trim(),
       mensaje:   mensaje.trim(),
       sender:    'user',
-      role:      user.role || 'user',
+      role:      user.role === 'admin' ? 'admin' : 'client',
     });
 
     return { message: 'Mensaje enviado correctamente' };

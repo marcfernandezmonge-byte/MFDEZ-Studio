@@ -109,6 +109,59 @@ async login(req, res) {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
+  // POST /api/auth/google
+  //
+  // Body:  { credential }   ← Google ID token (JWT) entregado por GIS popup
+  // 200:   { token, user: { id, name, email, role, isSubscribed } }
+  // 400:   credencial ausente / inválida
+  // 401:   token Google inválido o email no verificado
+  // 500:   GOOGLE_CLIENT_ID no configurado, u otro error inesperado
+  //
+  // Respuesta IDÉNTICA en estructura a /auth/login → el frontend reutiliza
+  // exactamente el mismo flujo (localStorage.setItem('token', …)).
+  // ══════════════════════════════════════════════════════════════════════════
+  async googleLogin(req, res) {
+    try {
+      const { credential } = req.body || {};
+
+      if (!credential || typeof credential !== 'string') {
+        return res.status(400).json({ message: 'Credencial de Google requerida' });
+      }
+
+      const { token, user } = await authService.loginWithGoogle(credential);
+
+      return res.status(200).json({
+        token,
+        user: {
+          id:           user.id,
+          name:         user.name,
+          email:        user.email,
+          role:         user.role,
+          isSubscribed: user.isSubscribed,
+        },
+      });
+    } catch (error) {
+      const status = Number.isInteger(error.status) ? error.status : 500;
+      if (status >= 500) console.error('[AuthController.googleLogin]', error);
+      return res.status(status).json({
+        message: error.message || 'Error al iniciar sesión con Google',
+      });
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // GET /api/auth/google/client-id
+  //
+  // Devuelve el CLIENT_ID público leído desde process.env.GOOGLE_CLIENT_ID.
+  // Es público por diseño (lo expone Google en la propia URL de OAuth);
+  // este endpoint sólo evita hardcodearlo en el HTML.
+  // ══════════════════════════════════════════════════════════════════════════
+  async googleClientId(_req, res) {
+    const clientId = process.env.GOOGLE_CLIENT_ID || '';
+    return res.status(200).json({ clientId });
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
   // POST /api/auth/recover-password
   // ══════════════════════════════════════════════════════════════════════════
 

@@ -57,9 +57,11 @@ async function requireAuth(req, res, next) {
 
     // Añadir usuario a la request para que los controllers lo usen
     req.user = {
-      id:    String(payload.id || payload.sub),
-      email: payload.email,
-      role:  payload.role || 'user',
+      id:           String(payload.id || payload.sub),
+      email:        payload.email,
+      // Normalización defensiva: cualquier valor distinto de 'admin' es 'client'.
+      role:         payload.role === 'admin' ? 'admin' : 'client',
+      isSubscribed: Boolean(payload.isSubscribed),
     };
 
     console.log('[requireAuth] ✓ Autenticado:', req.user);

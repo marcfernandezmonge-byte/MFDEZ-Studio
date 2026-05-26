@@ -68,6 +68,43 @@
   padding: 0;
 }
 
+/* ─────────────────────────────────────────
+   ASSET PROTECTION — silent hardening layer
+   Disables casual extraction vectors (drag, right-click target,
+   text selection, iOS long-press save) on every visual surface
+   that paints an artwork. The interactive button wrappers and
+   click-zones remain fully functional because clicks pass through
+   the image element to its semantic parent.
+   ───────────────────────────────────────── */
+.vault-image,
+.vault-thumb__image {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+
+  /* iOS — prevents long-press "Save Image" callout */
+  -webkit-touch-callout: none;
+
+  /* Pointer passes through the bare <img> element to its semantic
+     wrapper (button for thumbs, container for main image). The
+     right-click target becomes a non-image element, so the browser
+     omits "Save image as / Open image in new tab" entries. */
+  pointer-events: none;
+}
+
+.vault-image-container,
+.vault-thumb {
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 html, body {
   width: 100%;
   min-height: 100%;
@@ -643,7 +680,7 @@ button {
   justify-content: space-between;
   align-items: flex-start;
   gap: 24px;
-  padding: clamp(28px, 4vw, 52px) clamp(28px, 4vw, 56px);
+  padding: clamp(56px, 6.2vw, 84px) clamp(28px, 4vw, 56px) clamp(28px, 4vw, 52px);
 
   /* Architectural ceiling shadow — enormous cornice */
   background: linear-gradient(180deg,
@@ -927,6 +964,103 @@ button {
 }
 
 /* ─────────────────────────────────────────
+   HOME LINK — EDITORIAL RETURN CARTOUCHE
+   Top-left curatorial mark. Not a button — a discreet
+   navigational notation, like an exhibition return arrow
+   incised into the wall. Wakes with the overlay UI.
+   ───────────────────────────────────────── */
+.vault-home-link {
+  position: fixed;
+  /* Pinned tight to the top-left corner so it reads as tertiary
+     navigation, never as a peer of the editorial cartouche below. */
+  top: clamp(18px, 2.2vw, 28px);
+  left: clamp(24px, 3.5vw, 44px);
+  z-index: 30;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 2px;
+
+  /* Editorial typography — same monospace family as institutional notation */
+  font-family: var(--v-mono);
+  font-size: 7px;
+  font-weight: 400;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--v-ink);
+
+  /* Engraved feel — same as meta cartouche */
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 0 6px rgba(220, 196, 148, 0.03);
+
+  /* Dormant — barely-visible mark integrated into the wall */
+  opacity: 0.26;
+  pointer-events: auto;
+  transition:
+    opacity var(--v-monumental) var(--v-curatorial),
+    color var(--v-ceremonial) var(--v-curatorial),
+    letter-spacing var(--v-ceremonial) var(--v-curatorial),
+    text-shadow var(--v-ceremonial) var(--v-curatorial);
+}
+
+/* Wakes with the rest of the overlay UI */
+.vault-page.is-ui-visible .vault-home-link,
+.vault-page.is-tray-open  .vault-home-link,
+.vault-page.is-info-open  .vault-home-link {
+  opacity: 0.62;
+}
+
+/* Minimal brass arrow — pure CSS chevron, no glyph dependency */
+.vault-home-link__arrow {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid var(--v-brass-edge);
+  border-left: 1px solid var(--v-brass-edge);
+  transform: rotate(-45deg) translate(1px, 1px);
+  opacity: 0.85;
+  transition:
+    transform var(--v-monumental) var(--v-curatorial),
+    border-color var(--v-ceremonial) var(--v-curatorial),
+    opacity var(--v-ceremonial) var(--v-curatorial);
+}
+
+.vault-home-link__label {
+  display: inline-block;
+  transform: translateY(-0.5px);
+}
+
+/* Hover — warm, slow, editorial. No background, no button frame. */
+.vault-home-link:hover,
+.vault-home-link:focus-visible {
+  opacity: 1;
+  color: var(--v-muted);
+  letter-spacing: 0.42em;
+  text-shadow:
+    0 1px 0 var(--v-engraved),
+    0 0 8px rgba(232, 208, 162, 0.14);
+  outline: none;
+}
+
+.vault-home-link:hover .vault-home-link__arrow,
+.vault-home-link:focus-visible .vault-home-link__arrow {
+  transform: rotate(-45deg) translate(-2px, -2px);
+  border-color: rgba(232, 208, 162, 0.55);
+  opacity: 1;
+}
+
+/* Retreat softly during preview — never compete with the consecrated slide */
+.vault-page.is-focusing .vault-home-link {
+  opacity: 0.18;
+  transition:
+    opacity 1.1s var(--v-curatorial),
+    color var(--v-ceremonial) var(--v-curatorial);
+}
+
+/* ─────────────────────────────────────────
    TRAY TRIGGER — WALL-MOUNTED BRONZE ESCUTCHEON
    The architectural handle to the archive.
    Aristocratic bronze fitting, almost dissolved into the wall.
@@ -1146,6 +1280,62 @@ button {
   pointer-events: auto;
 }
 
+/* ─────────────────────────────────────────
+   ARCHIVO CHROME RETREAT — during hover preview
+   When a thumbnail is being previewed (state.is-focusing on .vault-page),
+   the tray's visual chrome (background, border, shadows, brass corner,
+   top-light bloom, label) softly dissolves so the consecrated thumbnail
+   gains visual freedom. No display change, no layout shift, no reflow.
+   The thumbnails themselves remain interactive and visible.
+   ───────────────────────────────────────── */
+.vault-page.is-focusing .vault-tray.is-open {
+  /* Strip the slab away — keep geometry, lose the visible material */
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition:
+    background 700ms var(--v-curatorial),
+    border-color 700ms var(--v-curatorial),
+    box-shadow 700ms var(--v-curatorial),
+    backdrop-filter 700ms var(--v-curatorial),
+    -webkit-backdrop-filter 700ms var(--v-curatorial);
+}
+
+.vault-page.is-focusing .vault-tray.is-open::before,
+.vault-page.is-focusing .vault-tray.is-open::after,
+.vault-page.is-focusing .vault-tray.is-open .vault-tray__label {
+  opacity: 0;
+  transition: opacity 700ms var(--v-curatorial);
+}
+
+/* ── Structural release ──
+   Visual fade alone is not enough: the track is a real clipping
+   parent (overflow-x: auto computes overflow-y to auto by spec,
+   regardless of declared `visible`), and `clip-path` can never
+   un-clip what overflow has already removed. During preview the
+   tray + track must stop acting as bounding/clipping contexts so
+   the consecrated thumbnail renders FREELY above the layout. */
+.vault-page.is-focusing .vault-tray.is-open {
+  max-height: none;
+  overflow: visible;
+  contain: none;
+}
+
+.vault-page.is-focusing .vault-tray.is-open .vault-tray-track {
+  clip-path: none;
+  overflow-x: visible;
+  overflow-y: visible;
+  contain: none;
+}
+
+/* Promote the previewed thumbnail above any sibling stacking
+   inside the tray, ensuring no internal layer hides its expansion. */
+.vault-page.is-focusing .vault-tray.is-open .vault-thumb.is-previewed {
+  z-index: 40;
+}
+
 /* Dock ambient top-light — overhead museum spotlight bloom.
    Only emerges when the dock is consecrated (open). */
 .vault-tray::after {
@@ -1235,11 +1425,13 @@ button {
   gap: 10px;
   height: 100%;
   /* CRITICAL: generous top padding = expansion breathing room */
-  padding: 40px 20px 20px;
+  padding: 40px 24px 20px;
   overflow-x: auto;
   overflow-y: visible;
-  /* Clip only horizontal, let vertical escape */
-  clip-path: inset(-80px -4px -4px -4px);
+  /* Generous lateral allowance so previewed thumbnails (scale > 1)
+     never get clipped at the sides of the track, and upward escape
+     to keep them inside the tray frame without grid jump. */
+  clip-path: inset(-72px -24px -4px -24px);
   scrollbar-width: thin;
   scrollbar-color: rgba(180, 158, 112, 0.10) transparent;
 }
@@ -1376,7 +1568,10 @@ button {
   z-index: 10;
   opacity: 1;
   filter: none;
-  transform: scale(1.75) translateY(-20px);
+  /* Contained zoom — keeps the slide inside the tray frame and within
+     the track clip-path so no lateral or top crop occurs. */
+  transform: scale(1.4) translateY(-12px);
+  transform-origin: center bottom;
   border-color: rgba(220, 196, 148, 0.16);
 
   box-shadow:
@@ -1869,7 +2064,7 @@ button {
 
   .vault-overlay-ui {
     gap: 12px;
-    padding: 18px;
+    padding: 44px 18px 18px;
   }
 
   .vault-meta__title {
@@ -1896,17 +2091,99 @@ button {
   }
 
   .vault-tray-track {
-    clip-path: inset(-60px -2px -2px -2px);
-    padding: 32px 14px 14px;
+    clip-path: inset(-60px -18px -2px -18px);
+    padding: 32px 16px 14px;
   }
 
   .vault-tray-track.is-previewing .vault-thumb.is-previewed {
-    transform: scale(1.55) translateY(-14px);
+    transform: scale(1.3) translateY(-8px);
   }
 
   .vault-info-panel {
     width: 100vw;
     padding: 28px 22px;
+  }
+}
+
+/* ─────────────────────────────────────────
+   WIDE & 16:9 BREAKPOINTS
+   Rebalance the archive panel vs. main image area so that the
+   tray never visually dominates the salon on wider viewports.
+   The tray remains floating (position: fixed), so we shrink its
+   footprint and re-tune the image-container padding so the
+   artwork retains visual priority.
+   ───────────────────────────────────────── */
+@media (min-width: 1366px) {
+  .vault-tray {
+    width: clamp(320px, 32vw, 500px);
+    max-height: clamp(180px, 28vh, 268px);
+  }
+
+  .vault-image-container {
+    padding:
+      clamp(90px, 12vh, 140px)
+      clamp(120px, 10vw, 180px)
+      clamp(110px, 14vh, 170px)
+      clamp(140px, 11vw, 220px);
+  }
+
+  .vault-image {
+    max-width: min(74vw, 1400px);
+    max-height: 76vh;
+    max-height: 76svh;
+  }
+}
+
+@media (min-width: 1440px) {
+  .vault-tray {
+    width: clamp(320px, 30vw, 480px);
+  }
+
+  .vault-image-container {
+    padding:
+      clamp(96px, 12vh, 148px)
+      clamp(130px, 10vw, 190px)
+      clamp(120px, 14vh, 174px)
+      clamp(150px, 11vw, 230px);
+  }
+
+  .vault-image {
+    max-width: min(72vw, 1440px);
+    max-height: 78vh;
+    max-height: 78svh;
+  }
+}
+
+@media (min-width: 1920px) {
+  .vault-tray {
+    width: clamp(340px, 24vw, 460px);
+    max-height: clamp(200px, 26vh, 260px);
+  }
+
+  .vault-image-container {
+    padding:
+      clamp(110px, 12vh, 160px)
+      clamp(150px, 9vw, 210px)
+      clamp(130px, 14vh, 184px)
+      clamp(170px, 10vw, 240px);
+  }
+
+  .vault-image {
+    max-width: min(68vw, 1520px);
+    max-height: 80vh;
+    max-height: 80svh;
+  }
+}
+
+/* Ultrawide aspect ratios (21:9 and above) — further restrain the
+   archive panel so it never invades the central exhibition zone. */
+@media (min-aspect-ratio: 2/1) {
+  .vault-tray {
+    width: clamp(320px, 22vw, 440px);
+  }
+
+  .vault-image {
+    max-width: min(64vw, 1560px);
   }
 }
 

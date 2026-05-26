@@ -22,48 +22,61 @@
 const { ObjectId } = require('mongodb');
 const { getDB }    = require('../persistence/mongoClient');
 
+// ─── CANONICAL CATALOG ────────────────────────────────────────────────
+// Fuente única de verdad para PRECIOS de planes. Debe coincidir EXACTAMENTE
+// con lo mostrado en /servicios (servicios.html, sección Paquetes). Si la
+// página de marketing cambia un precio, este array es donde se actualiza.
+//
+// El método `_ensureSeed()` hace upsert por `code` — al reiniciar el server
+// los precios canónicos se propagan a la colección `plans` sin requerir
+// intervención manual en Mongo.
 const DEFAULT_PLANS = [
   {
     code: 'starter',
-    name: 'Starter',
-    description: 'Plan inicial para proyectos pequeños.',
-    price: 49,
+    name: 'Pack Branding',
+    description: 'Identidad visual profesional para tu equipo o piloto.',
+    price: 1800,
     currency: 'EUR',
-    interval: 'month',
+    interval: 'project',
     features: [
-      'Soporte por email',
-      'Hasta 2 proyectos activos',
-      'Entrega estándar',
+      'Identidad visual completa (logo, escudo, dorsales)',
+      'Paleta, tipografías y patrones',
+      'Manual de Marca PDF 20 páginas',
+      'Plantillas redes sociales',
+      'Creatividades de carrera (pódium, pole, fastest lap…)',
     ],
     active: true,
   },
   {
     code: 'studio',
-    name: 'Studio',
-    description: 'Plan recomendado para marcas en crecimiento.',
-    price: 149,
+    name: 'Pack Temporada',
+    description: 'Cobertura completa durante toda la temporada en circuito.',
+    price: 8500,
     currency: 'EUR',
-    interval: 'month',
+    interval: 'season',
     features: [
-      'Soporte prioritario',
-      'Proyectos ilimitados',
-      'Revisiones mensuales',
-      'Branding y dirección de arte',
+      'Todo el Pack Branding incluido',
+      '8 eventos de carrera cubiertos',
+      '2 días foto + vídeo por cita',
+      '15 fotos editadas por evento',
+      '3 reels por evento',
+      'Vídeo recap de temporada',
     ],
     active: true,
   },
   {
     code: 'atelier',
-    name: 'Atelier',
-    description: 'Plan integral con acompañamiento creativo continuo.',
-    price: 349,
+    name: 'Pack Marca Completa',
+    description: 'Comunicación externalizada al 100% con soporte 365 días.',
+    price: 15000,
     currency: 'EUR',
-    interval: 'month',
+    interval: 'year',
     features: [
-      'Dirección creativa dedicada',
-      'Reuniones semanales',
-      'Producción audiovisual',
-      'Acceso a sesiones privadas',
+      'Incluye Packs Branding + Temporada',
+      'Web completa (home, piloto, calendario, galería, contacto)',
+      'Dirección de comunicación',
+      'Reporte anual de marca',
+      'Soporte continuo 365 días',
     ],
     active: true,
   },
@@ -76,20 +89,52 @@ class PlanRepository {
     return db.collection('plans');
   }
 
-  /** Siembra el catálogo si está vacío. Idempotente. */
+  /**
+   * Sincroniza el catálogo canónico con MongoDB.
+   * Idempotente — upsert por `code`:
+   *   - si el plan no existe → se crea con los valores canónicos
+   *   - si existe con valores antiguos → se actualizan a los canónicos
+   *   - documentos personalizados (con otros `code`) no se tocan
+   *
+   * Esto resuelve el caso real en producción donde la colección quedó
+   * sembrada con valores obsoletos (49 / 149 / 349) y los precios visibles
+   * en /servicios no coincidían con los `planSnapshot` persistidos.
+   *
+   * NOTA: las requests YA creadas (planRequests) mantienen su `planSnapshot`
+   * histórico intacto — sólo las solicitudes NUEVAS usarán los valores
+   * canónicos actualizados.
+   */
   async _ensureSeed() {
     const col = await this._col();
-    const count = await col.countDocuments({});
-    if (count > 0) return;
-
     const now = new Date().toISOString();
-    const docs = DEFAULT_PLANS.map((p) => ({
-      ...p,
-      createdAt: now,
-      updatedAt: now,
-    }));
-    await col.insertMany(docs);
-    console.log('[PlanRepository] catálogo sembrado:', docs.length);
+    let created = 0;
+    let updated = 0;
+
+    for (const p of DEFAULT_PLANS) {
+      const result = await col.updateOne(
+        { code: p.code },
+        {
+          $set: {
+            name:        p.name,
+            description: p.description,
+            price:       p.price,
+            currency:    p.currency,
+            interval:    p.interval,
+            features:    p.features,
+            active:      p.active,
+            updatedAt:   now,
+          },
+          $setOnInsert: { createdAt: now },
+        },
+        { upsert: true }
+      );
+      if (result.upsertedCount) created++;
+      else if (result.modifiedCount) updated++;
+    }
+
+    if (created || updated) {
+      console.log(`[PlanRepository] catálogo sincronizado: +${created} creados, ~${updated} actualizados`);
+    }
   }
 
   /** Devuelve todos los planes activos del catálogo. */
@@ -102,6 +147,7 @@ class PlanRepository {
 
   /** Busca un plan por su ObjectId. */
   async findById(id) {
+    await this._ensureSeed();
     let oid;
     try { oid = new ObjectId(String(id)); } catch { return null; }
     const col = await this._col();
@@ -112,6 +158,7 @@ class PlanRepository {
   /** Busca por code (slug). */
   async findByCode(code) {
     if (!code) return null;
+    await this._ensureSeed();
     const col = await this._col();
     const doc = await col.findOne({ code: String(code).toLowerCase() });
     return doc ? this._toPublic(doc) : null;

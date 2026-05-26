@@ -9,6 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="servicios.css" />
   <script src="../../components/navBar/NavBar.js" defer></script>
+
+  <!-- Polish global de release (imagen, overflow, inputs) -->
+  <link rel="stylesheet" href="../../styles/hardening.css" />
+  <script src="../../styles/hardening.js" defer></script>
 </head>
 <body>
 
@@ -33,7 +37,7 @@
     <div class="hero__content">
       <div class="hero__label reveal">
         <span class="label-dot"></span>
-        <span>Servicios — 2024 Season</span>
+        <span>Servicios — 2026 Season</span>
       </div>
 
       <h1 class="hero__title reveal">
@@ -475,8 +479,8 @@
   <section class="cta-final">
     <div class="cta-final__tape" aria-hidden="true">
       <div class="tape-track">
-        <span>GRID STUDIO</span><span>MOTORSPORT</span><span>BRANDING</span><span>FOTOGRAFÍA</span><span>VÍDEO</span><span>ESTRATEGIA</span>
-        <span>GRID STUDIO</span><span>MOTORSPORT</span><span>BRANDING</span><span>FOTOGRAFÍA</span><span>VÍDEO</span><span>ESTRATEGIA</span>
+        <span>MFDEZ STUDIO</span><span>MOTORSPORT</span><span>BRANDING</span><span>FOTOGRAFÍA</span><span>VÍDEO</span><span>ESTRATEGIA</span>
+        <span>MFDEZ STUDIO</span><span>MOTORSPORT</span><span>BRANDING</span><span>FOTOGRAFÍA</span><span>VÍDEO</span><span>ESTRATEGIA</span>
       </div>
     </div>
 
@@ -496,21 +500,21 @@
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer__inner">
-      <div class="footer__brand">
-        <span class="footer__logo">GS</span>
-        <span class="footer__tagline">Grid Studio — Motorsport Creative</span>
-      </div>
-
-      <div class="footer__meta">
-        <span>© 2024 Grid Studio</span>
-        <span class="footer__sep">·</span>
-        <a href="/cdn-cgi/l/email-protection#8ee6e1e2efcee9fce7eafdfafbeae7e1a0ebfd" class="footer__link">
-          <span class="__cf_email__" data-cfemail="3850575459785f4a515c4b4c4d5c5157165d4b">[email&#160;protected]</span>
-        </a>
-      </div>
+  <!-- FOOTER (reutilizado desde NavBar) -->
+  <footer class="site-footer">
+    <div class="menu-footer">
+      <div class="menu-footer__copy">&copy;MFDEZ Studio</div>
+      <a href="https://instagram.com/mfdezphoto" class="menu-footer__social" aria-label="Instagram">
+        <lottie-player
+          src="../../../public/icons/Instagram.json"
+          background="transparent"
+          speed="1"
+          style="width: 28px; height: 28px;"
+          loop
+          autoplay>
+        </lottie-player>
+      </a>
+      <div class="menu-footer__year">2026</div>
     </div>
   </footer>
 
@@ -521,6 +525,7 @@
       <div class="modal__label" data-modal-label>Servicio puntual</div>
       <h3 class="modal__title" id="modal-title-contact" data-modal-title>Solicita tu servicio.</h3>
       <p class="modal__desc" data-modal-desc>Rellena los detalles. Confirmamos disponibilidad en 24h.</p>
+      <div class="modal__step-hint" aria-hidden="true">Paso 1 de 2 · Detalles · luego pago</div>
 
       <form class="modal-form" id="oneshot-form" data-form-kind="oneshot" novalidate>
         <div class="form-group" data-field-group="service">
@@ -581,27 +586,15 @@
           ></textarea>
         </div>
 
-        <div class="form-group" data-field-group="paymentRef">
-          <label class="form-label" for="os-payref">Referencia de pago (opcional, sin datos sensibles)</label>
-          <input
-            class="form-input"
-            type="text"
-            id="os-payref"
-            name="paymentRef"
-            placeholder="Ej. transferencia REF-2024-08-A"
-            maxlength="80"
-          >
-        </div>
-
         <label class="form-check">
           <input type="checkbox" id="os-accept" name="acceptCharge" required>
           <span data-accept-text>
-            Acepto que esta solicitud puede generar un cargo según la tarifa del servicio seleccionado.
+            Solicito presupuesto para este servicio. Esta solicitud <strong>no genera cargo automático</strong>: recibirás propuesta y condiciones tras nuestra revisión.
           </span>
         </label>
 
         <div class="form-error" data-form-error hidden></div>
-        <button type="submit" class="btn btn--accent form-submit">Enviar solicitud →</button>
+        <button type="submit" class="btn btn--accent form-submit">Continuar al pago →</button>
       </form>
     </div>
   </div>
@@ -613,6 +606,7 @@
       <div class="modal__label">Pack 01</div>
       <h3 class="modal__title" id="modal-title-branding">Pack Branding</h3>
       <p class="modal__desc">Identidad visual profesional para tu equipo o piloto. Desde €1.800 · 3–4 semanas.</p>
+      <div class="modal__step-hint" aria-hidden="true">Paso 1 de 2 · Detalles · luego pago</div>
 
       <form class="modal-form" data-form-kind="plan" data-plan-code="starter" novalidate>
         <div class="form-group">
@@ -622,11 +616,11 @@
 
         <label class="form-check">
           <input type="checkbox" name="acceptCharge" required>
-          <span>Acepto que esta solicitud puede generar un cargo según la tarifa del plan.</span>
+          <span>Solicito propuesta para este pack. Esta solicitud <strong>no genera cargo automático</strong>: el cobro solo se inicia tras tu confirmación expresa de la propuesta.</span>
         </label>
 
         <div class="form-error" data-form-error hidden></div>
-        <button type="submit" class="btn btn--accent form-submit">Solicitar Pack Branding →</button>
+        <button type="submit" class="btn btn--accent form-submit">Continuar al pago →</button>
       </form>
     </div>
   </div>
@@ -638,6 +632,7 @@
       <div class="modal__label">Pack 02</div>
       <h3 class="modal__title" id="modal-title-season">Pack Temporada</h3>
       <p class="modal__desc">Cobertura completa durante toda tu temporada. Desde €8.500 / temporada.</p>
+      <div class="modal__step-hint" aria-hidden="true">Paso 1 de 2 · Detalles · luego pago</div>
 
       <form class="modal-form" data-form-kind="plan" data-plan-code="studio" novalidate>
         <div class="form-group">
@@ -647,11 +642,11 @@
 
         <label class="form-check">
           <input type="checkbox" name="acceptCharge" required>
-          <span>Acepto que esta solicitud puede generar un cargo según la tarifa del plan.</span>
+          <span>Solicito propuesta para este pack. Esta solicitud <strong>no genera cargo automático</strong>: el cobro solo se inicia tras tu confirmación expresa de la propuesta.</span>
         </label>
 
         <div class="form-error" data-form-error hidden></div>
-        <button type="submit" class="btn btn--accent form-submit">Solicitar Pack Temporada →</button>
+        <button type="submit" class="btn btn--accent form-submit">Continuar al pago →</button>
       </form>
     </div>
   </div>
@@ -663,6 +658,7 @@
       <div class="modal__label">Pack 03</div>
       <h3 class="modal__title" id="modal-title-full">Pack Marca Completa</h3>
       <p class="modal__desc">Tu comunicación, externalizada al 100%. Desde €15.000 / año · Soporte 365 días.</p>
+      <div class="modal__step-hint" aria-hidden="true">Paso 1 de 2 · Detalles · luego pago</div>
 
       <form class="modal-form" data-form-kind="plan" data-plan-code="atelier" novalidate>
         <div class="form-group">
@@ -672,11 +668,11 @@
 
         <label class="form-check">
           <input type="checkbox" name="acceptCharge" required>
-          <span>Acepto que esta solicitud puede generar un cargo según la tarifa del plan.</span>
+          <span>Solicito propuesta para este pack. Esta solicitud <strong>no genera cargo automático</strong>: el cobro solo se inicia tras tu confirmación expresa de la propuesta.</span>
         </label>
 
         <div class="form-error" data-form-error hidden></div>
-        <button type="submit" class="btn btn--accent form-submit">Solicitar Pack Completo →</button>
+        <button type="submit" class="btn btn--accent form-submit">Continuar al pago →</button>
       </form>
     </div>
   </div>

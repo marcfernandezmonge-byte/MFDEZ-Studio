@@ -12,6 +12,10 @@
   <link rel="stylesheet" href="mainPage.css" />
 
   <script src="../../components/navBar/NavBar.js" defer></script>
+
+  <!-- Polish global de release (imagen, overflow, inputs) -->
+  <link rel="stylesheet" href="../../styles/hardening.css" />
+  <script src="../../styles/hardening.js" defer></script>
 </head>
 
 <body>
@@ -36,7 +40,7 @@
         </div>
 
         <div class="hero-ui__side">
-          <span class="hero-ui__vertical">VISUAL STUDIO — 2024</span>
+          <span class="hero-ui__vertical">MFDEZ Studio — 2026</span>
         </div>
       </div>
 
@@ -53,7 +57,7 @@
             <div class="flip-face flip-face--front">
               <div class="flip-text-center">
                 <h3>Revoluciona</h3>
-                <p>descripción 1 <span class="accent-word">palabra clave</span></p>
+                <p> <span class="accent-word"></span></p>
               </div>
               <div class="img-float img-1"><img src="../../../public/images/@mfdezphoto- (1).jpg" alt="Casa en la colina"></div>
               <div class="img-float img-2"><img src="../../../public/images/@mfdezphoto--3.jpg"   alt="Figura de fuego"></div>
@@ -70,7 +74,7 @@
               <div class="img-float img-5"><img src="../../../public/images/10.jpg"                  alt="Abstracto azul"></div>
               <div class="flip-text-center">
                 <h3>Tu imagen</h3>
-                <p>descripción 2</p>
+                <p></p>
               </div>
             </div>
 
@@ -113,7 +117,7 @@
               <div class="card__num">01</div>
               <h3 class="card__title">IDENTIDAD<br>VISUAL</h3>
               <p class="card__desc">Tu imagen será tu identidad única que distingue tu presencia en los medios, diseñada para optimizar tu rendimiento y diferenciarte en el circuito.</p>
-              <a href="#" class="card__link">
+              <a href="../../pages/servicios/servicios.html" class="card__link">
                 <span>Más info</span>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d="M1 11L11 1M11 1H3M11 1V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -131,7 +135,7 @@
                 <div class="card__num">02</div>
                 <h3 class="card__title">GESTIÓN DE<br>REDES SOCIALES</h3>
                 <p class="card__desc">Construye tu audiencia con contenido que cuidamos y optimizamos en cada plataforma.</p>
-                <a href="#" class="card__link">
+                <a href="../../pages/servicios/servicios.html" class="card__link">
                   <span>Más info</span>
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                     <path d="M1 11L11 1M11 1H3M11 1V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -146,7 +150,7 @@
                 <div class="card__num">03</div>
                 <h3 class="card__title">COBERTURA<br>EN CIRCUITO</h3>
                 <p class="card__desc">Cobertura completa de eventos con contenido viral mientras sigues las últimas tendencias.</p>
-                <a href="#" class="card__link">
+                <a href="../../pages/servicios/servicios.html" class="card__link">
                   <span>Más info</span>
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                     <path d="M1 11L11 1M11 1H3M11 1V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -183,6 +187,24 @@
 
     <!-- Sección contacto placeholder -->
     <section id="contacto" hidden></section>
+
+    <!-- FOOTER (reutilizado desde NavBar) -->
+    <footer class="site-footer">
+      <div class="menu-footer">
+        <div class="menu-footer__copy">&copy;MFDEZ Studio</div>
+        <a href="https://instagram.com/mfdezphoto" class="menu-footer__social" aria-label="Instagram">
+          <lottie-player
+            src="../../../public/icons/Instagram.json"
+            background="transparent"
+            speed="1"
+            style="width: 28px; height: 28px;"
+            loop
+            autoplay>
+          </lottie-player>
+        </a>
+        <div class="menu-footer__year">2026</div>
+      </div>
+    </footer>
 
   </div><!-- /.page -->
 

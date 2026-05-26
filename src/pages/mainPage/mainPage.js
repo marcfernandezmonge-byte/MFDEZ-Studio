@@ -158,10 +158,10 @@
    */
   function handleHeroWheel(e) {
     const raw = e.deltaMode === 1 ? e.deltaY * 20 : e.deltaY;
-    const goingBack = raw < 0;
 
-    // Si el hero ya terminó y el usuario sigue hacia adelante, dejar pasar
-    if (heroCompleted && !goingBack) return;
+    // PATCH hardening: una vez completado el hero, NUNCA volver a capturar.
+    // Evita el bug "enganchado al hero" al hacer scroll arriba rápidamente.
+    if (heroCompleted) return;
 
     e.preventDefault();
     scrollInput += raw * ACCELERATION;
@@ -175,13 +175,10 @@
   }
 
   function handleHeroTouchMove(e) {
-    // Calcular dirección del gesto
-    const dy      = touchLastY - e.touches[0].clientY;
-    const goingBack = dy < 0;
+    // PATCH hardening: una vez completado el hero, no capturar más touch.
+    if (heroCompleted) return;
 
-    // Si hero completado y gesto hacia adelante, no capturar
-    if (heroCompleted && !goingBack) return;
-
+    const dy = touchLastY - e.touches[0].clientY;
     e.preventDefault();
     scrollInput += dy * ACCELERATION * 2.5;
     touchLastY   = e.touches[0].clientY;
@@ -240,12 +237,9 @@
       unlockHeroScroll();
     }
 
-    // Rewind: si el usuario hace scroll hacia atrás desde heroCompleted,
-    // re-lockear el hero para capturar el input de nuevo
-    if (heroCompleted && heroProgress < 0.95) {
-      heroCompleted = false;
-      lockHeroScroll();
-    }
+    // PATCH hardening: el rewind-relock se ha eliminado.
+    // Causaba que la página quedara "enganchada" al volver rápido al hero.
+    // Una vez completado, el hero deja de capturar input definitivamente.
   }
 
   /**

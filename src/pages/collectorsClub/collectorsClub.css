@@ -1631,3 +1631,28 @@
     bottom: 7px;
   }
 }
+
+/* ─── Modal: banner modo simulación + error inline ─────────────── */
+.cc-modal__sim-banner {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(250, 193, 68, 0.35);
+  background: rgba(250, 193, 68, 0.08);
+  color: #f3d68a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.cc-modal__sim-banner strong { color: #fac144; }
+.cc-modal__sim-banner em      { font-style: normal; color: #fff; }
+
+.cc-modal__error {
+  margin: 8px 0 -4px;
+  padding: 9px 11px;
+  border-radius: 7px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+  color: #fca5a5;
+  font-size: 12.5px;
+}
+.cc-modal__error[hidden] { display: none; }

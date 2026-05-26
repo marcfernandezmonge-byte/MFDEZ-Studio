@@ -7,7 +7,7 @@
  *   username     — nombre de usuario visible
  *   email        — único en la colección
  *   password     — SIEMPRE hasheado con bcrypt en persistencia
- *   role         — 'admin' | 'user'
+ *   role         — 'admin' | 'client'
  *   isSubscribed — false por defecto; true al suscribirse al Club
  *   createdAt    — ISO 8601
  *   billingInfo  — SOLO existe si isSubscribed === true
@@ -25,7 +25,7 @@ class User {
     name,
     email,
     password,
-    role         = 'user',
+    role         = 'client',
     isSubscribed = false,
     billingInfo  = null,
     createdAt    = new Date().toISOString(),

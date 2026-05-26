@@ -15,6 +15,7 @@
 
 const planRepository        = require('../repository/PlanRepository');
 const planRequestRepository = require('../repository/PlanRequestRepository');
+const paymentService        = require('./PaymentService');
 
 class PlanService {
 
@@ -45,7 +46,7 @@ class PlanService {
    * @throws Error('Ya tienes un plan activo o pendiente') si ya hay uno.
    * @throws Error('Plan no encontrado') si planId/planCode no existe.
    */
-  async requestPlan(userId, { planId, planCode, notes } = {}) {
+  async requestPlan(userId, { planId, planCode, notes, card } = {}) {
     if (!userId) throw new Error('Usuario no autenticado');
 
     // Invariante: 1 sólo plan vigente
@@ -65,6 +66,23 @@ class PlanService {
       throw err;
     }
 
+    // Paso de pago (SIMULADO). Si el frontend envió `card`, la validamos y
+    // generamos un Payment confirmado ANTES de crear la request. Si la
+    // tarjeta no valida, NO se crea la request — el usuario verá el error.
+    // Si NO se envía `card`, mantenemos compat: la request queda sin pago.
+    let payment = null;
+    if (card && typeof card === 'object') {
+      const result = await paymentService.simulateCharge({
+        userId,
+        purpose: 'plan_request',
+        card,
+        amount: Number.isFinite(plan.price) ? Number(plan.price) : 0,
+        currency: plan.currency || 'EUR',
+        meta: { planCode: plan.code, planId: plan.id, intent: 'request' },
+      });
+      payment = result.payment;
+    }
+
     const created = await planRequestRepository.create({
       userId,
       planId:   plan.id,
@@ -76,9 +94,11 @@ class PlanService {
         interval: plan.interval,
       },
       notes,
+      paymentId:       payment ? payment.id : null,
+      paymentSnapshot: payment ? { ...payment.card, status: payment.status, amount: payment.amount, currency: payment.currency } : null,
     });
 
-    return { request: created };
+    return { request: created, payment };
   }
 
   /** Admin: todas las solicitudes (filtrable por status). */
@@ -88,7 +108,7 @@ class PlanService {
   }
 
   /** Admin: aprobar una solicitud. */
-  async approveRequest(requestId, { adminId, startDate, endDate } = {}) {
+  async approveRequest(requestId, { adminId, startDate, endDate, adminNotes } = {}) {
     const existing = await planRequestRepository.findById(requestId);
     if (!existing) {
       const err = new Error('Solicitud no encontrada');
@@ -102,13 +122,13 @@ class PlanService {
     }
 
     const updated = await planRequestRepository.approve(requestId, {
-      adminId, startDate, endDate,
+      adminId, startDate, endDate, adminNotes,
     });
     return { request: updated };
   }
 
   /** Admin: rechazar una solicitud. */
-  async rejectRequest(requestId, { adminId, reason } = {}) {
+  async rejectRequest(requestId, { adminId, reason, adminNotes } = {}) {
     const existing = await planRequestRepository.findById(requestId);
     if (!existing) {
       const err = new Error('Solicitud no encontrada');
@@ -122,8 +142,25 @@ class PlanService {
     }
 
     const updated = await planRequestRepository.reject(requestId, {
-      adminId, reason,
+      adminId, reason, adminNotes,
     });
+    return { request: updated };
+  }
+
+  /** Admin: marcar una solicitud como completada (sólo desde 'active'). */
+  async completeRequest(requestId, { adminId, adminNotes } = {}) {
+    const existing = await planRequestRepository.findById(requestId);
+    if (!existing) {
+      const err = new Error('Solicitud no encontrada');
+      err.status = 404;
+      throw err;
+    }
+    if (!['active', 'pending'].includes(existing.status)) {
+      const err = new Error(`No se puede completar una solicitud en estado "${existing.status}"`);
+      err.status = 409;
+      throw err;
+    }
+    const updated = await planRequestRepository.complete(requestId, { adminId, adminNotes });
     return { request: updated };
   }
 }

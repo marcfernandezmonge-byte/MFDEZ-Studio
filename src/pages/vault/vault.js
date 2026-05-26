@@ -65,15 +65,26 @@
     waitForSubscription() {
       return new Promise((resolve) => {
 
+        // Camino preferente: la API expuesta por collectorsClub.js. Puede
+        // devolver el valor directamente o una Promesa si la resolución
+        // inicial contra /api/user/subscription aún no terminó. En ambos
+        // casos `resolve(...)` hace lo correcto (Promise.resolve(p) chain).
         if (typeof window.ccVaultAPI?.getSubscriptionState === 'function') {
-          resolve(window.ccVaultAPI.getSubscriptionState());
+          const result = window.ccVaultAPI.getSubscriptionState();
+          Promise.resolve(result).then((state) => {
+            console.log('[Vault] subscription state from ccVaultAPI:', state);
+            resolve(state);
+          });
           return;
         }
 
+        // Fallback: leer el dataset con MutationObserver. Solo aplica si por
+        // alguna razón la API global no se cargó (orden de scripts roto).
         const readAttr = () =>
           document.documentElement.dataset.ccSubscriptionState;
 
         const current = readAttr();
+        console.log('[Vault] fallback dataset read:', current);
 
         if (current && current !== 'checking') {
           resolve(current);
@@ -88,6 +99,7 @@
           observer.disconnect();
           clearTimeout(timer);
 
+          console.log('[Vault] dataset mutated →', next);
           resolve(next);
         });
 
@@ -98,7 +110,9 @@
 
         const timer = setTimeout(() => {
           observer.disconnect();
-          resolve(readAttr() || 'locked');
+          const fallback = readAttr() || 'locked';
+          console.warn('[Vault] waitForSubscription timeout →', fallback);
+          resolve(fallback);
         }, ACCESS_TIMEOUT_MS);
       });
     },
@@ -406,20 +420,21 @@
     return renderPromise;
   }
 
+  /* Hover preview — STRICTLY a thumbnail microinteraction.
+     Does NOT touch the main image: the central artwork represents
+     the user's *selected* image (state.currentIndex), not the
+     transient hover target. The main image is only changed by an
+     explicit click (commitImage). This preserves narrative focus
+     and avoids hover-driven flicker on the central canvas. */
   function previewImage(index) {
 
     const nextIndex = wrapIndex(index);
 
-    if (
-      nextIndex === state.currentIndex &&
-      state.hoveredIndex === null
-    ) return;
+    if (nextIndex === state.hoveredIndex) return;
 
     state.hoveredIndex = nextIndex;
 
     updateThumbState();
-
-    renderMainImage(nextIndex, { preview: true });
   }
 
   function clearPreview() {
@@ -429,8 +444,6 @@
     state.hoveredIndex = null;
 
     updateThumbState();
-
-    renderMainImage(state.currentIndex);
   }
 
   /* ─────────────────────────────────────────
@@ -718,6 +731,108 @@
   }
 
   /* ─────────────────────────────────────────
+     ASSET PROTECTION — silent hardening layer
+
+     Goal: meaningfully increase friction for casual extraction
+     (right-click → Save / Open in new tab / drag to desktop)
+     without degrading hover, selection, animation, accessibility,
+     or the editorial UX. Frontend cannot offer absolute protection;
+     this defense-in-depth combines:
+
+       • inline html attrs (draggable=false, oncontextmenu, ondragstart)
+       • CSS pointer-events: none on <img>, so right-click targets the
+         semantic wrapper (button / container) instead of an image,
+         and the browser omits image-specific menu entries
+       • delegated listeners at .vault-page level catching contextmenu,
+         dragstart, selectstart on every current and future image
+       • image-container + thumb-level guards (any pointer event
+         landing on the painted region near an image is neutralized
+         for the relevant extraction vectors)
+     ───────────────────────────────────────── */
+  function bindAssetProtection() {
+
+    const swallow = (event) => {
+      event.preventDefault();
+      // Do NOT stopPropagation — let normal interaction listeners
+      // (click on .vault-thumb, hover on gallery, etc.) keep flowing.
+    };
+
+    const isProtectedTarget = (target) => {
+
+      if (!(target instanceof Element)) return false;
+
+      return (
+        target.tagName === 'IMG' ||
+        target.classList.contains('vault-image') ||
+        target.classList.contains('vault-thumb') ||
+        target.classList.contains('vault-thumb__image') ||
+        target.classList.contains('vault-image-container') ||
+        target.closest(
+          '.vault-image-container, .vault-thumb, .vault-tray, .vault-image'
+        ) !== null
+      );
+    };
+
+    // Page-level delegation — covers static images, dynamically
+    // rendered thumbnails, and any future image surfaces.
+    ['contextmenu', 'dragstart', 'selectstart'].forEach((name) => {
+
+      els.page.addEventListener(name, (event) => {
+
+        if (isProtectedTarget(event.target)) {
+          swallow(event);
+        }
+      });
+    });
+
+    // Tighten the static main images explicitly (belt-and-braces
+    // against the rare case where the delegated listener is bypassed
+    // by a child stacking context handling the event first).
+    [els.frontImage, els.backImage].forEach((img) => {
+
+      if (!img) return;
+
+      img.setAttribute('draggable', 'false');
+
+      ['contextmenu', 'dragstart', 'mousedown'].forEach((name) => {
+
+        img.addEventListener(name, (event) => {
+
+          // Block right-click (button 2) and any drag initiation;
+          // pass left-click through for any future interactivity.
+          if (name === 'mousedown' && event.button !== 2) return;
+
+          swallow(event);
+        });
+      });
+    });
+
+    // Whenever new thumbnails are rendered, reinforce the inline
+    // attribute (createVaultThumb already sets img.draggable = false,
+    // but we also block the events directly on the inner img).
+    const observer = new MutationObserver((mutations) => {
+
+      mutations.forEach((mutation) => {
+
+        mutation.addedNodes.forEach((node) => {
+
+          if (!(node instanceof Element)) return;
+
+          node.querySelectorAll?.('img').forEach((img) => {
+
+            img.setAttribute('draggable', 'false');
+
+            img.addEventListener('contextmenu', swallow);
+            img.addEventListener('dragstart',  swallow);
+          });
+        });
+      });
+    });
+
+    observer.observe(els.gallery, { childList: true, subtree: true });
+  }
+
+  /* ─────────────────────────────────────────
      ARCHITECTURAL PARALLAX
      Slow mouse-driven depth shift on the atmosphere.
      Updates CSS custom properties --mx and --my,
@@ -808,10 +923,35 @@
     const subscriptionState =
       await VaultAccess.waitForSubscription();
 
-    if (subscriptionState !== SUBSCRIBER_STATE) {
+    // ── Diagnóstico antes del posible redirect ──────────────────────────
+    // Si algo va mal en producción, estos logs cuentan la historia completa:
+    // qué estado se esperaba, qué se recibió, qué dice el dataset, qué hay
+    // en el JWT y, en última instancia, si el guard disparó el redirect.
+    console.groupCollapsed('[Vault] access decision');
+    console.log('expected state :', SUBSCRIBER_STATE);
+    console.log('received state :', subscriptionState);
+    console.log('dataset        :', document.documentElement.dataset.ccSubscriptionState);
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log('JWT payload    :', {
+          id: payload.id, email: payload.email,
+          role: payload.role, isSubscribed: payload.isSubscribed,
+          exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : null,
+        });
+      } else {
+        console.log('JWT payload    : (no token in localStorage)');
+      }
+    } catch (e) {
+      console.warn('JWT decode failed:', e.message);
+    }
+    const willRedirect = subscriptionState !== SUBSCRIBER_STATE;
+    console.log('redirect       :', willRedirect ? `→ ${REDIRECT_URL}` : 'NO');
+    console.groupEnd();
 
+    if (willRedirect) {
       window.location.replace(REDIRECT_URL);
-
       return;
     }
 
@@ -833,6 +973,7 @@
     bindNavigation();
     bindOverlay();
     bindParallax();
+    bindAssetProtection();
 
     await commitImage(0, { immediate: true });
 

@@ -7,7 +7,27 @@
  * NO toca la membresía legacy (Collector's Club).
  */
 
-const planService = require('../services/PlanService');
+const planService    = require('../services/PlanService');
+const userRepository = require('../repository/UserRepository');
+
+/** Enriquece cada request con datos públicos del usuario solicitante. */
+async function _enrichWithUsers(requests) {
+  const ids = Array.from(new Set(requests.map((r) => r.userId).filter(Boolean)));
+  const users = await Promise.all(ids.map((id) => userRepository.findById(id).catch(() => null)));
+  const byId = new Map();
+  users.forEach((u) => { if (u && (u.id || u._id)) byId.set(String(u.id || u._id), u); });
+  return requests.map((r) => {
+    const u = r.userId ? byId.get(String(r.userId)) : null;
+    return {
+      ...r,
+      user: u ? {
+        id:       String(u.id || u._id),
+        email:    u.email,
+        username: u.username || u.name || '',
+      } : null,
+    };
+  });
+}
 
 function statusFromError(err) {
   if (err && Number.isInteger(err.status)) return err.status;
@@ -44,15 +64,20 @@ async function getUserPlan(req, res) {
 
 // POST /api/user/plan/request
 async function requestPlan(req, res) {
-  const { planId, planCode, notes } = req.body || {};
-  console.log('[PlanController] requestPlan →', { userId: req.user.id, planId, planCode });
+  const { planId, planCode, notes, card } = req.body || {};
+  console.log('[PlanController] requestPlan →', {
+    userId:  req.user.id,
+    planId,
+    planCode,
+    cardProvided: Boolean(card),
+  });
 
   try {
-    const result = await planService.requestPlan(req.user.id, { planId, planCode, notes });
+    const result = await planService.requestPlan(req.user.id, { planId, planCode, notes, card });
     return res.status(201).json(result);
   } catch (err) {
     console.error('[PlanController] requestPlan →', err.message);
-    return res.status(statusFromError(err)).json({ error: err.message });
+    return res.status(statusFromError(err)).json({ error: err.message, fields: err.fields || undefined });
   }
 }
 
@@ -64,8 +89,9 @@ async function requestPlan(req, res) {
 async function adminListRequests(req, res) {
   const { status } = req.query || {};
   try {
-    const result = await planService.listAllRequests({ status });
-    return res.json(result);
+    const result   = await planService.listAllRequests({ status });
+    const enriched = await _enrichWithUsers(result.requests || []);
+    return res.json({ requests: enriched });
   } catch (err) {
     console.error('[PlanController] adminListRequests →', err.message);
     return res.status(500).json({ error: err.message });
@@ -75,12 +101,13 @@ async function adminListRequests(req, res) {
 // PATCH /api/admin/plans/:id/approve
 async function adminApproveRequest(req, res) {
   const { id } = req.params;
-  const { startDate, endDate } = req.body || {};
+  const { startDate, endDate, adminNotes } = req.body || {};
   try {
     const result = await planService.approveRequest(id, {
       adminId: req.user.id,
       startDate,
       endDate,
+      adminNotes,
     });
     return res.json(result);
   } catch (err) {
@@ -92,15 +119,32 @@ async function adminApproveRequest(req, res) {
 // PATCH /api/admin/plans/:id/reject
 async function adminRejectRequest(req, res) {
   const { id } = req.params;
-  const { reason } = req.body || {};
+  const { reason, adminNotes } = req.body || {};
   try {
     const result = await planService.rejectRequest(id, {
       adminId: req.user.id,
       reason,
+      adminNotes,
     });
     return res.json(result);
   } catch (err) {
     console.error('[PlanController] adminRejectRequest →', err.message);
+    return res.status(statusFromError(err)).json({ error: err.message });
+  }
+}
+
+// PATCH /api/admin/plans/:id/complete
+async function adminCompleteRequest(req, res) {
+  const { id } = req.params;
+  const { adminNotes } = req.body || {};
+  try {
+    const result = await planService.completeRequest(id, {
+      adminId: req.user.id,
+      adminNotes,
+    });
+    return res.json(result);
+  } catch (err) {
+    console.error('[PlanController] adminCompleteRequest →', err.message);
     return res.status(statusFromError(err)).json({ error: err.message });
   }
 }
@@ -112,4 +156,5 @@ module.exports = {
   adminListRequests,
   adminApproveRequest,
   adminRejectRequest,
+  adminCompleteRequest,
 };

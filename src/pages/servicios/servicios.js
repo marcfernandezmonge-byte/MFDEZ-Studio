@@ -99,6 +99,12 @@ window.closeModal = function (overlay) {
     btn.disabled = false;
   });
 
+  // Salir del paso de pago: limpia el bloque inyectado y reaparecen los
+  // campos del paso 1 en cualquier formulario abierto.
+  overlay.querySelectorAll('form[data-form-kind]').forEach((form) => {
+    if (form.dataset.currentStep === 'payment') resetFormStepState(form);
+  });
+
   if (overlay.id === 'contact-modal') {
     resetOneshotModalState();
   }
@@ -156,6 +162,182 @@ function showToast(msg, kind = 'ok') {
   toastTimeout = setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
+// === CARD PAYMENT STEP =======================================
+// Inyección programática del paso de pago en cada formulario de
+// request (oneshot + planes). NO modifica el HTML existente: oculta
+// los campos del paso 1 y añade un bloque de tarjeta. Visualmente
+// alineado con Collector's Club (mismo léxico, mismas inputs).
+
+function buildPaymentBlock() {
+  const wrap = document.createElement('div');
+  wrap.setAttribute('data-payment-block', 'true');
+  wrap.innerHTML = `
+    <div class="pay-step__head">
+      <span class="pay-step__eyebrow">Paso 2 de 2 · Pago</span>
+      <h4 class="pay-step__title">Datos de tarjeta</h4>
+      <p class="pay-step__sub">
+        Pasarela <strong>simulada</strong>. Validamos formato (Luhn + caducidad + CVC) y guardamos
+        únicamente marca y últimos 4 dígitos. Tu PAN y CVC nunca se almacenan.
+        El cargo real sólo se confirma tras la revisión del estudio.
+      </p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre del titular</label>
+      <input class="form-input" type="text" data-pay-field="holder"
+             placeholder="Como aparece en la tarjeta" maxlength="60" autocomplete="cc-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Número de tarjeta</label>
+      <input class="form-input" type="text" data-pay-field="number"
+             placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Caducidad</label>
+        <input class="form-input" type="text" data-pay-field="expiry"
+               placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">CVC</label>
+        <input class="form-input" type="password" data-pay-field="cvc"
+               placeholder="•••" maxlength="4" inputmode="numeric" autocomplete="off">
+      </div>
+    </div>
+    <button type="button" class="pay-step__back" data-pay-back>← Volver a detalles</button>
+  `;
+
+  // Formateo en vivo: agrupar número 4-4-4-4 y caducidad MM/AA.
+  const numEl = wrap.querySelector('[data-pay-field="number"]');
+  if (numEl) {
+    numEl.addEventListener('input', () => {
+      const d = numEl.value.replace(/\D+/g, '').slice(0, 19);
+      numEl.value = d.match(/.{1,4}/g)?.join(' ') || '';
+    });
+  }
+  const expEl = wrap.querySelector('[data-pay-field="expiry"]');
+  if (expEl) {
+    expEl.addEventListener('input', () => {
+      const d = expEl.value.replace(/\D+/g, '').slice(0, 4);
+      expEl.value = d.length >= 3 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+    });
+  }
+
+  return wrap;
+}
+
+function transitionToPaymentStep(form) {
+  console.log('[servicios] → transitionToPaymentStep', { kind: form.dataset.formKind });
+
+  // Idempotente: si ya estamos en payment, no duplicar el bloque.
+  if (form.dataset.currentStep === 'payment') {
+    console.warn('[servicios] transitionToPaymentStep: ya estaba en payment');
+    return;
+  }
+
+  // 1. Ocultar (no remover) los campos del paso 1 — preserva valores.
+  //    Usamos atributo + clase para resistir cualquier override de CSS.
+  const directChildren = Array.from(form.children);
+  let hidden = 0;
+  directChildren.forEach((el) => {
+    if (el.matches('.form-group, .form-row, .form-check')) {
+      el.setAttribute('hidden', '');
+      el.setAttribute('data-hidden-during-pay', '1');
+      el.classList.add('is-step-hidden');
+      hidden++;
+    }
+  });
+  console.log('[servicios] paso 1: campos ocultos =', hidden);
+
+  // 2. Inyectar el bloque de pago antes del error/submit.
+  const errEl = form.querySelector('[data-form-error]');
+  const block = buildPaymentBlock();
+  if (errEl) form.insertBefore(block, errEl);
+  else form.appendChild(block);
+
+  // 3. Estado + botón.
+  form.dataset.currentStep = 'payment';
+  form.classList.add('is-paying');
+  const btn = form.querySelector('[type="submit"]');
+  if (btn) {
+    if (!btn.dataset.detailsLabel) btn.dataset.detailsLabel = btn.textContent;
+    btn.textContent = 'Pagar y solicitar →';
+  }
+
+  // 4. Wire "back" button.
+  block.querySelector('[data-pay-back]')?.addEventListener('click', () => {
+    transitionBackToDetails(form);
+  });
+
+  // 5. Focus.
+  setTimeout(() => block.querySelector('[data-pay-field="holder"]')?.focus(), 80);
+
+  // 6. Scroll del modal al inicio del bloque para que se vea sin duda.
+  const modalEl = form.closest('.modal');
+  if (modalEl) {
+    setTimeout(() => {
+      const rect = block.getBoundingClientRect();
+      const modalRect = modalEl.getBoundingClientRect();
+      modalEl.scrollTop += (rect.top - modalRect.top) - 24;
+    }, 60);
+  }
+
+  console.log('[servicios] paso 2 inyectado:', Boolean(form.querySelector('[data-payment-block]')));
+}
+
+function transitionBackToDetails(form) {
+  console.log('[servicios] ← transitionBackToDetails');
+
+  form.querySelectorAll('[data-payment-block]').forEach((el) => el.remove());
+
+  form.querySelectorAll('[data-hidden-during-pay]').forEach((el) => {
+    el.removeAttribute('hidden');
+    el.removeAttribute('data-hidden-during-pay');
+    el.classList.remove('is-step-hidden');
+  });
+
+  form.dataset.currentStep = 'details';
+  form.classList.remove('is-paying');
+
+  const btn = form.querySelector('[type="submit"]');
+  if (btn && btn.dataset.detailsLabel) btn.textContent = btn.dataset.detailsLabel;
+}
+
+function collectCardFromForm(form) {
+  const block = form.querySelector('[data-payment-block]');
+  if (!block) return null;
+  const holderRaw = block.querySelector('[data-pay-field="holder"]')?.value || '';
+  const numberRaw = block.querySelector('[data-pay-field="number"]')?.value || '';
+  const expiryRaw = block.querySelector('[data-pay-field="expiry"]')?.value || '';
+  const cvcRaw    = block.querySelector('[data-pay-field="cvc"]')?.value || '';
+
+  const number = numberRaw.replace(/\s+/g, '');
+  const [mm, yy] = expiryRaw.split('/').map((s) => (s || '').trim());
+
+  return {
+    holder:   holderRaw.trim(),
+    number,
+    expMonth: parseInt(mm, 10) || null,
+    expYear:  parseInt(yy, 10) || null,
+    cvc:      cvcRaw,
+  };
+}
+
+/** Validación cliente mínima — el backend revalida con PaymentPolicy. */
+function validateCardShape(card) {
+  if (!card) return 'Datos de tarjeta requeridos.';
+  if (!card.holder || card.holder.length < 2) return 'Indica el nombre del titular.';
+  if (!/^\d{13,19}$/.test(card.number)) return 'Número de tarjeta inválido.';
+  if (!card.expMonth || card.expMonth < 1 || card.expMonth > 12) return 'Caducidad inválida.';
+  if (!card.expYear) return 'Caducidad inválida.';
+  if (!/^\d{3,4}$/.test(String(card.cvc))) return 'CVC inválido.';
+  return null;
+}
+
+function resetFormStepState(form) {
+  if (!form) return;
+  transitionBackToDetails(form);
+}
+
 // === BACKEND: PLANES =========================================
 async function fetchUserPlan() {
   const res = await fetch(`${API_BASE}/user/plan`, {
@@ -183,11 +365,11 @@ async function fetchUserPlan() {
   }
 }
 
-async function postPlanRequest(planCode, notes) {
+async function postPlanRequest(planCode, notes, card) {
   const res = await fetch(`${API_BASE}/user/plan/request`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ planCode, notes }),
+    body: JSON.stringify({ planCode, notes, card }),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -198,15 +380,24 @@ async function postPlanRequest(planCode, notes) {
     throw err;
   }
 
+  // El backend real debe devolver { request: { id, status, planCode, ... } }.
+  // Si llega el shape legacy del stub ({ ok:true, body, version }) la solicitud
+  // NO se ha persistido — tratarlo como error para no engañar al usuario.
+  if (!data || !data.request || !data.request.id) {
+    const err = new Error('La solicitud no se registró correctamente. Inténtalo de nuevo.');
+    err.status = 502;
+    throw err;
+  }
+
   return data;
 }
 
 // === BACKEND: ONESHOTS =======================================
-async function postServiceRequest(serviceCode, notes) {
+async function postServiceRequest(serviceCode, notes, card) {
   const res = await fetch(`${API_BASE}/user/services/request`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ serviceCode, notes }),
+    body: JSON.stringify({ serviceCode, notes, card }),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -214,6 +405,12 @@ async function postServiceRequest(serviceCode, notes) {
   if (!res.ok) {
     const err = new Error(data.error || `HTTP ${res.status}`);
     err.status = res.status;
+    throw err;
+  }
+
+  if (!data || !data.request || !data.request.id) {
+    const err = new Error('La solicitud no se registró correctamente. Inténtalo de nuevo.');
+    err.status = 502;
     throw err;
   }
 
@@ -600,28 +797,66 @@ document.addEventListener('click', (e) => {
 });
 
 // === SUBMIT DE FORMULARIOS ===================================
+// Flujo de dos pasos:
+//   Paso 1 (details): el botón "Continuar al pago" valida detalles y
+//                     transiciona al paso 2.
+//   Paso 2 (payment): valida los datos de tarjeta cliente-side y envía
+//                     todo al backend (request + card en un solo POST).
 document.addEventListener('submit', async (e) => {
   const form = e.target.closest('form[data-form-kind]');
   if (!form) return;
 
   e.preventDefault();
+  e.stopPropagation();
 
-  const kind = form.dataset.formKind;
-  const btn = form.querySelector('[type="submit"]');
+  const kind  = form.dataset.formKind;
+  const step  = form.dataset.currentStep || 'details';
+  const btn   = form.querySelector('[type="submit"]');
   const errEl = form.querySelector('[data-form-error]');
 
+  console.log('[servicios] submit captured', { kind, step });
   clearFormError(errEl);
-
-  if (!form.reportValidity()) return;
-
-  const accept = form.querySelector('input[name="acceptCharge"]');
-  if (accept && !accept.checked) {
-    showFormError(errEl, 'Debes aceptar las condiciones para continuar.');
-    return;
-  }
 
   if (!isLoggedIn()) {
     redirectToLogin();
+    return;
+  }
+
+  // ─── PASO 1: DETAILS ─────────────────────────────────────────
+  if (step !== 'payment') {
+    if (!form.reportValidity()) return;
+
+    const accept = form.querySelector('input[name="acceptCharge"]');
+    if (accept && !accept.checked) {
+      showFormError(errEl, 'Debes aceptar las condiciones para continuar.');
+      return;
+    }
+
+    // Para oneshot: validar también la coherencia de modo antes de pagar.
+    if (kind === 'oneshot') {
+      const requestMode = form.dataset.requestMode || 'service';
+      const lockedServiceCode    = form.dataset.lockedServiceCode || '';
+      const selectedServiceCode  = form.querySelector('#os-service')?.value || '';
+      const projectType          = (form.querySelector('#os-project-type')?.value || '').trim();
+      if (requestMode === 'custom' && !projectType) {
+        showFormError(errEl, 'Selecciona un tipo de proyecto a medida.');
+        return;
+      }
+      if (requestMode !== 'custom' && !lockedServiceCode && !selectedServiceCode) {
+        showFormError(errEl, 'Selecciona un servicio puntual.');
+        return;
+      }
+    }
+
+    transitionToPaymentStep(form);
+    return;
+  }
+
+  // ─── PASO 2: PAYMENT ────────────────────────────────────────
+  const card = collectCardFromForm(form);
+  const cardErr = validateCardShape(card);
+  if (cardErr) {
+    showFormError(errEl, cardErr);
     return;
   }
 
@@ -629,18 +864,20 @@ document.addEventListener('submit', async (e) => {
   if (btn) {
     if (!btn.dataset.originalText) btn.dataset.originalText = originalText;
     btn.disabled = true;
-    btn.textContent = 'Enviando...';
+    btn.textContent = 'Procesando pago…';
   }
 
   try {
     if (kind === 'plan') {
-      await submitPlanForm(form);
+      await submitPlanForm(form, card);
+      resetFormStepState(form);
       form.reset();
       closeModal(form.closest('.modal-overlay'));
       showToast('Solicitud de plan enviada. Te avisaremos al aprobarla.');
       await refreshPlanState();
     } else if (kind === 'oneshot') {
-      await submitOneshotForm(form);
+      await submitOneshotForm(form, card);
+      resetFormStepState(form);
       form.reset();
       closeModal(form.closest('.modal-overlay'));
       showToast('Solicitud enviada — te contactamos en 24h.');
@@ -655,25 +892,35 @@ document.addEventListener('submit', async (e) => {
       return;
     }
 
+    // Errores de tarjeta del backend → mantener al usuario en el paso de pago
+    // para que pueda corregir, sin perder los detalles ya rellenados.
+    const isCardError = err.status === 400 && (Array.isArray(err.fields) ? err.fields.length : true);
+    if (!isCardError) {
+      // Errores no relacionados con la tarjeta (404 plan no encontrado,
+      // 409 plan ya pendiente, etc.) → volver al paso 1 para que el usuario
+      // pueda revisar/cambiar contexto.
+      resetFormStepState(form);
+    }
+
     showFormError(errEl, err.message || 'No se pudo enviar la solicitud.');
     showToast(err.message || 'Error al enviar', 'error');
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = originalText;
+      btn.textContent = btn.dataset.originalText || originalText;
     }
   }
 });
 
-async function submitPlanForm(form) {
+async function submitPlanForm(form, card) {
   const planCode = form.dataset.planCode;
   if (!planCode) throw new Error('Falta data-plan-code en el formulario.');
 
   const notes = (form.querySelector('[name="notes"]')?.value || '').trim();
-  await postPlanRequest(planCode, notes);
+  await postPlanRequest(planCode, notes, card);
 }
 
-async function submitOneshotForm(form) {
+async function submitOneshotForm(form, card) {
   const requestMode = form.dataset.requestMode || 'service';
   const selectedServiceCode = form.querySelector('#os-service')?.value || '';
   const lockedServiceCode = form.dataset.lockedServiceCode || '';
@@ -701,7 +948,7 @@ async function submitOneshotForm(form) {
     notesLines.push(`Briefing: ${obs}`);
     notesLines.push('Condición aceptada: solicitud de propuesta / presupuesto');
 
-    await postServiceRequest('creative-consult', notesLines.join('\n'));
+    await postServiceRequest('creative-consult', notesLines.join('\n'), card);
     return;
   }
 
@@ -712,7 +959,7 @@ async function submitOneshotForm(form) {
   if (paymentRef) notesLines.push(`Ref. pago: ${paymentRef}`);
   notesLines.push('Acepta cargo: sí');
 
-  await postServiceRequest(serviceCode, notesLines.join('\n'));
+  await postServiceRequest(serviceCode, notesLines.join('\n'), card);
 }
 
 // === REVEAL ==================================================
@@ -807,7 +1054,7 @@ document.querySelectorAll('.service-card__btn').forEach((btn) => {
 
 // === TELEMETRY DATA TICKER ===================================
 const labels = [
-  'Season 2024 · Active',
+  'Season 2026 · Active',
   '7 Campeonatos · Cubiertos',
   '120+ Eventos · Entregados',
   'Próxima cita · Disponible',
@@ -837,4 +1084,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initModalSystem();
   resetOneshotModalState();
   refreshPlanState();
+
+  // Self-test: confirma en consola que el wiring de pago está activo.
+  // Si NO ves esta línea al cargar /servicios, tu navegador está sirviendo
+  // una versión cacheada del JS — fuerza un hard-refresh (Ctrl+Shift+R).
+  console.log('[servicios] payment-step v2 wired ✓',
+    'forms=' + document.querySelectorAll('form[data-form-kind]').length);
 });

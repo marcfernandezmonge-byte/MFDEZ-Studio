@@ -68,4 +68,8 @@ router.post('/auth/login', (req, res) => authController.login(req, res));
 router.post('/auth/register', (req, res) => authController.register(req, res));
 router.post('/auth/recover-password', (req, res) => authController.recoverPassword(req, res));
 
+// ── Google Sign-In ──────────────────────────────────────────────────────────
+router.post('/auth/google',           (req, res) => authController.googleLogin(req, res));
+router.get ('/auth/google/client-id', (req, res) => authController.googleClientId(req, res));
+
 module.exports = router;

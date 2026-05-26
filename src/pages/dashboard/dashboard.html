@@ -8,6 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Polish global de release (imagen, overflow, inputs) -->
+  <link rel="stylesheet" href="../../styles/hardening.css" />
+  <script src="../../styles/hardening.js" defer></script>
 </head>
 <body>
 
@@ -109,7 +113,7 @@
                   <span class="nav-label">Overview</span>
                 </button>
               </li>
-              <li>
+              <li data-role-hide="admin">
                 <button class="nav-item" data-section="servicios">
                   <span class="nav-icon" aria-hidden="true">
                     <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
@@ -120,7 +124,7 @@
                   <span class="nav-count" id="navServicesCount" aria-hidden="true">0</span>
                 </button>
               </li>
-              <li>
+              <li data-role-hide="admin">
                 <button class="nav-item" data-section="membresia">
                   <span class="nav-icon" aria-hidden="true">
                     <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
@@ -133,8 +137,26 @@
             </ul>
           </div>
 
-          <!-- Cuenta -->
+          <!-- Cuenta — solo "Seguridad" activo. Perfil/Configuración aún en placeholder. -->
           <div class="nav-section">
+            <span class="nav-section-label">Cuenta</span>
+            <ul class="nav-list" role="list">
+              <li>
+                <button class="nav-item" data-section="seguridad">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 1.5L3 3.4V7.6c0 3.2 2.1 5.7 5 6.5 2.9-.8 5-3.3 5-6.5V3.4L8 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                      <path d="M6 8.2 7.3 9.6 10.2 6.7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Seguridad</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Cuenta — oculta hasta que Perfil/Configuración estén listos -->
+          <div class="nav-section" hidden>
             <span class="nav-section-label">Cuenta</span>
             <ul class="nav-list" role="list">
               <li>
@@ -207,6 +229,32 @@
                   <span class="nav-badge-count nav-badge-count--unread" id="navMessagesBadge" style="display:none">0</span>
                 </button>
               </li>
+              <li>
+                <button class="nav-item" data-section="adminPlanRequests">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <rect x="2.5" y="2" width="11" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+                      <path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Solicitudes — Planes</span>
+                  <span class="nav-count" id="navPlanRequestsCount" aria-hidden="true">0</span>
+                </button>
+              </li>
+              <li>
+                <button class="nav-item" data-section="adminServiceRequests">
+                  <span class="nav-icon" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 4.5h12M2 8h12M2 11.5h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                      <circle cx="3.2" cy="4.5" r="0.7" fill="currentColor"/>
+                      <circle cx="3.2" cy="8" r="0.7" fill="currentColor"/>
+                      <circle cx="3.2" cy="11.5" r="0.7" fill="currentColor"/>
+                    </svg>
+                  </span>
+                  <span class="nav-label">Solicitudes — Servicios</span>
+                  <span class="nav-count" id="navServiceRequestsCount" aria-hidden="true">0</span>
+                </button>
+              </li>
             </ul>
           </div>
           
@@ -266,7 +314,7 @@
                 </div>
 
                 <!-- Resumen servicios -->
-                <div class="dash-card card--services-summary" id="cardServicesSummary">
+                <div class="dash-card card--services-summary" id="cardServicesSummary" data-role-hide="admin">
                   <div class="card-header">
                     <div class="card-icon card-icon--blue">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -317,6 +365,24 @@
                       <path d="M3 7H11M8 4L11 7L8 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   </button>
+                </div>
+              </div>
+
+              <!-- ══ Mis roles activos (entitlements de servicio) ══ -->
+              <div class="entitlements-block" id="entitlementsBlock">
+                <div class="entitlements-header">
+                  <div>
+                    <span class="section-eyebrow">Servicios contratados</span>
+                    <h3 class="entitlements-title">Mis roles activos</h3>
+                    <p class="entitlements-desc">Roles concedidos por los servicios que tienes en activo.</p>
+                  </div>
+                </div>
+                <div class="entitlements-empty" id="entitlementsEmpty">
+                  <p>Todavía no tienes ningún rol de servicio activo.</p>
+                  <a href="/src/pages/servicios/servicios.html" class="btn-primary-dash">Ver servicios disponibles</a>
+                </div>
+                <div class="entitlements-grid" id="entitlementsGrid" hidden>
+                  <!-- JS inyecta tarjetas .entitlement-card aquí -->
                 </div>
               </div>
 
@@ -518,6 +584,73 @@
           </div>
         </section>
 
+        <!-- ══ SEGURIDAD — cambio de contraseña ══ -->
+        <section class="dash-section" id="sectionSeguridad" aria-label="Seguridad" hidden>
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow">Mi cuenta</span>
+              <h2 class="section-title">Seguridad</h2>
+              <p class="section-desc">Actualiza la contraseña de acceso a tu cuenta.</p>
+            </div>
+          </div>
+
+          <div class="security-shell">
+            <form class="security-card" id="passwordForm" autocomplete="off" novalidate>
+              <div class="security-card-head">
+                <span class="security-card-eyebrow">Contraseña</span>
+                <h3 class="security-card-title">Cambiar contraseña</h3>
+                <p class="security-card-desc">Introduce tu contraseña actual y elige una nueva de al menos 6 caracteres.</p>
+              </div>
+
+              <div class="security-field">
+                <label for="pwdCurrent" class="security-label">Contraseña actual</label>
+                <input
+                  id="pwdCurrent"
+                  name="currentPassword"
+                  type="password"
+                  class="security-input"
+                  autocomplete="current-password"
+                  required
+                />
+              </div>
+
+              <div class="security-field">
+                <label for="pwdNew" class="security-label">Nueva contraseña</label>
+                <input
+                  id="pwdNew"
+                  name="newPassword"
+                  type="password"
+                  class="security-input"
+                  autocomplete="new-password"
+                  minlength="6"
+                  required
+                />
+              </div>
+
+              <div class="security-field">
+                <label for="pwdConfirm" class="security-label">Confirmar nueva contraseña</label>
+                <input
+                  id="pwdConfirm"
+                  name="confirmPassword"
+                  type="password"
+                  class="security-input"
+                  autocomplete="new-password"
+                  minlength="6"
+                  required
+                />
+              </div>
+
+              <div class="security-feedback" id="pwdFeedback" role="status" aria-live="polite" hidden></div>
+
+              <div class="security-actions">
+                <button type="submit" class="btn-primary-dash" id="pwdSubmit">
+                  Guardar cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
         <!-- ══ ADMIN: USUARIOS ══ -->
         <section class="dash-section" id="sectionAdminUsuarios" aria-label="Gestión de usuarios" hidden>
           <div class="section-header">
@@ -591,6 +724,140 @@
           </div>
         </section>
 
+
+        <!-- ══ ADMIN: SOLICITUDES — PLANES ══ -->
+        <section class="dash-section" id="sectionAdminPlanRequests" aria-label="Solicitudes de planes" hidden>
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow admin-eyebrow">Admin</span>
+              <h2 class="section-title">Solicitudes — Planes</h2>
+              <p class="section-desc">Solicitudes de packs principales recibidas desde la página de servicios.</p>
+            </div>
+            <div class="inbox-header-actions">
+              <button class="btn-inbox-refresh" id="btnRefreshPlanRequests">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13.5 2v3h-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Actualizar
+              </button>
+            </div>
+          </div>
+          <div class="admin-stats-row">
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="planReqStatPending">—</span>
+              <span class="admin-stat-label">Pendientes</span>
+            </div>
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="planReqStatActive">—</span>
+              <span class="admin-stat-label">Aprobadas</span>
+            </div>
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="planReqStatCompleted">—</span>
+              <span class="admin-stat-label">Completadas</span>
+            </div>
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="planReqStatRejected">—</span>
+              <span class="admin-stat-label">Rechazadas</span>
+            </div>
+          </div>
+          <div class="admin-filters-row">
+            <label class="admin-filter">
+              <span class="admin-filter-label">Estado</span>
+              <select id="planReqFilterStatus">
+                <option value="">Todas</option>
+                <option value="pending">Pendientes</option>
+                <option value="active">Aprobadas</option>
+                <option value="completed">Completadas</option>
+                <option value="rejected">Rechazadas</option>
+                <option value="cancelled">Canceladas</option>
+              </select>
+            </label>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="planRequestsTable">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Plan</th>
+                  <th>Solicitado</th>
+                  <th>Notas</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="planRequestsTableBody">
+                <tr class="admin-table-empty">
+                  <td colspan="6">Cargando solicitudes de planes…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ══ ADMIN: SOLICITUDES — SERVICIOS ══ -->
+        <section class="dash-section" id="sectionAdminServiceRequests" aria-label="Solicitudes de servicios" hidden>
+          <div class="section-header">
+            <div class="section-header-text">
+              <span class="section-eyebrow admin-eyebrow">Admin</span>
+              <h2 class="section-title">Solicitudes — Servicios</h2>
+              <p class="section-desc">Servicios puntuales solicitados por los clientes. Aprueba para generar el rol de servicio asociado.</p>
+            </div>
+            <div class="inbox-header-actions">
+              <button class="btn-inbox-refresh" id="btnRefreshServiceRequests">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13.5 2v3h-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Actualizar
+              </button>
+            </div>
+          </div>
+          <div class="admin-stats-row">
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="svcReqStatPending">—</span>
+              <span class="admin-stat-label">Pendientes</span>
+            </div>
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="svcReqStatApproved">—</span>
+              <span class="admin-stat-label">Aprobadas</span>
+            </div>
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="svcReqStatCompleted">—</span>
+              <span class="admin-stat-label">Completadas</span>
+            </div>
+            <div class="admin-stat-card">
+              <span class="admin-stat-num" id="svcReqStatRejected">—</span>
+              <span class="admin-stat-label">Rechazadas</span>
+            </div>
+          </div>
+          <div class="admin-filters-row">
+            <label class="admin-filter">
+              <span class="admin-filter-label">Estado</span>
+              <select id="svcReqFilterStatus">
+                <option value="">Todas</option>
+                <option value="pending">Pendientes</option>
+                <option value="approved">Aprobadas</option>
+                <option value="completed">Completadas</option>
+                <option value="rejected">Rechazadas</option>
+                <option value="cancelled">Canceladas</option>
+              </select>
+            </label>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="serviceRequestsTable">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Servicio</th>
+                  <th>Solicitado</th>
+                  <th>Notas</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="serviceRequestsTableBody">
+                <tr class="admin-table-empty">
+                  <td colspan="6">Cargando solicitudes de servicios…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <!-- ══ ADMIN: MESSAGES INBOX ══ -->
         <section class="dash-section" id="sectionAdminMessages" aria-label="Inbox de mensajes" hidden>

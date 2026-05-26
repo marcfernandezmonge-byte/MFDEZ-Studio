@@ -3,6 +3,7 @@
 const authService = require('./AuthService');
 const userRepository = require('../repository/UserRepository');
 const serviceRepository = require('../repository/ServiceRepository');
+const paymentService = require('./PaymentService');
 
 class UserServices {
   async getServices(authHeader) {
@@ -26,7 +27,7 @@ class UserServices {
         id: user.id,
         name: user.name || user.username || 'Usuario',
         email: user.email,
-        role: user.role || 'user',
+        role: user.role === 'admin' ? 'admin' : 'client',
         createdAt: user.createdAt,
         active: true,
       })),
@@ -74,11 +75,59 @@ class UserServices {
     };
   }
 
+  /**
+   * Activa Collector's Club. EXIGE prueba de pago confirmado (paymentRef
+   * apuntando a un `payments` con purpose='club_subscription' del propio
+   * usuario). Sin pago verificado → 402 Payment Required.
+   *
+   * `options` solo puede contener `paymentRef` y, opcionalmente, `plan`.
+   * Cualquier campo sensible (cardNumber, cvv, ...) se descarta antes de
+   * persistir en el repositorio (defensa en profundidad).
+   */
   async subscribeUser(userId, options = {}) {
     const user = await userRepository.findById(userId);
     if (!user) throw new Error('Usuario no encontrado');
-    if (user.isSubscribed) throw new Error('Ya tienes una suscripción activa');
-    const updated = await userRepository.subscribeUser(userId, options);
+    console.log('[UserServices.subscribe] BEFORE →', {
+      userId: String(userId),
+      email:  user.email,
+      role:   user.role,
+      isSubscribed: user.isSubscribed,
+    });
+    if (user.isSubscribed) {
+      const err = new Error('Ya tienes una suscripción activa');
+      err.status = 409;
+      throw err;
+    }
+
+    const payment = await paymentService.getValidPaymentFor(
+      userId,
+      options.paymentRef,
+      'club_subscription'
+    );
+    if (!payment) {
+      const err = new Error('Se requiere un pago confirmado para activar el Club');
+      err.status = 402; // Payment Required
+      throw err;
+    }
+
+    // Solo se persisten campos seguros (plan opcional + metadatos del pago).
+    const safeOptions = {
+      plan:      options.plan,
+      paymentRef: payment.id,
+      cardBrand: payment.card?.brand || null,
+      cardLast4: payment.card?.last4 || null,
+    };
+
+    const updated = await userRepository.subscribeUser(userId, safeOptions);
+    console.log('[UserServices.subscribe] AFTER  →', {
+      userId: String(userId),
+      email:  updated?.email,
+      role:   updated?.role,
+      isSubscribed: updated?.isSubscribed,
+      billingInfo: updated?.billingInfo
+        ? { plan: updated.billingInfo.plan, cardBrand: updated.billingInfo.cardBrand, cardLast4: updated.billingInfo.cardLast4 }
+        : null,
+    });
     return { subscription: this._buildMembership(updated) };
   }
 

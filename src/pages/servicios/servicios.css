@@ -791,20 +791,7 @@ a  { color: inherit; text-decoration: none; }
 .cta-final__note { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; }
 
 
-/* ============================================================
-   FOOTER
-   ============================================================= */
-.footer { border-top: 1px solid var(--border); padding: var(--sp-4) var(--px); }
-.footer__inner {
-  display: flex; justify-content: space-between; align-items: center;
-  max-width: var(--max-w); margin: 0 auto; flex-wrap: wrap; gap: var(--sp-2);
-}
-.footer__brand { display: flex; align-items: center; gap: var(--sp-2); }
-.footer__logo { font-family: var(--font-display); font-size: 1.4rem; }
-.footer__tagline { font-size: 0.7rem; color: var(--muted); }
-.footer__meta { display: flex; align-items: center; gap: var(--sp-1); font-size: 0.7rem; color: var(--muted); }
-.footer__sep { opacity: 0.4; }
-.footer__link:hover { color: var(--fg); }
+/* FOOTER: reutilizado desde NavBar (.site-footer + .menu-footer) */
 
 
 /* ============================================================
@@ -869,8 +856,86 @@ a  { color: inherit; text-decoration: none; }
 }
 .form-input:focus { outline: none; border-color: var(--accent); }
 .form-select { cursor: pointer; }
-.form-textarea { min-height: 100px; resize: vertical; }
+.form-textarea { min-height: 100px; resize: none; }
 .form-submit { margin-top: var(--sp-1); }
+
+/* ── Step indicator (eyebrow bajo modal__desc) ─────────────────── */
+.modal__step-hint {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.85;
+  margin-top: calc(-1 * var(--sp-2));
+  margin-bottom: var(--sp-3);
+}
+.modal-form.is-paying ~ .modal__step-hint,
+.modal:has(.modal-form.is-paying) .modal__step-hint { display: none; }
+
+/* ── Step 2: card payment block ─────────────────────────────────
+   Inyectado por servicios.js. Mantiene el léxico visual del resto
+   del formulario (mismas inputs, mismas labels).
+   `display: flex !important` + `visibility: visible !important` para
+   blindarse contra cualquier override accidental por descendencia. */
+[data-payment-block] {
+  display: flex !important;
+  visibility: visible !important;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin-top: var(--sp-1);
+  padding-top: var(--sp-1);
+  border-top: 1px solid var(--border);
+  animation: payStepIn 0.28s ease both;
+}
+.modal-form.is-paying [data-payment-block] { display: flex !important; }
+.pay-step__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.pay-step__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.9;
+}
+.pay-step__title {
+  font-family: var(--font-serif, var(--font-display, serif));
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  color: var(--fg);
+  margin: 0;
+}
+.pay-step__sub {
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
+}
+.pay-step__sub strong { color: var(--fg); font-weight: 500; }
+.pay-step__back {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  padding: 6px 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--transition);
+}
+.pay-step__back:hover { color: var(--fg); }
+@keyframes payStepIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 
 /* ============================================================
